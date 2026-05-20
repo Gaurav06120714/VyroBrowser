@@ -1,0 +1,35 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.registerAllIpc = registerAllIpc;
+const tabs_1 = require("./tabs");
+const navigation_1 = require("./navigation");
+const profiles_1 = require("./profiles");
+const settings_1 = require("./settings");
+const permissions_1 = require("./permissions");
+const history_1 = require("./history");
+const bookmarks_1 = require("./bookmarks");
+const downloads_1 = require("./downloads");
+const ai_1 = require("./ai");
+const adblock_1 = require("./adblock");
+const reader_1 = require("./reader");
+const injections_1 = require("./injections");
+const find_1 = require("./find");
+const keywords_1 = require("./keywords");
+const keyword_service_1 = require("../services/keyword-service");
+function registerAllIpc(db, wm) {
+    const keywordService = new keyword_service_1.KeywordService(db);
+    (0, tabs_1.registerTabsIpc)(db, wm);
+    (0, navigation_1.registerNavigationIpc)(wm);
+    (0, profiles_1.registerProfilesIpc)(db, wm);
+    (0, settings_1.registerSettingsIpc)(db);
+    (0, permissions_1.registerPermissionsIpc)(wm);
+    (0, history_1.registerHistoryIpc)(db);
+    (0, bookmarks_1.registerBookmarksIpc)(db);
+    (0, downloads_1.registerDownloadsIpc)(db, wm);
+    (0, ai_1.registerAIIpc)(db, wm);
+    (0, adblock_1.registerAdblockIpc)();
+    (0, reader_1.registerReaderIpc)();
+    (0, injections_1.registerInjectionsIpc)(db);
+    (0, find_1.registerFindIpc)();
+    (0, keywords_1.registerKeywordsIpc)(keywordService);
+}

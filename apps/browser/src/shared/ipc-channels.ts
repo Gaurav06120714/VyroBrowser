@@ -1,0 +1,166 @@
+// ─────────────────────────────────────────────────────────────────────────────
+// ipc-channels — canonical IPC channel name constants shared between main and
+// renderer.  Organised into domain sections below.  INVOKE_ALLOWLIST and
+// PUSH_ALLOWLIST at the bottom of this file are used by the preload script to
+// enforce the contextIsolation security boundary.
+// ─────────────────────────────────────────────────────────────────────────────
+export const IPC = {
+  // Tabs
+  TABS_CREATE: 'tabs:create',
+  TABS_CLOSE: 'tabs:close',
+  TABS_ACTIVATE: 'tabs:activate',
+  TABS_REORDER: 'tabs:reorder',
+  TABS_PIN: 'tabs:pin',
+  TABS_GROUP_CREATE: 'tabs:group-create',
+  TABS_GROUP_UPDATE: 'tabs:group-update',
+  TABS_GROUP_DELETE: 'tabs:group-delete',
+  TABS_RESTORE_SESSION: 'tabs:restore-session',
+  TABS_SPLIT_TOGGLE: 'tabs:split-toggle',
+  TABS_GET_ALL: 'tabs:get-all',
+  // Navigation
+  NAV_LOAD_URL: 'nav:load-url',
+  NAV_GO_BACK: 'nav:go-back',
+  NAV_GO_FORWARD: 'nav:go-forward',
+  NAV_RELOAD: 'nav:reload',
+  NAV_STOP: 'nav:stop',
+  NAV_ZOOM: 'nav:zoom',
+  NAV_DEVTOOLS: 'nav:devtools',
+  // Webview push events
+  WEBVIEW_DID_NAVIGATE: 'webview:did-navigate',
+  WEBVIEW_TITLE_UPDATED: 'webview:title-updated',
+  WEBVIEW_FAVICON_UPDATED: 'webview:favicon-updated',
+  WEBVIEW_LOADING_CHANGED: 'webview:loading-changed',
+  WEBVIEW_CRASHED: 'webview:crashed',
+  WEBVIEW_NEW_WINDOW: 'webview:new-window',
+  // History
+  HISTORY_SEARCH: 'history:search',
+  HISTORY_ADD: 'history:add',
+  HISTORY_DELETE: 'history:delete',
+  HISTORY_CLEAR_RANGE: 'history:clear-range',
+  HISTORY_CLEAR_ALL: 'history:clear-all',
+  // Bookmarks
+  BOOKMARKS_GET_TREE: 'bookmarks:get-tree',
+  BOOKMARKS_ADD: 'bookmarks:add',
+  BOOKMARKS_UPDATE: 'bookmarks:update',
+  BOOKMARKS_DELETE: 'bookmarks:delete',
+  BOOKMARKS_FOLDER_CREATE: 'bookmarks:folder-create',
+  BOOKMARKS_FOLDER_DELETE: 'bookmarks:folder-delete',
+  BOOKMARKS_REORDER: 'bookmarks:reorder',
+  BOOKMARKS_IMPORT: 'bookmarks:import',
+  BOOKMARKS_EXPORT: 'bookmarks:export',
+  // Downloads
+  DOWNLOADS_GET_ALL: 'downloads:get-all',
+  DOWNLOADS_PAUSE: 'downloads:pause',
+  DOWNLOADS_RESUME: 'downloads:resume',
+  DOWNLOADS_CANCEL: 'downloads:cancel',
+  DOWNLOADS_OPEN: 'downloads:open',
+  DOWNLOADS_REVEAL: 'downloads:reveal',
+  DOWNLOADS_DELETE_RECORD: 'downloads:delete-record',
+  DOWNLOADS_CLEAR_COMPLETED: 'downloads:clear-completed',
+  DOWNLOADS_PROGRESS: 'downloads:progress',
+  DOWNLOADS_COMPLETE: 'downloads:complete',
+  // AI
+  AI_MODELS_LIST: 'ai:models-list',
+  AI_CONVERSATION_CREATE: 'ai:conversation-create',
+  AI_CONVERSATION_GET_ALL: 'ai:conversation-get-all',
+  AI_CONVERSATION_DELETE: 'ai:conversation-delete',
+  AI_MESSAGES_GET: 'ai:messages-get',
+  AI_SEND: 'ai:send',
+  AI_SUMMARIZE_PAGE: 'ai:summarize-page',
+  AI_ABORT: 'ai:abort',
+  AI_CHUNK: 'ai:chunk',
+  AI_ERROR: 'ai:error',
+  // Adblock
+  ADBLOCK_GET_STATS: 'adblock:get-stats',
+  ADBLOCK_SITE_TOGGLE: 'adblock:site-toggle',
+  ADBLOCK_GET_SITE_RULES: 'adblock:get-site-rules',
+  ADBLOCK_RELOAD_LISTS: 'adblock:reload-lists',
+  // Reader
+  READER_EXTRACT: 'reader:extract',
+  READER_TTS_START: 'reader:tts-start',
+  READER_TTS_STOP: 'reader:tts-stop',
+  // Injections
+  INJECTIONS_GET_ALL: 'injections:get-all',
+  INJECTIONS_GET_FOR_ORIGIN: 'injections:get-for-origin',
+  INJECTIONS_SAVE: 'injections:save',
+  INJECTIONS_DELETE: 'injections:delete',
+  // Profiles
+  PROFILES_GET_ALL: 'profiles:get-all',
+  PROFILES_CREATE: 'profiles:create',
+  PROFILES_DELETE: 'profiles:delete',
+  PROFILES_SWITCH: 'profiles:switch',
+  PROFILES_UPDATE: 'profiles:update',
+  // Settings
+  SETTINGS_GET: 'settings:get',
+  SETTINGS_SET: 'settings:set',
+  // Find
+  FIND_START: 'find:start',
+  FIND_STOP: 'find:stop',
+  // Permissions
+  PERMISSION_REQUEST: 'permission:request',
+  PERMISSION_RESPOND: 'permission:respond',
+  // Shortcuts
+  SHORTCUT_ACTION: 'shortcut:action',
+  // App lifecycle pushes from main → renderer
+  APP_NEW_TAB: 'app:new-tab',
+  // Keywords
+  KEYWORDS_RESOLVE: 'keywords:resolve',
+  KEYWORDS_SUGGEST: 'keywords:suggest',
+  KEYWORDS_GET_ALL: 'keywords:get-all',
+  KEYWORDS_SAVE_CUSTOM: 'keywords:save-custom',
+  KEYWORDS_DELETE_CUSTOM: 'keywords:delete-custom',
+  KEYWORDS_TOGGLE: 'keywords:toggle',
+  KEYWORDS_IMPORT: 'keywords:import',
+  KEYWORDS_EXPORT: 'keywords:export',
+  KEYWORDS_TRACK_USE: 'keywords:track-use',
+  KEYWORDS_GET_USAGE: 'keywords:get-usage',
+  KEYWORDS_RESET: 'keywords:reset',
+} as const;
+
+export type IpcChannel = typeof IPC[keyof typeof IPC];
+
+// Channels the renderer is allowed to invoke (allowlist for preload)
+export const INVOKE_ALLOWLIST: IpcChannel[] = [
+  IPC.TABS_CREATE, IPC.TABS_CLOSE, IPC.TABS_ACTIVATE, IPC.TABS_REORDER,
+  IPC.TABS_PIN, IPC.TABS_GROUP_CREATE, IPC.TABS_GROUP_UPDATE, IPC.TABS_GROUP_DELETE,
+  IPC.TABS_RESTORE_SESSION, IPC.TABS_SPLIT_TOGGLE, IPC.TABS_GET_ALL,
+  IPC.NAV_LOAD_URL, IPC.NAV_GO_BACK, IPC.NAV_GO_FORWARD, IPC.NAV_RELOAD,
+  IPC.NAV_STOP, IPC.NAV_ZOOM, IPC.NAV_DEVTOOLS,
+  IPC.HISTORY_SEARCH, IPC.HISTORY_ADD, IPC.HISTORY_DELETE,
+  IPC.HISTORY_CLEAR_RANGE, IPC.HISTORY_CLEAR_ALL,
+  IPC.BOOKMARKS_GET_TREE, IPC.BOOKMARKS_ADD, IPC.BOOKMARKS_UPDATE,
+  IPC.BOOKMARKS_DELETE, IPC.BOOKMARKS_FOLDER_CREATE, IPC.BOOKMARKS_FOLDER_DELETE,
+  IPC.BOOKMARKS_REORDER, IPC.BOOKMARKS_IMPORT, IPC.BOOKMARKS_EXPORT,
+  IPC.DOWNLOADS_GET_ALL, IPC.DOWNLOADS_PAUSE, IPC.DOWNLOADS_RESUME,
+  IPC.DOWNLOADS_CANCEL, IPC.DOWNLOADS_OPEN, IPC.DOWNLOADS_REVEAL,
+  IPC.DOWNLOADS_DELETE_RECORD, IPC.DOWNLOADS_CLEAR_COMPLETED,
+  IPC.AI_MODELS_LIST, IPC.AI_CONVERSATION_CREATE, IPC.AI_CONVERSATION_GET_ALL,
+  IPC.AI_CONVERSATION_DELETE, IPC.AI_MESSAGES_GET, IPC.AI_SEND,
+  IPC.AI_SUMMARIZE_PAGE, IPC.AI_ABORT,
+  IPC.ADBLOCK_GET_STATS, IPC.ADBLOCK_SITE_TOGGLE, IPC.ADBLOCK_GET_SITE_RULES,
+  IPC.ADBLOCK_RELOAD_LISTS,
+  IPC.READER_EXTRACT, IPC.READER_TTS_START, IPC.READER_TTS_STOP,
+  IPC.INJECTIONS_GET_ALL, IPC.INJECTIONS_GET_FOR_ORIGIN,
+  IPC.INJECTIONS_SAVE, IPC.INJECTIONS_DELETE,
+  IPC.PROFILES_GET_ALL, IPC.PROFILES_CREATE, IPC.PROFILES_DELETE,
+  IPC.PROFILES_SWITCH, IPC.PROFILES_UPDATE,
+  IPC.SETTINGS_GET, IPC.SETTINGS_SET,
+  IPC.FIND_START, IPC.FIND_STOP,
+  IPC.PERMISSION_RESPOND,
+  IPC.KEYWORDS_RESOLVE, IPC.KEYWORDS_SUGGEST, IPC.KEYWORDS_GET_ALL,
+  IPC.KEYWORDS_SAVE_CUSTOM, IPC.KEYWORDS_DELETE_CUSTOM,
+  IPC.KEYWORDS_TOGGLE, IPC.KEYWORDS_IMPORT, IPC.KEYWORDS_EXPORT,
+  IPC.KEYWORDS_TRACK_USE, IPC.KEYWORDS_GET_USAGE, IPC.KEYWORDS_RESET,
+];
+
+// Channels main pushes to renderer (allowlist for preload `on`)
+export const PUSH_ALLOWLIST: IpcChannel[] = [
+  IPC.WEBVIEW_DID_NAVIGATE, IPC.WEBVIEW_TITLE_UPDATED,
+  IPC.WEBVIEW_FAVICON_UPDATED, IPC.WEBVIEW_LOADING_CHANGED,
+  IPC.WEBVIEW_CRASHED, IPC.WEBVIEW_NEW_WINDOW,
+  IPC.DOWNLOADS_PROGRESS, IPC.DOWNLOADS_COMPLETE,
+  IPC.AI_CHUNK, IPC.AI_ERROR,
+  IPC.PERMISSION_REQUEST,
+  IPC.SHORTCUT_ACTION,
+  IPC.APP_NEW_TAB,
+];

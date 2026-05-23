@@ -1,5 +1,12 @@
 # Vyro Browser
 
+[![Electron](https://img.shields.io/badge/Electron-31-47848F?style=flat-square&logo=electron&logoColor=white)](https://www.electronjs.org/)
+[![React](https://img.shields.io/badge/React-19-61DAFB?style=flat-square&logo=react&logoColor=black)](https://react.dev/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?style=flat-square&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind-3-06B6D4?style=flat-square&logo=tailwindcss&logoColor=white)](https://tailwindcss.com/)
+[![Platform](https://img.shields.io/badge/Platform-macOS_arm64-000000?style=flat-square&logo=apple&logoColor=white)](https://www.apple.com/macos/)
+[![License](https://img.shields.io/badge/License-MIT-blue?style=flat-square)](LICENSE)
+
 > A production-ready, AI-powered macOS browser built with Electron, React, and TypeScript.
 
 Vyro wraps Chromium's webview into a polished dark-mode UI with tabbed browsing, smart keyword navigation, a built-in Ollama AI assistant, ad-blocking, per-profile sessions, reader mode, and a command palette — all packaged as a native macOS app for Apple Silicon.

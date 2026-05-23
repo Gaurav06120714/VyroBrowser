@@ -2,26 +2,331 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Custom scrollbar */
+/* ─── Design tokens ─────────────────────────────────────────────────────── */
+:root {
+  --vyro-accent: #818cf8;
+  --vyro-accent-glow: rgba(129, 140, 248, 0.35);
+  --vyro-ink: #e8e8f0;
+  --vyro-ink-dim: #a8a8b8;
+  --vyro-ink-faint: #6b6b80;
+  --vyro-hairline: rgba(255, 255, 255, 0.06);
+  --vyro-hairline-strong: rgba(255, 255, 255, 0.10);
+  --ease-out-quart: cubic-bezier(0.165, 0.84, 0.44, 1);
+  --ease-in-out-cubic: cubic-bezier(0.65, 0, 0.35, 1);
+  --spring: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* ─── Base ──────────────────────────────────────────────────────────────── */
+html, body {
+  background: transparent;
+  color: var(--vyro-ink);
+  font-feature-settings: "cv11", "ss01";
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Subtle vibrancy fallback on non-mac platforms */
+@supports not (backdrop-filter: blur(1px)) {
+  html, body { background: #0f0f10; }
+}
+
+/* ─── Scrollbar ─────────────────────────────────────────────────────────── */
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.25); }
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 999px;
+  transition: background 0.15s;
+}
+::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.22); }
 
-/* App region for drag */
+/* ─── Drag regions ──────────────────────────────────────────────────────── */
 .drag { -webkit-app-region: drag; }
 .no-drag { -webkit-app-region: no-drag; }
 
-/* Webview fills its container */
-webview { display: flex; flex: 1; width: 100%; height: 100%; border: none; }
-
-/* Glassmorphism */
-.glass {
-  background: rgba(255,255,255,0.05);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255,255,255,0.08);
+/* ─── Webview ───────────────────────────────────────────────────────────── */
+webview {
+  display: flex;
+  flex: 1;
+  width: 100%;
+  height: 100%;
+  border: none;
+  background: #ffffff;
 }
 
-/* Smooth transitions */
-* { transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1); }
+/* ─── Glass system (3 tiers — Arc-quality) ──────────────────────────────── */
+.glass {
+  /* legacy alias for backward compat — maps to floor */
+  background: rgba(15, 15, 17, 0.55);
+  backdrop-filter: blur(28px) saturate(160%);
+  -webkit-backdrop-filter: blur(28px) saturate(160%);
+  border: 1px solid var(--vyro-hairline);
+}
+
+/* Floor — chrome bar, sticky elements close to content */
+.glass-floor {
+  background: rgba(15, 15, 17, 0.55);
+  backdrop-filter: blur(28px) saturate(160%);
+  -webkit-backdrop-filter: blur(28px) saturate(160%);
+  border-bottom: 1px solid var(--vyro-hairline);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.03) inset;
+}
+
+/* Surface — sidebar, panels */
+.glass-surface {
+  background: rgba(18, 18, 22, 0.62);
+  backdrop-filter: blur(40px) saturate(180%);
+  -webkit-backdrop-filter: blur(40px) saturate(180%);
+  border-right: 1px solid var(--vyro-hairline);
+}
+
+/* Lifted — modals, command palette, popovers */
+.glass-lifted {
+  background: rgba(26, 26, 30, 0.78);
+  backdrop-filter: blur(56px) saturate(200%);
+  -webkit-backdrop-filter: blur(56px) saturate(200%);
+  border: 1px solid var(--vyro-hairline-strong);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.06) inset,
+    0 24px 60px rgba(0, 0, 0, 0.5),
+    0 0 0 0.5px rgba(255, 255, 255, 0.03);
+}
+
+/* ─── Smooth premium transitions (default) ──────────────────────────────── */
+* {
+  transition-timing-function: var(--ease-out-quart);
+}
+
+/* ─── Tab styling (Linear / Arc style) ──────────────────────────────────── */
+.tab-pill {
+  position: relative;
+  transition: background-color 180ms var(--ease-out-quart),
+              color 180ms var(--ease-out-quart),
+              transform 240ms var(--spring);
+}
+.tab-pill:hover { transform: translateY(-0.5px); }
+.tab-pill:active { transform: translateY(0); }
+
+.tab-pill[data-active="true"] {
+  background: rgba(255, 255, 255, 0.08);
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.06),
+    0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+/* Active tab underline indicator — animated */
+.tab-indicator {
+  position: absolute;
+  bottom: -1px;
+  left: 12px;
+  right: 12px;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--vyro-accent), transparent);
+  border-radius: 2px;
+  opacity: 0;
+  transform: scaleX(0.4);
+  transition: opacity 220ms var(--ease-out-quart),
+              transform 320ms var(--spring);
+}
+.tab-pill[data-active="true"] .tab-indicator {
+  opacity: 1;
+  transform: scaleX(1);
+}
+
+/* ─── Buttons — magnetic hover ──────────────────────────────────────────── */
+.btn-toolbar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  color: rgba(255, 255, 255, 0.55);
+  transition: background-color 160ms var(--ease-out-quart),
+              color 160ms var(--ease-out-quart),
+              transform 240ms var(--spring);
+  cursor: pointer;
+}
+.btn-toolbar:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.95);
+  transform: translateY(-0.5px);
+}
+.btn-toolbar:active { transform: scale(0.94); }
+.btn-toolbar:disabled {
+  opacity: 0.35;
+  cursor: default;
+  transform: none;
+  background: transparent;
+}
+
+/* Primary accent button */
+.btn-accent {
+  background: var(--vyro-accent);
+  color: white;
+  border-radius: 10px;
+  padding: 8px 14px;
+  font-size: 13px;
+  font-weight: 500;
+  transition: background 160ms, transform 180ms var(--spring), box-shadow 200ms;
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.08) inset,
+    0 2px 8px rgba(0, 0, 0, 0.2);
+}
+.btn-accent:hover {
+  background: #9aa3fb;
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.1) inset,
+    0 6px 18px var(--vyro-accent-glow);
+  transform: translateY(-0.5px);
+}
+.btn-accent:active { transform: scale(0.98); }
+
+/* ─── Address bar polish ────────────────────────────────────────────────── */
+.address-bar {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--vyro-hairline);
+  transition: background 200ms, border-color 200ms, box-shadow 220ms;
+}
+.address-bar:hover { background: rgba(255, 255, 255, 0.06); }
+.address-bar:focus-within {
+  background: rgba(255, 255, 255, 0.07);
+  border-color: rgba(129, 140, 248, 0.4);
+  box-shadow: 0 0 0 3px rgba(129, 140, 248, 0.12);
+}
+
+/* ─── Card / panel ──────────────────────────────────────────────────────── */
+.panel-row {
+  position: relative;
+  transition: background-color 140ms var(--ease-out-quart),
+              transform 180ms var(--spring);
+}
+.panel-row:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+.panel-row:active { transform: scale(0.997); }
+
+/* ─── Animations ────────────────────────────────────────────────────────── */
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-in {
+  animation: fade-in 240ms var(--ease-out-quart) backwards;
+}
+
+@keyframes scale-in {
+  from { opacity: 0; transform: scale(0.96); }
+  to { opacity: 1; transform: scale(1); }
+}
+.animate-scale-in {
+  animation: scale-in 200ms var(--spring) backwards;
+}
+
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 0 0 var(--vyro-accent-glow); }
+  50% { box-shadow: 0 0 0 8px transparent; }
+}
+.pulse-glow { animation: pulse-glow 2.4s ease-out infinite; }
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+.shimmer-text {
+  background: linear-gradient(90deg, var(--vyro-ink-dim) 0%, var(--vyro-ink) 50%, var(--vyro-ink-dim) 100%);
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: shimmer 2.5s linear infinite;
+}
+
+/* Loading skeleton */
+@keyframes skeleton {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.04) 0%,
+    rgba(255, 255, 255, 0.09) 50%,
+    rgba(255, 255, 255, 0.04) 100%
+  );
+  background-size: 200% 100%;
+  animation: skeleton 1.4s linear infinite;
+}
+
+/* ─── Focus ring ────────────────────────────────────────────────────────── */
+:focus-visible {
+  outline: 2px solid var(--vyro-accent);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+button:focus-visible,
+a:focus-visible {
+  outline-offset: 2px;
+}
+
+/* ─── Sidebar slide animation ───────────────────────────────────────────── */
+.sidebar-slide-enter {
+  transform: translateX(-100%);
+  opacity: 0;
+}
+.sidebar-slide-enter-active {
+  transform: translateX(0);
+  opacity: 1;
+  transition: transform 280ms var(--spring), opacity 200ms;
+}
+
+/* ─── Reduced motion ────────────────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ─── New tab page polish ───────────────────────────────────────────────── */
+.newtab-blob {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 30% 20%, rgba(129, 140, 248, 0.08) 0%, transparent 40%),
+    radial-gradient(circle at 70% 80%, rgba(168, 85, 247, 0.04) 0%, transparent 40%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Speed-dial card hover */
+.dial-card {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--vyro-hairline);
+  border-radius: 14px;
+  transition: background 180ms, border-color 180ms, transform 280ms var(--spring);
+}
+.dial-card:hover {
+  background: rgba(255, 255, 255, 0.07);
+  border-color: var(--vyro-hairline-strong);
+  transform: translateY(-2px) scale(1.02);
+}
+.dial-card:active { transform: translateY(0) scale(0.99); }
+
+/* ─── Command palette result row ────────────────────────────────────────── */
+.cmd-row {
+  position: relative;
+  transition: background-color 100ms, transform 160ms var(--spring);
+}
+.cmd-row[data-selected="true"] {
+  background: rgba(129, 140, 248, 0.15);
+}
+.cmd-row[data-selected="true"]::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 6px;
+  bottom: 6px;
+  width: 2px;
+  background: var(--vyro-accent);
+  border-radius: 2px;
+}

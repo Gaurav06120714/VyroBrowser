@@ -68,8 +68,12 @@ export class WindowManager {
       minWidth: 800,
       minHeight: 600,
       titleBarStyle: 'hiddenInset',
-      trafficLightPosition: { x: 14, y: 12 },
-      backgroundColor: '#0f0f10',
+      trafficLightPosition: { x: 16, y: 14 },
+      // ── macOS native vibrancy — Arc-style translucent chrome ────────────────
+      vibrancy: 'under-window',
+      visualEffectState: 'followsWindowActiveState',
+      backgroundColor: '#00000000',
+      transparent: process.platform === 'darwin',
       show: false,
       webPreferences: {
         contextIsolation: true,

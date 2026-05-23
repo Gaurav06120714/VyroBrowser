@@ -36,13 +36,11 @@ export const Tab: React.FC<TabProps> = ({ tab, isActive, onDragStart, onDragOver
       onDragOver={e => { e.preventDefault(); onDragOver(tab.id, e); }}
       onDrop={e => { e.preventDefault(); onDrop(tab.id); }}
       onClick={() => activateTab(tab.id)}
+      data-active={isActive ? 'true' : 'false'}
       className={[
-        'group relative flex items-center gap-1.5 rounded-lg cursor-pointer select-none no-drag',
-        'transition-all duration-150 shrink-0',
-        tab.isPinned ? 'px-2 py-1.5 w-10' : 'px-2.5 py-1.5 min-w-[100px] max-w-[200px] flex-1',
-        isActive
-          ? 'bg-white/10 text-white shadow-sm'
-          : 'text-white/50 hover:text-white/80 hover:bg-white/6',
+        'tab-pill group flex items-center gap-1.5 rounded-lg cursor-pointer select-none no-drag shrink-0',
+        tab.isPinned ? 'px-2 py-1.5 w-10' : 'px-2.5 py-1.5 min-w-[100px] max-w-[220px] flex-1',
+        isActive ? 'text-white' : 'text-white/55 hover:text-white/90 hover:bg-white/[0.05]',
       ].join(' ')}
       title={tab.title}
     >
@@ -59,7 +57,7 @@ export const Tab: React.FC<TabProps> = ({ tab, isActive, onDragStart, onDragOver
 
       {/* Title — hidden for pinned tabs */}
       {!tab.isPinned && (
-        <span className="flex-1 text-xs truncate leading-none">
+        <span className="flex-1 text-[12px] truncate leading-none tracking-tight">
           {tab.title || 'New Tab'}
         </span>
       )}
@@ -69,9 +67,9 @@ export const Tab: React.FC<TabProps> = ({ tab, isActive, onDragStart, onDragOver
         <button
           onClick={handleClose}
           className={[
-            'shrink-0 w-4 h-4 rounded flex items-center justify-center',
-            'transition-all duration-100',
-            'opacity-0 group-hover:opacity-100',
+            'shrink-0 w-4 h-4 rounded-[5px] flex items-center justify-center',
+            'transition-[opacity,background,color,transform] duration-150',
+            'opacity-0 group-hover:opacity-100 active:scale-90',
             isActive ? 'opacity-60 hover:opacity-100' : '',
             'hover:bg-white/15 text-white/60 hover:text-white',
           ].join(' ')}
@@ -83,10 +81,8 @@ export const Tab: React.FC<TabProps> = ({ tab, isActive, onDragStart, onDragOver
         </button>
       )}
 
-      {/* Active indicator */}
-      {isActive && (
-        <div className="absolute bottom-0 left-2 right-2 h-0.5 bg-vyro-500 rounded-full" />
-      )}
+      {/* Animated active indicator — handled by CSS .tab-indicator */}
+      <span className="tab-indicator" aria-hidden />
     </div>
   );
 };

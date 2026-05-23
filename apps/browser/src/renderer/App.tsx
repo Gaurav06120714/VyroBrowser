@@ -44,17 +44,16 @@ const NavBar: React.FC = () => {
   const activeTab = useTabsStore(s => s.activeTab());
 
   return (
-    <div className="flex items-center gap-2 px-3 py-1.5 bg-[#0f0f10] border-b border-white/5 no-drag">
+    <div className="flex items-center gap-2 px-3 py-1.5 glass-floor no-drag">
       <NavigationButtons />
 
       <AddressBar />
 
-      {/* Action buttons */}
+      {/* Action buttons — premium magnetic toolbar */}
       <div className="flex items-center gap-0.5">
-        {/* Bookmark */}
         <button
           onClick={() => openModal('bookmark')}
-          className="w-8 h-8 flex items-center justify-center rounded-lg text-white/40 hover:text-white hover:bg-white/8 transition-all duration-150 focus:outline-none"
+          className="btn-toolbar"
           aria-label="Bookmark"
         >
           <svg className="w-4 h-4" viewBox="0 0 20 20" fill={activeTab ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="1.5">
@@ -62,10 +61,9 @@ const NavBar: React.FC = () => {
           </svg>
         </button>
 
-        {/* Profile switcher */}
         <button
           onClick={() => openModal('profiles')}
-          className="w-8 h-8 flex items-center justify-center rounded-lg text-white/40 hover:text-white hover:bg-white/8 transition-all duration-150 focus:outline-none"
+          className="btn-toolbar"
           aria-label="Switch Profile"
         >
           <svg className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
@@ -73,13 +71,10 @@ const NavBar: React.FC = () => {
           </svg>
         </button>
 
-        {/* Sidebar toggle */}
         <button
           onClick={toggleSidebar}
-          className={[
-            'w-8 h-8 flex items-center justify-center rounded-lg transition-all duration-150 focus:outline-none',
-            sidebarOpen ? 'text-vyro-400 bg-vyro-500/10' : 'text-white/40 hover:text-white hover:bg-white/8',
-          ].join(' ')}
+          className="btn-toolbar"
+          style={sidebarOpen ? { background: 'rgba(129,140,248,0.14)', color: 'var(--vyro-accent)' } : undefined}
           aria-label="Toggle sidebar"
         >
           <svg className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
@@ -87,10 +82,9 @@ const NavBar: React.FC = () => {
           </svg>
         </button>
 
-        {/* Settings */}
         <button
           onClick={() => openModal('settings')}
-          className="w-8 h-8 flex items-center justify-center rounded-lg text-white/40 hover:text-white hover:bg-white/8 transition-all duration-150 focus:outline-none"
+          className="btn-toolbar"
           aria-label="Settings"
         >
           <svg className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">

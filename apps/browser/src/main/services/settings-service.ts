@@ -1,5 +1,6 @@
 import Database from 'better-sqlite3';
 import { AppSettings, DEFAULT_SETTINGS } from '../../shared/types/settings';
+import { syncSettingsSet } from './sync-service';
 
 export class SettingsService {
   constructor(private db: Database.Database) {}
@@ -30,7 +31,9 @@ export class SettingsService {
 
     const setMany = this.db.transaction((entries: [string, unknown][]) => {
       for (const [key, value] of entries) {
-        upsert.run(profileId, key, JSON.stringify(value));
+        const serialized = JSON.stringify(value);
+        upsert.run(profileId, key, serialized);
+        syncSettingsSet(profileId, key, serialized);
       }
     });
 
@@ -39,11 +42,13 @@ export class SettingsService {
 
   /** Write an arbitrary key/value (used for adblock site rules and similar). */
   setRaw(profileId: string, key: string, value: unknown): void {
+    const serialized = JSON.stringify(value);
     this.db.prepare(`
       INSERT INTO settings (profile_id, key, value)
       VALUES (?, ?, ?)
       ON CONFLICT (profile_id, key) DO UPDATE SET value = excluded.value
-    `).run(profileId, key, JSON.stringify(value));
+    `).run(profileId, key, serialized);
+    syncSettingsSet(profileId, key, serialized);
   }
 
   /** Return all keys that start with the given prefix, as key→parsed-value map. */

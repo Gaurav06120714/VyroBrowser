@@ -1,5 +1,6 @@
 import Database from 'better-sqlite3';
 import { HistoryEntry } from '../../shared/types/history';
+import { syncHistoryAdd, syncHistoryDelete, syncHistoryClear } from './sync-service';
 
 export class HistoryService {
   constructor(private db: Database.Database) {}
@@ -13,10 +14,22 @@ export class HistoryService {
       this.db.prepare(
         'UPDATE history SET visit_count = visit_count + 1, last_visited_at = unixepoch(), title = ?, favicon = ? WHERE id = ?'
       ).run(title, favicon ?? null, existing.id);
+      const updated = this.db.prepare('SELECT * FROM history WHERE id = ?').get(existing.id) as Record<string, unknown>;
+      syncHistoryAdd({
+        id: updated.id as number, profile_id: updated.profile_id as string,
+        url: updated.url as string, title: updated.title as string,
+        favicon: updated.favicon as string | null, visit_count: updated.visit_count as number,
+        last_visited_at: updated.last_visited_at as number,
+      });
     } else {
-      this.db.prepare(
+      const info = this.db.prepare(
         'INSERT INTO history (profile_id, url, title, favicon) VALUES (?, ?, ?, ?)'
       ).run(profileId, url, title, favicon ?? null);
+      syncHistoryAdd({
+        id: info.lastInsertRowid as number, profile_id: profileId,
+        url, title, favicon: favicon ?? null, visit_count: 1,
+        last_visited_at: Math.floor(Date.now() / 1000),
+      });
     }
   }
 
@@ -43,16 +56,19 @@ export class HistoryService {
 
   delete(id: number): void {
     this.db.prepare('DELETE FROM history WHERE id = ?').run(id);
+    syncHistoryDelete(id);
   }
 
   clearRange(profileId: string, from: number, to: number): void {
     this.db.prepare(
       'DELETE FROM history WHERE profile_id = ? AND last_visited_at BETWEEN ? AND ?'
     ).run(profileId, from, to);
+    syncHistoryClear(profileId);
   }
 
   clearAll(profileId: string): void {
     this.db.prepare('DELETE FROM history WHERE profile_id = ?').run(profileId);
+    syncHistoryClear(profileId);
   }
 
   private toEntry(row: Record<string, unknown>): HistoryEntry {

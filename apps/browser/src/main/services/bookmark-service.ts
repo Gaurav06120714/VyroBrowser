@@ -1,5 +1,6 @@
 import Database from 'better-sqlite3';
 import { Bookmark, BookmarkFolder } from '../../shared/types/bookmark';
+import { syncBookmarkAdd, syncBookmarkUpdate, syncBookmarkDelete, syncFolderAdd, syncFolderDelete } from './sync-service';
 
 export class BookmarkService {
   constructor(private db: Database.Database) {}
@@ -69,7 +70,7 @@ export class BookmarkService {
       'INSERT INTO bookmarks (profile_id, folder_id, url, title, favicon, sort_index) VALUES (?, ?, ?, ?, ?, ?)'
     ).run(profileId, folderId ?? null, url, title, favicon ?? null, maxIdx + 1);
 
-    return {
+    const bm: Bookmark = {
       id: info.lastInsertRowid as number,
       profileId,
       folderId: folderId ?? null,
@@ -79,6 +80,12 @@ export class BookmarkService {
       sortIndex: maxIdx + 1,
       createdAt: Math.floor(Date.now() / 1000),
     };
+    syncBookmarkAdd({
+      id: bm.id, profile_id: bm.profileId, folder_id: bm.folderId,
+      url: bm.url, title: bm.title, favicon: bm.favicon,
+      sort_index: bm.sortIndex, created_at: bm.createdAt,
+    });
+    return bm;
   }
 
   update(id: number, fields: Partial<{ title: string; url: string; folderId: number | null }>): void {
@@ -90,11 +97,17 @@ export class BookmarkService {
     if (sets.length) {
       vals.push(id);
       this.db.prepare(`UPDATE bookmarks SET ${sets.join(', ')} WHERE id = ?`).run(...vals);
+      syncBookmarkUpdate(id, {
+        ...(fields.title !== undefined && { title: fields.title }),
+        ...(fields.url !== undefined && { url: fields.url }),
+        ...('folderId' in fields && { folder_id: fields.folderId }),
+      });
     }
   }
 
   delete(id: number): void {
     this.db.prepare('DELETE FROM bookmarks WHERE id = ?').run(id);
+    syncBookmarkDelete(id);
   }
 
   createFolder(profileId: string, name: string, parentId?: number): BookmarkFolder {
@@ -107,7 +120,7 @@ export class BookmarkService {
       'INSERT INTO bookmark_folders (profile_id, parent_id, name, sort_index) VALUES (?, ?, ?, ?)'
     ).run(profileId, parentId ?? null, name, maxIdx + 1);
 
-    return {
+    const folder: BookmarkFolder = {
       id: info.lastInsertRowid as number,
       profileId,
       parentId: parentId ?? null,
@@ -117,10 +130,16 @@ export class BookmarkService {
       children: [],
       bookmarks: [],
     };
+    syncFolderAdd({
+      id: folder.id, profile_id: folder.profileId, parent_id: folder.parentId,
+      name: folder.name, sort_index: folder.sortIndex, created_at: folder.createdAt,
+    });
+    return folder;
   }
 
   deleteFolder(id: number): void {
     this.db.prepare('DELETE FROM bookmark_folders WHERE id = ?').run(id);
+    syncFolderDelete(id);
   }
 
   reorder(id: number, newIndex: number, folderId: number | null): void {

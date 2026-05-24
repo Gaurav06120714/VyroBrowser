@@ -24,6 +24,8 @@ import { registerFindIpc } from './find';
 import { registerKeywordsIpc } from './keywords';
 import { registerOnboardingIpc } from './onboarding';
 import { registerAppManagementIpc } from './app-management';
+import { registerWindowControlsIpc } from './window-controls';
+import { registerAuthIpc } from './auth';
 import { KeywordService } from '../services/keyword-service';
 import { CrashRecoveryService } from '../services/crash-recovery';
 
@@ -46,4 +48,6 @@ export function registerAllIpc(db: Database.Database, wm: WindowManager): void {
   registerKeywordsIpc(keywordService);
   registerOnboardingIpc(wm);
   registerAppManagementIpc();
+  registerWindowControlsIpc(wm);
+  registerAuthIpc(wm);
 }

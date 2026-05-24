@@ -2,6 +2,7 @@ import Database from 'better-sqlite3';
 import { v4 as uuidv4 } from 'uuid';
 import http from 'http';
 import { AIConversation, AIMessage, OllamaModel } from '../../shared/types/ai';
+import { syncAIConversationCreate, syncAIConversationDelete, syncAIMessageAdd } from './sync-service';
 
 export class AIService {
   private abortControllers = new Map<string, () => void>();
@@ -48,7 +49,9 @@ export class AIService {
     this.db.prepare(
       'INSERT INTO ai_conversations (id, profile_id, title, model, system_prompt, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)'
     ).run(id, profileId, 'New Chat', model, systemPrompt ?? null, now, now);
-    return { id, profileId, title: 'New Chat', model, systemPrompt: systemPrompt ?? null, createdAt: now, updatedAt: now };
+    const conv: AIConversation = { id, profileId, title: 'New Chat', model, systemPrompt: systemPrompt ?? null, createdAt: now, updatedAt: now };
+    syncAIConversationCreate({ id, profile_id: profileId, title: 'New Chat', model, system_prompt: systemPrompt ?? null, created_at: now, updated_at: now });
+    return conv;
   }
 
   getConversations(profileId: string): AIConversation[] {
@@ -67,6 +70,7 @@ export class AIService {
 
   deleteConversation(id: string): void {
     this.db.prepare('DELETE FROM ai_conversations WHERE id = ?').run(id);
+    syncAIConversationDelete(id);
   }
 
   getMessages(conversationId: string): AIMessage[] {
@@ -94,6 +98,7 @@ export class AIService {
     this.db.prepare(
       'INSERT INTO ai_messages (id, conversation_id, role, content, created_at) VALUES (?, ?, ?, ?, ?)'
     ).run(msgId, conversationId, 'user', userContent, now);
+    syncAIMessageAdd({ id: msgId, conversation_id: conversationId, role: 'user', content: userContent, created_at: now });
 
     const messages = this.getMessages(conversationId);
     const conv = this.db.prepare('SELECT * FROM ai_conversations WHERE id = ?').get(conversationId) as Record<string, unknown> | undefined;
@@ -134,9 +139,11 @@ export class AIService {
                 }
                 if (obj.done) {
                   const aId = uuidv4();
+                  const aNow = Math.floor(Date.now() / 1000);
                   this.db.prepare(
                     'INSERT INTO ai_messages (id, conversation_id, role, content, created_at) VALUES (?, ?, ?, ?, ?)'
-                  ).run(aId, conversationId, 'assistant', assistantContent, Math.floor(Date.now() / 1000));
+                  ).run(aId, conversationId, 'assistant', assistantContent, aNow);
+                  syncAIMessageAdd({ id: aId, conversation_id: conversationId, role: 'assistant', content: assistantContent, created_at: aNow });
 
                   if (conv?.title === 'New Chat') {
                     const title = userContent.slice(0, 50);

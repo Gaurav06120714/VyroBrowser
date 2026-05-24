@@ -124,6 +124,19 @@ export const IPC = {
   UPDATE_AVAILABLE: 'update:available',
   UPDATE_READY: 'update:ready',
   UPDATE_INSTALL: 'update:install',
+  // App management
+  APP_CLEAR_CACHE: 'app:clear-cache',
+  APP_CLEAR_GPU_CACHE: 'app:clear-gpu-cache',
+  APP_RESET: 'app:reset',
+  APP_GET_CACHE_SIZE: 'app:get-cache-size',
+  APP_GET_VERSION: 'app:get-version',
+  // Keywords
+  // Auth (Supabase)
+  AUTH_SIGN_IN: 'auth:sign-in',
+  AUTH_SIGN_UP: 'auth:sign-up',
+  AUTH_SIGN_OUT: 'auth:sign-out',
+  AUTH_GET_SESSION: 'auth:get-session',
+  AUTH_STATE_CHANGED: 'auth:state-changed',
   // Keywords
   KEYWORDS_RESOLVE: 'keywords:resolve',
   KEYWORDS_SUGGEST: 'keywords:suggest',
@@ -178,6 +191,9 @@ export const INVOKE_ALLOWLIST: IpcChannel[] = [
   IPC.ONBOARDING_CANCEL_PULL,
   IPC.WINDOW_MINIMIZE, IPC.WINDOW_MAXIMIZE, IPC.WINDOW_CLOSE,
   IPC.UPDATE_INSTALL,
+  IPC.APP_CLEAR_CACHE, IPC.APP_CLEAR_GPU_CACHE, IPC.APP_RESET,
+  IPC.APP_GET_CACHE_SIZE, IPC.APP_GET_VERSION,
+  IPC.AUTH_SIGN_IN, IPC.AUTH_SIGN_UP, IPC.AUTH_SIGN_OUT, IPC.AUTH_GET_SESSION,
 ];
 
 // Channels main pushes to renderer (allowlist for preload `on`)
@@ -197,4 +213,5 @@ export const PUSH_ALLOWLIST: IpcChannel[] = [
   IPC.FIND_RESULT,
   IPC.UPDATE_AVAILABLE,
   IPC.UPDATE_READY,
+  IPC.AUTH_STATE_CHANGED,
 ];

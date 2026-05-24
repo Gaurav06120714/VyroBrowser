@@ -29,9 +29,11 @@ import { ToastContainer } from './components/shared/Toast';
 import { CommandPalette } from './components/browser/CommandPalette';
 import { WindowsTitleBar } from './components/browser/WindowsTitleBar';
 import { UpdateBanner } from './components/browser/UpdateBanner';
+import { AuthModal } from './components/modals/AuthModal';
 import { Onboarding } from './pages/Onboarding';
 import { useUiStore } from './store/ui.store';
 import { useTabsStore } from './store/tabs.store';
+import { useAuthStore } from './store/auth.store';
 import { NEW_TAB_URL } from '@shared/constants';
 import { matchShortcut, handleShortcutAction } from './lib/keyboard-shortcuts';
 import { ipc, IPC } from './lib/ipc';
@@ -50,6 +52,7 @@ const NavBar: React.FC = () => {
   const toggleSidebar = useUiStore(s => s.toggleSidebar);
   const sidebarOpen = useUiStore(s => s.sidebarOpen);
   const activeTab = useTabsStore(s => s.activeTab());
+  const syncUser = useAuthStore(s => s.user);
 
   return (
     <div className="flex items-center gap-2 px-3 py-1.5 glass-floor no-drag">
@@ -67,6 +70,21 @@ const NavBar: React.FC = () => {
           <svg className="w-4 h-4" viewBox="0 0 20 20" fill={activeTab ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="1.5">
             <path strokeLinecap="round" strokeLinejoin="round" d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z" />
           </svg>
+        </button>
+
+        {/* Sync button — green dot when signed in */}
+        <button
+          onClick={() => openModal('auth')}
+          className="btn-toolbar relative"
+          aria-label="Sync"
+          title={syncUser ? `Syncing as ${syncUser.email}` : 'Sign in to sync'}
+        >
+          <svg className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
+            <path fillRule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clipRule="evenodd" />
+          </svg>
+          {syncUser && (
+            <span className="absolute top-1 right-1 w-1.5 h-1.5 bg-green-400 rounded-full" />
+          )}
         </button>
 
         <button
@@ -115,6 +133,7 @@ const App: React.FC = () => {
   const setUpdateAvailable = useUiStore(s => s.setUpdateAvailable);
   const setUpdateReady = useUiStore(s => s.setUpdateReady);
   const closeModal = useUiStore(s => s.closeModal);
+  const { setUser, setConfigured, setLoading } = useAuthStore();
   const openCommandPalette = useUiStore(s => s.openCommandPalette);
   const createTab = useTabsStore(s => s.createTab);
   const tabs = useTabsStore(s => s.tabs);
@@ -237,6 +256,26 @@ const App: React.FC = () => {
     return off;
   }, []);
 
+  // Initialize Supabase auth session on startup
+  useEffect(() => {
+    ipc.invoke(IPC.AUTH_GET_SESSION).then((r: any) => {
+      setConfigured(r?.configured ?? false);
+      if (r?.user) setUser({ id: r.user.id, email: r.user.email });
+      setLoading(false);
+    }).catch(() => setLoading(false));
+
+    // Listen for auth state changes pushed from main
+    const off = ipc.on(IPC.AUTH_STATE_CHANGED, (...args: unknown[]) => {
+      const payload = args[0] as { user: any };
+      if (payload?.user) {
+        setUser({ id: payload.user.id, email: payload.user.email });
+      } else {
+        setUser(null);
+      }
+    });
+    return off;
+  }, [setUser, setConfigured, setLoading]);
+
   // Show onboarding if first launch
   if (!onboardingDone) {
     return (
@@ -299,6 +338,7 @@ const App: React.FC = () => {
         {activeModal === 'profiles' && (
           <ProfileSwitcher onClose={closeModal} />
         )}
+        {activeModal === 'auth' && <AuthModal />}
         <PermissionDialog />
 
         {/* Context menu */}

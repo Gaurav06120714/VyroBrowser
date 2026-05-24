@@ -103,6 +103,12 @@ export const IPC = {
   SHORTCUT_ACTION: 'shortcut:action',
   // App lifecycle pushes from main → renderer
   APP_NEW_TAB: 'app:new-tab',
+  // Window controls (Windows/Linux custom titlebar)
+  WINDOW_MINIMIZE: 'window:minimize',
+  WINDOW_MAXIMIZE: 'window:maximize',
+  WINDOW_CLOSE: 'window:close',
+  WINDOW_MAXIMIZED: 'window:maximized',
+  WINDOW_RESTORED: 'window:restored',
   // Onboarding / Ollama management
   ONBOARDING_CHECK_OLLAMA: 'onboarding:check-ollama',
   ONBOARDING_PULL_MODEL: 'onboarding:pull-model',
@@ -163,6 +169,7 @@ export const INVOKE_ALLOWLIST: IpcChannel[] = [
   IPC.ONBOARDING_PULL_MODEL,
   IPC.ONBOARDING_LIST_MODELS,
   IPC.ONBOARDING_CANCEL_PULL,
+  IPC.WINDOW_MINIMIZE, IPC.WINDOW_MAXIMIZE, IPC.WINDOW_CLOSE,
 ];
 
 // Channels main pushes to renderer (allowlist for preload `on`)
@@ -178,4 +185,5 @@ export const PUSH_ALLOWLIST: IpcChannel[] = [
   IPC.ONBOARDING_PULL_PROGRESS,
   IPC.ONBOARDING_PULL_COMPLETE,
   IPC.ONBOARDING_PULL_ERROR,
+  IPC.WINDOW_MAXIMIZED, IPC.WINDOW_RESTORED,
 ];

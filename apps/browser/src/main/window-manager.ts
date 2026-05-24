@@ -1,7 +1,6 @@
-import { BrowserWindow, screen, session } from 'electron';
+import { BrowserWindow, screen, session, app } from 'electron';
 import path from 'path';
 import fs from 'fs';
-import { app } from 'electron';
 
 interface WindowBounds {
   x: number;
@@ -108,7 +107,7 @@ export class WindowManager {
         nodeIntegration: false,
         sandbox: false,
         webviewTag: true,
-        preload: path.join(__dirname, 'preload/browser-preload.js'),
+        preload: path.join(app.getAppPath(), 'dist-main/main/preload/browser-preload.js'),
       },
     });
 

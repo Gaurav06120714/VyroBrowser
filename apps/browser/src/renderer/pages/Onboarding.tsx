@@ -250,6 +250,17 @@ const StepOllama: React.FC<{
       ? 'winget install Ollama.Ollama'
       : 'curl -fsSL https://ollama.com/install.sh | sh';
 
+  const downloadUrl =
+    platform === 'darwin'
+      ? 'https://ollama.com/download/mac'
+      : platform === 'win32'
+      ? 'https://ollama.com/download/windows'
+      : 'https://ollama.com/download/linux';
+
+  const openDownload = () => {
+    window.vyro?.invoke('shell:open-external' as never, { url: downloadUrl });
+  };
+
   const handleCheck = async () => {
     setChecking(true);
     await onCheck();
@@ -319,10 +330,17 @@ const StepOllama: React.FC<{
               copy
             </button>
           </div>
-          <p className="text-xs text-white/40">
-            Or download the desktop app from{' '}
-            <span className="text-violet-400">ollama.com</span>
-          </p>
+          <button
+            onClick={openDownload}
+            className="flex items-center gap-2 w-full p-3 rounded-xl bg-violet-600/20 border border-violet-500/30 hover:bg-violet-600/30 transition-colors text-left"
+          >
+            <span className="text-lg">⬇️</span>
+            <div>
+              <p className="text-sm font-semibold text-violet-300">Download Ollama</p>
+              <p className="text-xs text-white/40">Opens ollama.com — free desktop installer</p>
+            </div>
+            <span className="ml-auto text-white/30 text-xs">↗</span>
+          </button>
         </div>
       )}
 
@@ -506,49 +524,70 @@ const StepReady: React.FC<{
   ollamaRunning: boolean | null;
   onComplete: () => void;
   onBack: () => void;
-}> = ({ models, ollamaRunning, onComplete, onBack }) => (
-  <div className="flex flex-col items-center text-center gap-6 max-w-md">
-    <div className="w-20 h-20 rounded-full bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center shadow-2xl shadow-green-900/50">
-      <svg className="w-10 h-10 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-      </svg>
-    </div>
+}> = ({ models, ollamaRunning, onComplete, onBack }) => {
+  const [countdown, setCountdown] = React.useState(3);
+  const platform = typeof window !== 'undefined' && window.vyro ? window.vyro.platform : 'darwin';
+  const mod = platform === 'darwin' ? 'Cmd' : 'Ctrl';
 
-    <div>
-      <h2 className="text-2xl font-bold text-white mb-2">You're all set!</h2>
-      <p className="text-white/50 text-sm leading-relaxed">
-        {ollamaRunning && models.length > 0
-          ? `Ollama is running with ${models.length} model${models.length !== 1 ? 's' : ''}. Open the sidebar (≡) to start chatting.`
-          : ollamaRunning
-          ? 'Ollama is running. Pull a model from the AI panel sidebar when you\'re ready.'
-          : 'You can set up the AI assistant anytime from the sidebar or Settings.'}
-      </p>
-    </div>
+  // Auto-launch countdown when Ollama + model are ready
+  React.useEffect(() => {
+    if (!(ollamaRunning && models.length > 0)) return;
+    if (countdown <= 0) { onComplete(); return; }
+    const t = setTimeout(() => setCountdown(c => c - 1), 1000);
+    return () => clearTimeout(t);
+  }, [countdown, ollamaRunning, models.length, onComplete]);
 
-    <div className="grid grid-cols-2 gap-2 w-full text-left">
-      {[
-        { shortcut: 'Cmd+K', desc: 'Command palette' },
-        { shortcut: 'Cmd+T', desc: 'New tab' },
-        { shortcut: 'Cmd+L', desc: 'Focus address bar' },
-        { shortcut: 'Cmd+F', desc: 'Find in page' },
-      ].map(({ shortcut, desc }) => (
-        <div key={shortcut} className="flex items-center gap-2 p-2.5 rounded-lg bg-white/5">
-          <kbd className="text-[10px] font-mono bg-white/10 text-white/70 px-1.5 py-0.5 rounded shrink-0">
-            {shortcut}
-          </kbd>
-          <span className="text-xs text-white/50">{desc}</span>
+  return (
+    <div className="flex flex-col items-center text-center gap-6 max-w-md">
+      {/* Success icon with animated ring */}
+      <div className="relative">
+        {ollamaRunning && models.length > 0 && (
+          <span className="absolute inset-0 rounded-full border-2 border-green-400/40"
+            style={{ animation: 'vyro-ping 1.5s cubic-bezier(0,0,0.2,1) infinite' }} />
+        )}
+        <div className="w-20 h-20 rounded-full bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center shadow-2xl shadow-green-900/50">
+          <svg className="w-10 h-10 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+          </svg>
         </div>
-      ))}
-    </div>
+      </div>
 
-    <div className="flex items-center gap-3 w-full">
-      <GhostButton onClick={onBack}>← Back</GhostButton>
-      <PrimaryButton onClick={onComplete} className="flex-1">
-        Launch Vyro →
-      </PrimaryButton>
+      <div>
+        <h2 className="text-2xl font-bold text-white mb-2">You're all set!</h2>
+        <p className="text-white/50 text-sm leading-relaxed">
+          {ollamaRunning && models.length > 0
+            ? `Ollama is running with ${models.length} model${models.length !== 1 ? 's' : ''}. Launching browser in ${countdown}…`
+            : ollamaRunning
+            ? "Ollama is running. Pull a model from the AI sidebar when ready."
+            : 'You can set up AI anytime from the sidebar or Settings → AI.'}
+        </p>
+      </div>
+
+      <div className="grid grid-cols-2 gap-2 w-full text-left">
+        {[
+          { shortcut: `${mod}+K`, desc: 'Command palette' },
+          { shortcut: `${mod}+T`, desc: 'New tab' },
+          { shortcut: `${mod}+L`, desc: 'Focus address bar' },
+          { shortcut: `${mod}+F`, desc: 'Find in page' },
+        ].map(({ shortcut, desc }) => (
+          <div key={shortcut} className="flex items-center gap-2 p-2.5 rounded-lg bg-white/5">
+            <kbd className="text-[10px] font-mono bg-white/10 text-white/70 px-1.5 py-0.5 rounded shrink-0">
+              {shortcut}
+            </kbd>
+            <span className="text-xs text-white/50">{desc}</span>
+          </div>
+        ))}
+      </div>
+
+      <div className="flex items-center gap-3 w-full">
+        <GhostButton onClick={onBack}>← Back</GhostButton>
+        <PrimaryButton onClick={onComplete} className="flex-1">
+          {ollamaRunning && models.length > 0 ? `Launch Vyro (${countdown})` : 'Launch Vyro →'}
+        </PrimaryButton>
+      </div>
     </div>
-  </div>
-);
+  );
+};
 
 // ── Root Onboarding component ─────────────────────────────────────────────────
 

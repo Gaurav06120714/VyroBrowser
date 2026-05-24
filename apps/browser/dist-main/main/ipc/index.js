@@ -15,6 +15,7 @@ const reader_1 = require("./reader");
 const injections_1 = require("./injections");
 const find_1 = require("./find");
 const keywords_1 = require("./keywords");
+const onboarding_1 = require("./onboarding");
 const keyword_service_1 = require("../services/keyword-service");
 function registerAllIpc(db, wm) {
     const keywordService = new keyword_service_1.KeywordService(db);
@@ -32,4 +33,5 @@ function registerAllIpc(db, wm) {
     (0, injections_1.registerInjectionsIpc)(db);
     (0, find_1.registerFindIpc)();
     (0, keywords_1.registerKeywordsIpc)(keywordService);
+    (0, onboarding_1.registerOnboardingIpc)(wm);
 }

@@ -1,7 +1,7 @@
 import { contextBridge, ipcRenderer } from 'electron';
 import { INVOKE_ALLOWLIST, PUSH_ALLOWLIST, IpcChannel } from '../../shared/ipc-channels';
 
-const allowedInvoke = new Set<string>(INVOKE_ALLOWLIST);
+const allowedInvoke = new Set<string>([...INVOKE_ALLOWLIST, 'shell:open-external']);
 const allowedPush   = new Set<string>(PUSH_ALLOWLIST);
 
 contextBridge.exposeInMainWorld('vyro', {

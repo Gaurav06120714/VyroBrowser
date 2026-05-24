@@ -2,7 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const electron_1 = require("electron");
 const ipc_channels_1 = require("../../shared/ipc-channels");
-const allowedInvoke = new Set(ipc_channels_1.INVOKE_ALLOWLIST);
+const allowedInvoke = new Set([...ipc_channels_1.INVOKE_ALLOWLIST, 'shell:open-external']);
 const allowedPush = new Set(ipc_channels_1.PUSH_ALLOWLIST);
 electron_1.contextBridge.exposeInMainWorld('vyro', {
     invoke: (channel, ...args) => {

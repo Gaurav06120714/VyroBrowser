@@ -31,6 +31,8 @@ const ipc_1 = require("./ipc");
 const profile_service_1 = require("./services/profile-service");
 const request_filter_1 = require("./adblock/request-filter");
 const downloads_1 = require("./ipc/downloads");
+const shortcuts_1 = require("./shortcuts");
+const tray_1 = require("./tray");
 electron_1.app.name = 'Vyro';
 // ── Single instance lock ───────────────────────────────────────────────────
 const gotLock = electron_1.app.requestSingleInstanceLock();
@@ -44,7 +46,7 @@ const isDev = process.env.NODE_ENV === 'development' || process.env.ELECTRON_IS_
 const rendererUrl = isDev ? 'http://localhost:5173' : null;
 const rendererFile = isDev
     ? null
-    : path_1.default.join(__dirname, '../../dist-renderer/index.html');
+    : path_1.default.join(electron_1.app.getAppPath(), 'dist-renderer/index.html');
 /** Create a browser window AND load the renderer into it. */
 function createWindow() {
     const win = windowManager.createMain();
@@ -69,6 +71,11 @@ electron_1.app.whenReady().then(async () => {
     createWindow();
     // Register all IPC handlers
     (0, ipc_1.registerAllIpc)(db, windowManager);
+    // Register global keyboard shortcuts
+    const mainWin = windowManager.getMain();
+    if (mainWin) {
+        (0, shortcuts_1.registerShortcuts)(mainWin);
+    }
     // Ad-blocking on the default session
     const defaultSession = electron_1.session.defaultSession;
     (0, request_filter_1.setupAdblocking)(defaultSession).catch(err => {
@@ -82,6 +89,8 @@ electron_1.app.whenReady().then(async () => {
             downloadService.handleWillDownload(profileId, item);
         }
     });
+    // ── System tray (Windows / Linux) ────────────────────────────────────────
+    (0, tray_1.createTray)(() => windowManager.getMain());
     // ── macOS Dock menu ──────────────────────────────────────────────────────
     // Right-clicking the Dock icon shows these options (Chrome/Brave style).
     if (process.platform === 'darwin') {
@@ -135,5 +144,7 @@ electron_1.app.on('window-all-closed', () => {
 // This fires right before the process exits on all platforms.
 // Safe place to close the DB connection cleanly.
 electron_1.app.on('before-quit', () => {
+    (0, shortcuts_1.unregisterShortcuts)();
+    (0, tray_1.destroyTray)();
     (0, db_1.closeDb)();
 });

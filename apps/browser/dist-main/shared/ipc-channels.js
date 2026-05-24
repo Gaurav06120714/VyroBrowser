@@ -106,6 +106,20 @@ exports.IPC = {
     SHORTCUT_ACTION: 'shortcut:action',
     // App lifecycle pushes from main → renderer
     APP_NEW_TAB: 'app:new-tab',
+    // Window controls (Windows/Linux custom titlebar)
+    WINDOW_MINIMIZE: 'window:minimize',
+    WINDOW_MAXIMIZE: 'window:maximize',
+    WINDOW_CLOSE: 'window:close',
+    WINDOW_MAXIMIZED: 'window:maximized',
+    WINDOW_RESTORED: 'window:restored',
+    // Onboarding / Ollama management
+    ONBOARDING_CHECK_OLLAMA: 'onboarding:check-ollama',
+    ONBOARDING_PULL_MODEL: 'onboarding:pull-model',
+    ONBOARDING_PULL_PROGRESS: 'onboarding:pull-progress',
+    ONBOARDING_PULL_COMPLETE: 'onboarding:pull-complete',
+    ONBOARDING_PULL_ERROR: 'onboarding:pull-error',
+    ONBOARDING_LIST_MODELS: 'onboarding:list-models',
+    ONBOARDING_CANCEL_PULL: 'onboarding:cancel-pull',
     // Keywords
     KEYWORDS_RESOLVE: 'keywords:resolve',
     KEYWORDS_SUGGEST: 'keywords:suggest',
@@ -151,6 +165,11 @@ exports.INVOKE_ALLOWLIST = [
     exports.IPC.KEYWORDS_SAVE_CUSTOM, exports.IPC.KEYWORDS_DELETE_CUSTOM,
     exports.IPC.KEYWORDS_TOGGLE, exports.IPC.KEYWORDS_IMPORT, exports.IPC.KEYWORDS_EXPORT,
     exports.IPC.KEYWORDS_TRACK_USE, exports.IPC.KEYWORDS_GET_USAGE, exports.IPC.KEYWORDS_RESET,
+    exports.IPC.ONBOARDING_CHECK_OLLAMA,
+    exports.IPC.ONBOARDING_PULL_MODEL,
+    exports.IPC.ONBOARDING_LIST_MODELS,
+    exports.IPC.ONBOARDING_CANCEL_PULL,
+    exports.IPC.WINDOW_MINIMIZE, exports.IPC.WINDOW_MAXIMIZE, exports.IPC.WINDOW_CLOSE,
 ];
 // Channels main pushes to renderer (allowlist for preload `on`)
 exports.PUSH_ALLOWLIST = [
@@ -162,4 +181,8 @@ exports.PUSH_ALLOWLIST = [
     exports.IPC.PERMISSION_REQUEST,
     exports.IPC.SHORTCUT_ACTION,
     exports.IPC.APP_NEW_TAB,
+    exports.IPC.ONBOARDING_PULL_PROGRESS,
+    exports.IPC.ONBOARDING_PULL_COMPLETE,
+    exports.IPC.ONBOARDING_PULL_ERROR,
+    exports.IPC.WINDOW_MAXIMIZED, exports.IPC.WINDOW_RESTORED,
 ];

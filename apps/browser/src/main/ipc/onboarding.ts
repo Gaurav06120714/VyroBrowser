@@ -11,7 +11,7 @@
 //                              ONBOARDING_PULL_COMPLETE { model }
 //                              ONBOARDING_PULL_ERROR    { model, message }
 // ─────────────────────────────────────────────────────────────────────────────
-import { ipcMain } from 'electron';
+import { ipcMain, shell } from 'electron';
 import http from 'http';
 import https from 'https';
 import { IPC } from '../../shared/ipc-channels';
@@ -106,6 +106,14 @@ function streamPull(
 }
 
 export function registerOnboardingIpc(wm: WindowManager): void {
+  // ── Open external URL in system browser (e.g. Ollama download page) ───────
+  ipcMain.handle('shell:open-external', (_event, { url }: { url: string }) => {
+    if (typeof url === 'string' && (url.startsWith('https://') || url.startsWith('http://'))) {
+      shell.openExternal(url).catch(console.error);
+    }
+    return { ok: true };
+  });
+
   // ── Check if Ollama is reachable ──────────────────────────────────────────
   ipcMain.handle(IPC.ONBOARDING_CHECK_OLLAMA, async () => {
     const base = getOllamaBase();

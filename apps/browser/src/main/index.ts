@@ -42,7 +42,7 @@ const isDev = process.env.NODE_ENV === 'development' || process.env.ELECTRON_IS_
 const rendererUrl = isDev ? 'http://localhost:5173' : null;
 const rendererFile = isDev
   ? null
-  : path.join(__dirname, '../../dist-renderer/index.html');
+  : path.join(app.getAppPath(), 'dist-renderer/index.html');
 
 /** Create a browser window AND load the renderer into it. */
 function createWindow(): BrowserWindow {

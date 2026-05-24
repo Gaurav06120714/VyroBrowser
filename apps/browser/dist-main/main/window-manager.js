@@ -7,8 +7,7 @@ exports.WindowManager = void 0;
 const electron_1 = require("electron");
 const path_1 = __importDefault(require("path"));
 const fs_1 = __importDefault(require("fs"));
-const electron_2 = require("electron");
-const STATE_FILE = () => path_1.default.join(electron_2.app.getPath('userData'), 'window-state.json');
+const STATE_FILE = () => path_1.default.join(electron_1.app.getPath('userData'), 'window-state.json');
 function loadBounds() {
     try {
         const raw = fs_1.default.readFileSync(STATE_FILE(), 'utf8');
@@ -47,11 +46,40 @@ function ensureVisible(bounds) {
     }
     return bounds;
 }
+function getPlatformWindowOptions() {
+    const platform = process.platform;
+    if (platform === 'darwin') {
+        return {
+            titleBarStyle: 'hiddenInset',
+            trafficLightPosition: { x: 16, y: 14 },
+            // Arc-style translucent chrome — macOS only
+            vibrancy: 'under-window',
+            visualEffectState: 'followWindow',
+            backgroundColor: '#00000000',
+            transparent: true,
+        };
+    }
+    if (platform === 'win32') {
+        return {
+            // Hidden title bar so we can render a custom one in the renderer
+            titleBarStyle: 'hidden',
+            backgroundColor: '#1a1a2e',
+            transparent: false,
+        };
+    }
+    // Linux — use standard frame to avoid compositor issues
+    return {
+        frame: true,
+        backgroundColor: '#1a1a2e',
+        transparent: false,
+    };
+}
 class WindowManager {
     mainWindow = null;
     createMain() {
         const saved = loadBounds();
         const bounds = saved ? ensureVisible(saved) : { x: undefined, y: undefined, width: 1280, height: 800 };
+        const platformOptions = getPlatformWindowOptions();
         const win = new electron_1.BrowserWindow({
             x: bounds.x,
             y: bounds.y,
@@ -59,16 +87,14 @@ class WindowManager {
             height: bounds.height,
             minWidth: 800,
             minHeight: 600,
-            titleBarStyle: 'hiddenInset',
-            trafficLightPosition: { x: 14, y: 12 },
-            backgroundColor: '#0f0f10',
+            ...platformOptions,
             show: false,
             webPreferences: {
                 contextIsolation: true,
                 nodeIntegration: false,
                 sandbox: false,
                 webviewTag: true,
-                preload: path_1.default.join(__dirname, 'preload/browser-preload.js'),
+                preload: path_1.default.join(electron_1.app.getAppPath(), 'dist-main/main/preload/browser-preload.js'),
             },
         });
         win.once('ready-to-show', () => {
@@ -79,6 +105,21 @@ class WindowManager {
         });
         win.on('closed', () => {
             this.mainWindow = null;
+        });
+        // ── Content Security Policy ──────────────────────────────────────────
+        // Applied to the renderer shell only (not to webview content).
+        electron_1.session.defaultSession.webRequest.onHeadersReceived({ urls: ['http://localhost:5173/*', 'file://*/*'] }, (details, callback) => {
+            callback({
+                responseHeaders: {
+                    ...details.responseHeaders,
+                    'Content-Security-Policy': [
+                        "default-src 'self' 'unsafe-inline' 'unsafe-eval' http://localhost:* blob: data:; " +
+                            "connect-src 'self' http://localhost:* ws://localhost:*; " +
+                            "img-src 'self' data: https: http:; " +
+                            "font-src 'self' data:;",
+                    ],
+                },
+            });
         });
         win.webContents.setWindowOpenHandler(({ url }) => {
             // Block native new windows; let the renderer handle them via IPC

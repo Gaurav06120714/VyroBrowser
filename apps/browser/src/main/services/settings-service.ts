@@ -36,4 +36,30 @@ export class SettingsService {
 
     setMany(Object.entries(partial));
   }
+
+  /** Write an arbitrary key/value (used for adblock site rules and similar). */
+  setRaw(profileId: string, key: string, value: unknown): void {
+    this.db.prepare(`
+      INSERT INTO settings (profile_id, key, value)
+      VALUES (?, ?, ?)
+      ON CONFLICT (profile_id, key) DO UPDATE SET value = excluded.value
+    `).run(profileId, key, JSON.stringify(value));
+  }
+
+  /** Return all keys that start with the given prefix, as key→parsed-value map. */
+  getAllByPrefix(profileId: string, prefix: string): Record<string, unknown> {
+    const rows = this.db
+      .prepare('SELECT key, value FROM settings WHERE profile_id = ? AND key LIKE ?')
+      .all(profileId, `${prefix}%`) as { key: string; value: string }[];
+
+    const result: Record<string, unknown> = {};
+    for (const row of rows) {
+      try {
+        result[row.key] = JSON.parse(row.value);
+      } catch {
+        result[row.key] = row.value;
+      }
+    }
+    return result;
+  }
 }

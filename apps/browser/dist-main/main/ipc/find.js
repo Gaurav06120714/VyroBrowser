@@ -3,38 +3,37 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.registerFindIpc = registerFindIpc;
 const electron_1 = require("electron");
 const ipc_channels_1 = require("../../shared/ipc-channels");
+const tabs_1 = require("./tabs");
 function registerFindIpc() {
     electron_1.ipcMain.handle(ipc_channels_1.IPC.FIND_START, (_event, { tabId, text, forward }) => {
-        // Find the webContents associated with the webview for this tab
-        // The webview renders in a guest WebContents; we search by the tabId
-        // stored in the webContents URL or via a known ID map
-        const allWebContents = electron_1.webContents.getAllWebContents();
-        const target = allWebContents.find(wc => {
-            try {
-                const url = wc.getURL();
-                return url && !url.startsWith('devtools://') && wc.id.toString() === tabId;
-            }
-            catch {
-                return false;
+        const wcId = tabs_1.tabWebContentsMap.get(tabId);
+        if (!wcId)
+            return { ok: false };
+        const target = electron_1.webContents.fromId(wcId);
+        if (!target || target.isDestroyed())
+            return { ok: false };
+        // Listen for found-in-page result and push to renderer
+        target.once('found-in-page', (_e, result) => {
+            // Push result to all renderer windows
+            for (const win of electron_1.BrowserWindow.getAllWindows()) {
+                if (!win.isDestroyed()) {
+                    win.webContents.send(ipc_channels_1.IPC.FIND_RESULT, {
+                        tabId,
+                        activeMatchOrdinal: result.activeMatchOrdinal,
+                        matches: result.matches,
+                    });
+                }
             }
         });
-        if (target) {
-            target.findInPage(text, { findNext: false, forward: forward !== false });
-            return { ok: true };
-        }
-        return { ok: false };
+        target.findInPage(text, { findNext: false, forward: forward !== false });
+        return { ok: true };
     });
     electron_1.ipcMain.handle(ipc_channels_1.IPC.FIND_STOP, (_event, { tabId }) => {
-        const allWebContents = electron_1.webContents.getAllWebContents();
-        const target = allWebContents.find(wc => {
-            try {
-                return wc.id.toString() === tabId;
-            }
-            catch {
-                return false;
-            }
-        });
-        if (target) {
+        const wcId = tabs_1.tabWebContentsMap.get(tabId);
+        if (!wcId)
+            return { ok: true };
+        const target = electron_1.webContents.fromId(wcId);
+        if (target && !target.isDestroyed()) {
             target.stopFindInPage('clearSelection');
         }
         return { ok: true };

@@ -37,6 +37,9 @@ import { ipc, IPC } from './lib/ipc';
 import { useContextMenu } from './hooks/useContextMenu';
 import { useSettings } from './hooks/useSettings';
 import { useProfiles } from './hooks/useProfiles';
+import { DEFAULT_PROFILE_ID } from '@shared/constants';
+import { SessionState } from '@shared/types/tab';
+import { ErrorBoundary } from './components/shared/ErrorBoundary';
 
 const ONBOARDING_KEY = 'vyro:onboarding:complete';
 
@@ -119,11 +122,37 @@ const App: React.FC = () => {
   useSettings();
   useProfiles();
 
-  // Open a default tab on first load
+  // Restore session from crash recovery, or open a default tab
   useEffect(() => {
-    if (tabs.length === 0) {
-      createTab({ url: NEW_TAB_URL });
-    }
+    if (tabs.length > 0) return;
+    ipc.invoke<SessionState | null>(IPC.TABS_RESTORE_SESSION, { profileId: DEFAULT_PROFILE_ID })
+      .then(session => {
+        if (session && session.tabs && session.tabs.length > 0) {
+          const activateTab = useTabsStore.getState().activateTab;
+          for (const snapshot of session.tabs) {
+            useTabsStore.getState().createTab({
+              url: snapshot.url,
+              title: snapshot.title,
+              isPinned: snapshot.isPinned,
+              groupId: snapshot.groupId ?? undefined,
+              profileId: snapshot.profileId,
+            });
+          }
+          // Activate the saved active tab if it was restored
+          const restoredTabs = useTabsStore.getState().tabs;
+          // Match by URL since IDs will differ
+          const activeSnapshot = session.tabs.find(t => t.id === session.activeTabId);
+          if (activeSnapshot) {
+            const match = restoredTabs.find(t => t.url === activeSnapshot.url);
+            if (match) activateTab(match.id);
+          }
+        } else {
+          createTab({ url: NEW_TAB_URL });
+        }
+      })
+      .catch(() => {
+        createTab({ url: NEW_TAB_URL });
+      });
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Global keyboard shortcuts
@@ -164,56 +193,72 @@ const App: React.FC = () => {
 
   // Show onboarding if first launch
   if (!onboardingDone) {
-    return <Onboarding onComplete={() => setOnboardingDone(true)} />;
+    return (
+      <ErrorBoundary label="Onboarding">
+        <Onboarding onComplete={() => setOnboardingDone(true)} />
+      </ErrorBoundary>
+    );
   }
 
   return (
-    <div className="flex flex-col h-screen overflow-hidden bg-[#0f0f10] text-white">
-      {/* Windows custom title bar — renders only on win32 */}
-      <WindowsTitleBar />
+    <ErrorBoundary label="App">
+      <div className="flex flex-col h-screen overflow-hidden bg-[#0f0f10] text-white">
+        {/* Windows custom title bar — renders only on win32 */}
+        <WindowsTitleBar />
 
-      <TabBar />
+        <ErrorBoundary label="TabBar">
+          <TabBar />
+        </ErrorBoundary>
 
-      <div className="flex flex-col flex-1 overflow-hidden">
-        <NavBar />
+        <div className="flex flex-col flex-1 overflow-hidden">
+          <NavBar />
 
-        <div className="flex flex-1 overflow-hidden relative">
-          <WebviewContainer />
-          <ZoomIndicator />
-          {sidebarOpen && <Sidebar />}
+          <div className="flex flex-1 overflow-hidden relative">
+            <ErrorBoundary label="WebviewContainer">
+              <WebviewContainer />
+            </ErrorBoundary>
+            <ZoomIndicator />
+            {sidebarOpen && (
+              <ErrorBoundary label="Sidebar">
+                <Sidebar />
+              </ErrorBoundary>
+            )}
+          </div>
         </div>
+
+        <FindBar />
+
+        {/* Modals */}
+        {activeModal === 'settings' && <SettingsModal />}
+        {activeModal === 'bookmark' && <BookmarkDialog />}
+        {activeModal === 'reader' && activeTab && (
+          <ErrorBoundary label="ReaderModal">
+            <ReaderModal url={activeTab.url} onClose={closeModal} />
+          </ErrorBoundary>
+        )}
+        {activeModal === 'injection' && (
+          <InjectionEditor origin={activeTab?.url ? new URL(activeTab.url).hostname : undefined} onClose={closeModal} />
+        )}
+        {activeModal === 'profiles' && (
+          <ProfileSwitcher onClose={closeModal} />
+        )}
+        <PermissionDialog />
+
+        {/* Context menu */}
+        {ctxMenu.visible && (
+          <ContextMenu
+            x={ctxMenu.x}
+            y={ctxMenu.y}
+            type={ctxMenu.type}
+            context={ctxMenu.context}
+            onClose={hideCtxMenu}
+          />
+        )}
+
+        <CommandPalette />
+        <ToastContainer />
       </div>
-
-      <FindBar />
-
-      {/* Modals */}
-      {activeModal === 'settings' && <SettingsModal />}
-      {activeModal === 'bookmark' && <BookmarkDialog />}
-      {activeModal === 'reader' && activeTab && (
-        <ReaderModal url={activeTab.url} onClose={closeModal} />
-      )}
-      {activeModal === 'injection' && (
-        <InjectionEditor origin={activeTab?.url ? new URL(activeTab.url).hostname : undefined} onClose={closeModal} />
-      )}
-      {activeModal === 'profiles' && (
-        <ProfileSwitcher onClose={closeModal} />
-      )}
-      <PermissionDialog />
-
-      {/* Context menu */}
-      {ctxMenu.visible && (
-        <ContextMenu
-          x={ctxMenu.x}
-          y={ctxMenu.y}
-          type={ctxMenu.type}
-          context={ctxMenu.context}
-          onClose={hideCtxMenu}
-        />
-      )}
-
-      <CommandPalette />
-      <ToastContainer />
-    </div>
+    </ErrorBoundary>
   );
 };
 

@@ -17,9 +17,11 @@ const find_1 = require("./find");
 const keywords_1 = require("./keywords");
 const onboarding_1 = require("./onboarding");
 const keyword_service_1 = require("../services/keyword-service");
+const crash_recovery_1 = require("../services/crash-recovery");
 function registerAllIpc(db, wm) {
     const keywordService = new keyword_service_1.KeywordService(db);
-    (0, tabs_1.registerTabsIpc)(db, wm);
+    const crashRecovery = new crash_recovery_1.CrashRecoveryService();
+    (0, tabs_1.registerTabsIpc)(db, wm, crashRecovery);
     (0, navigation_1.registerNavigationIpc)(wm);
     (0, profiles_1.registerProfilesIpc)(db, wm);
     (0, settings_1.registerSettingsIpc)(db);
@@ -28,7 +30,7 @@ function registerAllIpc(db, wm) {
     (0, bookmarks_1.registerBookmarksIpc)(db);
     (0, downloads_1.registerDownloadsIpc)(db, wm);
     (0, ai_1.registerAIIpc)(db, wm);
-    (0, adblock_1.registerAdblockIpc)();
+    (0, adblock_1.registerAdblockIpc)(db);
     (0, reader_1.registerReaderIpc)();
     (0, injections_1.registerInjectionsIpc)(db);
     (0, find_1.registerFindIpc)();

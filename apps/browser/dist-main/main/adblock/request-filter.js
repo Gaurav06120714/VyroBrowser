@@ -40,9 +40,12 @@ exports.getStats = getStats;
 exports.setSiteOverride = setSiteOverride;
 exports.getSiteOverride = getSiteOverride;
 exports.getAllSiteOverrides = getAllSiteOverrides;
+exports.loadSiteRulesFromDb = loadSiteRulesFromDb;
 const engine_1 = require("./engine");
+const SITE_RULE_PREFIX = 'adblock:site:';
 const stats = { totalBlocked: 0, trackersBlocked: 0, sessionBlocked: 0 };
-const siteOverrides = new Map(); // origin → enabled
+// In-memory cache populated from DB on startup
+const siteOverridesCache = new Map(); // origin → enabled
 async function setupAdblocking(sess) {
     const blocker = await (0, engine_1.initBlocker)();
     blocker.enableBlockingInSession(sess);
@@ -64,10 +67,32 @@ function incrementBlocked(isTracker = false) {
         stats.trackersBlocked++;
 }
 function getStats() { return { ...stats }; }
-function setSiteOverride(origin, enabled) { siteOverrides.set(origin, enabled); }
-function getSiteOverride(origin) { return siteOverrides.get(origin); }
+function setSiteOverride(origin, enabled, settingsService) {
+    siteOverridesCache.set(origin, enabled);
+    if (settingsService) {
+        // Use a special profile key for global adblock site rules
+        const key = `${SITE_RULE_PREFIX}${origin}`;
+        // We store in the default profile since adblock rules are global
+        settingsService.setRaw('default', key, enabled);
+    }
+}
+function getSiteOverride(origin) {
+    return siteOverridesCache.get(origin);
+}
 function getAllSiteOverrides() {
     const result = {};
-    siteOverrides.forEach((val, key) => { result[key] = val; });
+    siteOverridesCache.forEach((val, key) => { result[key] = val; });
     return result;
+}
+/**
+ * Load all adblock:site:* rules from SettingsService into the in-memory cache.
+ * Call this once at startup.
+ */
+function loadSiteRulesFromDb(settingsService) {
+    const rules = settingsService.getAllByPrefix('default', SITE_RULE_PREFIX);
+    for (const [key, value] of Object.entries(rules)) {
+        const origin = key.slice(SITE_RULE_PREFIX.length);
+        if (origin)
+            siteOverridesCache.set(origin, Boolean(value));
+    }
 }

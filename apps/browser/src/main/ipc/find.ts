@@ -1,35 +1,39 @@
-import { ipcMain, webContents } from 'electron';
+import { ipcMain, webContents, BrowserWindow } from 'electron';
 import { IPC } from '../../shared/ipc-channels';
+import { tabWebContentsMap } from './tabs';
 
 export function registerFindIpc(): void {
   ipcMain.handle(IPC.FIND_START, (_event, { tabId, text, forward }: { tabId: string; text: string; forward?: boolean }) => {
-    // Find the webContents associated with the webview for this tab
-    // The webview renders in a guest WebContents; we search by the tabId
-    // stored in the webContents URL or via a known ID map
-    const allWebContents = webContents.getAllWebContents();
-    const target = allWebContents.find(wc => {
-      try {
-        const url = wc.getURL();
-        return url && !url.startsWith('devtools://') && wc.id.toString() === tabId;
-      } catch { return false; }
+    const wcId = tabWebContentsMap.get(tabId);
+    if (!wcId) return { ok: false };
+
+    const target = webContents.fromId(wcId);
+    if (!target || target.isDestroyed()) return { ok: false };
+
+    // Listen for found-in-page result and push to renderer
+    target.once('found-in-page', (_e, result) => {
+      // Push result to all renderer windows
+      for (const win of BrowserWindow.getAllWindows()) {
+        if (!win.isDestroyed()) {
+          win.webContents.send(IPC.FIND_RESULT, {
+            tabId,
+            activeMatchOrdinal: result.activeMatchOrdinal,
+            matches: result.matches,
+          });
+        }
+      }
     });
 
-    if (target) {
-      target.findInPage(text, { findNext: false, forward: forward !== false });
-      return { ok: true };
-    }
-    return { ok: false };
+    target.findInPage(text, { findNext: false, forward: forward !== false });
+    return { ok: true };
   });
 
   ipcMain.handle(IPC.FIND_STOP, (_event, { tabId }: { tabId: string }) => {
-    const allWebContents = webContents.getAllWebContents();
-    const target = allWebContents.find(wc => {
-      try {
-        return wc.id.toString() === tabId;
-      } catch { return false; }
-    });
+    const wcId = tabWebContentsMap.get(tabId);
+    if (!wcId) return { ok: true };
 
-    if (target) {
+    const target = webContents.fromId(wcId);
+    if (target && !target.isDestroyed()) {
       target.stopFindInPage('clearSelection');
     }
     return { ok: true };

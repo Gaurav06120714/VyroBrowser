@@ -1,5 +1,6 @@
 import { Session } from 'electron';
 import { initBlocker, resetBlocker } from './engine';
+import { SettingsService } from '../services/settings-service';
 
 export interface AdblockStats {
   totalBlocked: number;
@@ -7,8 +8,12 @@ export interface AdblockStats {
   sessionBlocked: number;
 }
 
+const SITE_RULE_PREFIX = 'adblock:site:';
+
 const stats: AdblockStats = { totalBlocked: 0, trackersBlocked: 0, sessionBlocked: 0 };
-const siteOverrides = new Map<string, boolean>(); // origin → enabled
+
+// In-memory cache populated from DB on startup
+const siteOverridesCache = new Map<string, boolean>(); // origin → enabled
 
 export async function setupAdblocking(sess: Session): Promise<void> {
   const blocker = await initBlocker();
@@ -33,10 +38,35 @@ export function incrementBlocked(isTracker = false): void {
 }
 
 export function getStats(): AdblockStats { return { ...stats }; }
-export function setSiteOverride(origin: string, enabled: boolean): void { siteOverrides.set(origin, enabled); }
-export function getSiteOverride(origin: string): boolean | undefined { return siteOverrides.get(origin); }
+
+export function setSiteOverride(origin: string, enabled: boolean, settingsService?: SettingsService): void {
+  siteOverridesCache.set(origin, enabled);
+  if (settingsService) {
+    // Use a special profile key for global adblock site rules
+    const key = `${SITE_RULE_PREFIX}${origin}`;
+    // We store in the default profile since adblock rules are global
+    settingsService.setRaw('default', key, enabled);
+  }
+}
+
+export function getSiteOverride(origin: string): boolean | undefined {
+  return siteOverridesCache.get(origin);
+}
+
 export function getAllSiteOverrides(): Record<string, boolean> {
   const result: Record<string, boolean> = {};
-  siteOverrides.forEach((val, key) => { result[key] = val; });
+  siteOverridesCache.forEach((val, key) => { result[key] = val; });
   return result;
+}
+
+/**
+ * Load all adblock:site:* rules from SettingsService into the in-memory cache.
+ * Call this once at startup.
+ */
+export function loadSiteRulesFromDb(settingsService: SettingsService): void {
+  const rules = settingsService.getAllByPrefix('default', SITE_RULE_PREFIX);
+  for (const [key, value] of Object.entries(rules)) {
+    const origin = key.slice(SITE_RULE_PREFIX.length);
+    if (origin) siteOverridesCache.set(origin, Boolean(value));
+  }
 }

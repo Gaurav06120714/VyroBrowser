@@ -11,8 +11,8 @@ function registerReaderIpc() {
         return readerService.extract(url);
     });
     electron_1.ipcMain.handle(ipc_channels_1.IPC.READER_TTS_START, (_event, { text, voice }) => {
-        (0, tts_service_1.startTTS)(text, voice);
-        return { ok: true };
+        const result = (0, tts_service_1.startTTS)(text, voice);
+        return { ok: result.ok, supported: (0, tts_service_1.isTTSSupported)(), error: result.error };
     });
     electron_1.ipcMain.handle(ipc_channels_1.IPC.READER_TTS_STOP, () => {
         (0, tts_service_1.stopTTS)();

@@ -15,7 +15,9 @@
 import React, { useRef, useEffect, useCallback } from 'react';
 import { Tab } from '@shared/types/tab';
 import { useTabsStore } from '../../store/tabs.store';
-import { WEBVIEW_PARTITION_PREFIX } from '@shared/constants';
+import { WEBVIEW_PARTITION_PREFIX, NEW_TAB_URL } from '@shared/constants';
+import { NewTab } from '../../pages/NewTab';
+import { IPC } from '../../lib/ipc';
 
 // Electron webview element types
 interface WebviewElement extends HTMLElement {
@@ -50,13 +52,17 @@ function renderWebview(
 ): React.ReactElement {
   return React.createElement('webview', {
     ref,
-    src: tab.url === 'vyro://newtab' ? 'about:blank' : tab.url,
+    src: tab.url,
     partition: `${WEBVIEW_PARTITION_PREFIX}${tab.profileId}`,
     allowpopups: 'true',
     useragent: userAgent,
     webpreferences: 'contextIsolation=yes',
     style: { flex: 1, width: '100%', height: '100%', border: 'none' },
   });
+}
+
+function isNewTab(url: string): boolean {
+  return !url || url === NEW_TAB_URL || url === 'about:blank';
 }
 
 const CHROME_UA =
@@ -91,6 +97,32 @@ export const WebviewPane: React.FC<WebviewPaneProps> = ({ tab, active }) => {
       // webview not ready
     }
   }, [tab.id, updateTab]);
+
+  // FIX 3: Apply CSS/JS injections after page finishes loading
+  const handleDidFinishLoad = useCallback(async () => {
+    const wv = webviewRef.current;
+    if (!wv) return;
+    try {
+      const currentUrl = (wv as unknown as { getURL(): string }).getURL?.() ?? tab.url;
+      if (!currentUrl || isNewTab(currentUrl)) return;
+      const origin = new URL(currentUrl).hostname;
+      if (!origin) return;
+      const injection = await window.vyro.invoke(IPC.INJECTIONS_GET_FOR_ORIGIN as never, { origin }) as {
+        css: string; js: string; enabled: boolean;
+      } | null;
+      if (!injection || !injection.enabled) return;
+      if (injection.css?.trim()) {
+        await (wv as unknown as { insertCSS(css: string): Promise<void> }).insertCSS(injection.css);
+      }
+      if (injection.js?.trim()) {
+        await (wv as unknown as { executeJavaScript(code: string): Promise<unknown> }).executeJavaScript(
+          `(function(){\n${injection.js}\n})()`
+        );
+      }
+    } catch {
+      // injection failed — ignore silently
+    }
+  }, [tab.url]);
 
   useEffect(() => {
     const wv = webviewRef.current;
@@ -137,6 +169,7 @@ export const WebviewPane: React.FC<WebviewPaneProps> = ({ tab, active }) => {
     };
 
     wv.addEventListener('dom-ready', handleDomReady);
+    wv.addEventListener('did-finish-load', handleDidFinishLoad);
     wv.addEventListener('did-start-loading', onStartLoading);
     wv.addEventListener('did-stop-loading', onStopLoading);
     wv.addEventListener('page-title-updated', onTitleUpdated);
@@ -148,6 +181,7 @@ export const WebviewPane: React.FC<WebviewPaneProps> = ({ tab, active }) => {
 
     return () => {
       wv.removeEventListener('dom-ready', handleDomReady);
+      wv.removeEventListener('did-finish-load', handleDidFinishLoad);
       wv.removeEventListener('did-start-loading', onStartLoading);
       wv.removeEventListener('did-stop-loading', onStopLoading);
       wv.removeEventListener('page-title-updated', onTitleUpdated);
@@ -157,18 +191,21 @@ export const WebviewPane: React.FC<WebviewPaneProps> = ({ tab, active }) => {
       wv.removeEventListener('new-window', onNewWindow);
       wv.removeEventListener('crashed', onCrashed);
     };
-  }, [tab.id, handleDomReady, updateTab, createTab]);
+  }, [tab.id, handleDomReady, handleDidFinishLoad, updateTab, createTab]);
 
-  // ── Render — show crash UI or the live webview ─────────────────────────────
+  // ── Render — show NewTab, crash UI, or the live webview ──────────────────────
 
   const isCrashed = tab.title === 'Tab Crashed';
+  const showNewTab = isNewTab(tab.url);
 
   return (
     <div
       className="flex flex-col flex-1 overflow-hidden"
       style={{ display: active ? 'flex' : 'none' }}
     >
-      {isCrashed ? (
+      {showNewTab ? (
+        <NewTab />
+      ) : isCrashed ? (
         <div className="flex-1 flex flex-col items-center justify-center gap-4 bg-[#0f0f10] text-white/50">
           <svg className="w-12 h-12 text-red-400/60" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
             <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />

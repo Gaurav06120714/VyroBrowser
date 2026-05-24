@@ -99,6 +99,7 @@ exports.IPC = {
     // Find
     FIND_START: 'find:start',
     FIND_STOP: 'find:stop',
+    FIND_RESULT: 'find:result',
     // Permissions
     PERMISSION_REQUEST: 'permission:request',
     PERMISSION_RESPOND: 'permission:respond',
@@ -185,4 +186,5 @@ exports.PUSH_ALLOWLIST = [
     exports.IPC.ONBOARDING_PULL_COMPLETE,
     exports.IPC.ONBOARDING_PULL_ERROR,
     exports.IPC.WINDOW_MAXIMIZED, exports.IPC.WINDOW_RESTORED,
+    exports.IPC.FIND_RESULT,
 ];

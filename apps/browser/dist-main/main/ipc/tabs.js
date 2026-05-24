@@ -10,7 +10,27 @@ const constants_1 = require("../../shared/constants");
 exports.tabWebContentsMap = new Map();
 // In-memory tab list (truth is in renderer; main just tracks for nav routing)
 const tabRegistry = new Map();
-function registerTabsIpc(_db, wm) {
+// Track active tab for session saves
+let activeTabIdCache = '';
+function toSnapshot(tab) {
+    return {
+        id: tab.id,
+        url: tab.url,
+        title: tab.title,
+        isPinned: tab.isPinned,
+        groupId: tab.groupId,
+        profileId: tab.profileId,
+    };
+}
+function saveSession(db, crashRecovery, profileId) {
+    const tabs = Array.from(tabRegistry.values())
+        .filter(t => t.profileId === profileId)
+        .map(toSnapshot);
+    if (tabs.length === 0)
+        return;
+    crashRecovery.save(db, profileId, tabs, activeTabIdCache);
+}
+function registerTabsIpc(db, wm, crashRecovery) {
     // Internal: renderer registers webview webContentsId once dom-ready fires
     electron_1.ipcMain.handle('webview:register', (_event, { tabId, webContentsId }) => {
         exports.tabWebContentsMap.set(tabId, webContentsId);
@@ -33,15 +53,22 @@ function registerTabsIpc(_db, wm) {
             createdAt: Date.now(),
         };
         tabRegistry.set(tab.id, tab);
+        saveSession(db, crashRecovery, tab.profileId);
         return tab;
     });
     electron_1.ipcMain.handle(ipc_channels_1.IPC.TABS_CLOSE, (_event, { tabId }) => {
+        const tab = tabRegistry.get(tabId);
+        const profileId = tab?.profileId ?? constants_1.DEFAULT_PROFILE_ID;
         exports.tabWebContentsMap.delete(tabId);
         tabRegistry.delete(tabId);
+        saveSession(db, crashRecovery, profileId);
         return { ok: true };
     });
     electron_1.ipcMain.handle(ipc_channels_1.IPC.TABS_ACTIVATE, (_event, { tabId }) => {
-        // Renderer manages active tab state; main just acknowledges
+        activeTabIdCache = tabId;
+        const tab = tabRegistry.get(tabId);
+        if (tab)
+            saveSession(db, crashRecovery, tab.profileId);
         return { ok: true, tabId };
     });
     electron_1.ipcMain.handle(ipc_channels_1.IPC.TABS_REORDER, (_event, { tabIds }) => {
@@ -67,9 +94,7 @@ function registerTabsIpc(_db, wm) {
         return { ok: true, groupId };
     });
     electron_1.ipcMain.handle(ipc_channels_1.IPC.TABS_RESTORE_SESSION, (_event, { profileId }) => {
-        // Session restore logic is in crash-recovery service; renderer calls this
-        // and main returns saved session state (handled via crash recovery)
-        return null;
+        return crashRecovery.restore(db, profileId);
     });
     electron_1.ipcMain.handle(ipc_channels_1.IPC.TABS_SPLIT_TOGGLE, (_event, { tabId }) => {
         return { ok: true, tabId };

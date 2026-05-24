@@ -2,9 +2,10 @@ import { ipcMain, webContents } from 'electron';
 import Database from 'better-sqlite3';
 import { v4 as uuidv4 } from 'uuid';
 import { IPC } from '../../shared/ipc-channels';
-import { Tab } from '../../shared/types/tab';
+import { Tab, TabSnapshot } from '../../shared/types/tab';
 import { WindowManager } from '../window-manager';
 import { DEFAULT_PROFILE_ID, NEW_TAB_URL } from '../../shared/constants';
+import { CrashRecoveryService } from '../services/crash-recovery';
 
 // tabId → webContentsId mapping (populated when renderer registers a webview)
 export const tabWebContentsMap = new Map<string, number>();
@@ -12,7 +13,29 @@ export const tabWebContentsMap = new Map<string, number>();
 // In-memory tab list (truth is in renderer; main just tracks for nav routing)
 const tabRegistry = new Map<string, Tab>();
 
-export function registerTabsIpc(_db: Database.Database, wm: WindowManager): void {
+// Track active tab for session saves
+let activeTabIdCache = '';
+
+function toSnapshot(tab: Tab): TabSnapshot {
+  return {
+    id: tab.id,
+    url: tab.url,
+    title: tab.title,
+    isPinned: tab.isPinned,
+    groupId: tab.groupId,
+    profileId: tab.profileId,
+  };
+}
+
+function saveSession(db: Database.Database, crashRecovery: CrashRecoveryService, profileId: string): void {
+  const tabs = Array.from(tabRegistry.values())
+    .filter(t => t.profileId === profileId)
+    .map(toSnapshot);
+  if (tabs.length === 0) return;
+  crashRecovery.save(db, profileId, tabs, activeTabIdCache);
+}
+
+export function registerTabsIpc(db: Database.Database, wm: WindowManager, crashRecovery: CrashRecoveryService): void {
   // Internal: renderer registers webview webContentsId once dom-ready fires
   ipcMain.handle('webview:register', (_event, { tabId, webContentsId }: { tabId: string; webContentsId: number }) => {
     tabWebContentsMap.set(tabId, webContentsId);
@@ -36,17 +59,23 @@ export function registerTabsIpc(_db: Database.Database, wm: WindowManager): void
       createdAt: Date.now(),
     };
     tabRegistry.set(tab.id, tab);
+    saveSession(db, crashRecovery, tab.profileId);
     return tab;
   });
 
   ipcMain.handle(IPC.TABS_CLOSE, (_event, { tabId }: { tabId: string }) => {
+    const tab = tabRegistry.get(tabId);
+    const profileId = tab?.profileId ?? DEFAULT_PROFILE_ID;
     tabWebContentsMap.delete(tabId);
     tabRegistry.delete(tabId);
+    saveSession(db, crashRecovery, profileId);
     return { ok: true };
   });
 
   ipcMain.handle(IPC.TABS_ACTIVATE, (_event, { tabId }: { tabId: string }) => {
-    // Renderer manages active tab state; main just acknowledges
+    activeTabIdCache = tabId;
+    const tab = tabRegistry.get(tabId);
+    if (tab) saveSession(db, crashRecovery, tab.profileId);
     return { ok: true, tabId };
   });
 
@@ -78,9 +107,7 @@ export function registerTabsIpc(_db: Database.Database, wm: WindowManager): void
   });
 
   ipcMain.handle(IPC.TABS_RESTORE_SESSION, (_event, { profileId }: { profileId: string }) => {
-    // Session restore logic is in crash-recovery service; renderer calls this
-    // and main returns saved session state (handled via crash recovery)
-    return null;
+    return crashRecovery.restore(db, profileId);
   });
 
   ipcMain.handle(IPC.TABS_SPLIT_TOGGLE, (_event, { tabId }: { tabId: string }) => {

@@ -24,10 +24,12 @@ import { registerFindIpc } from './find';
 import { registerKeywordsIpc } from './keywords';
 import { registerOnboardingIpc } from './onboarding';
 import { KeywordService } from '../services/keyword-service';
+import { CrashRecoveryService } from '../services/crash-recovery';
 
 export function registerAllIpc(db: Database.Database, wm: WindowManager): void {
   const keywordService = new KeywordService(db);
-  registerTabsIpc(db, wm);
+  const crashRecovery = new CrashRecoveryService();
+  registerTabsIpc(db, wm, crashRecovery);
   registerNavigationIpc(wm);
   registerProfilesIpc(db, wm);
   registerSettingsIpc(db);
@@ -36,7 +38,7 @@ export function registerAllIpc(db: Database.Database, wm: WindowManager): void {
   registerBookmarksIpc(db);
   registerDownloadsIpc(db, wm);
   registerAIIpc(db, wm);
-  registerAdblockIpc();
+  registerAdblockIpc(db);
   registerReaderIpc();
   registerInjectionsIpc(db);
   registerFindIpc();

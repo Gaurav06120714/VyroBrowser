@@ -96,6 +96,7 @@ export const IPC = {
   // Find
   FIND_START: 'find:start',
   FIND_STOP: 'find:stop',
+  FIND_RESULT: 'find:result',
   // Permissions
   PERMISSION_REQUEST: 'permission:request',
   PERMISSION_RESPOND: 'permission:respond',
@@ -186,4 +187,5 @@ export const PUSH_ALLOWLIST: IpcChannel[] = [
   IPC.ONBOARDING_PULL_COMPLETE,
   IPC.ONBOARDING_PULL_ERROR,
   IPC.WINDOW_MAXIMIZED, IPC.WINDOW_RESTORED,
+  IPC.FIND_RESULT,
 ];

@@ -15,8 +15,7 @@
 import React from 'react';
 import { useTabsStore } from '../../store/tabs.store';
 import { WebviewPane } from './WebviewPane';
-import { NewTab } from '../../pages/NewTab';
-import { NEW_TAB_URL } from '@shared/constants';
+import { ErrorBoundary } from '../shared/ErrorBoundary';
 
 export const WebviewContainer: React.FC = () => {
   const tabs = useTabsStore(s => s.tabs);
@@ -34,7 +33,6 @@ export const WebviewContainer: React.FC = () => {
     <div className="flex-1 relative overflow-hidden flex">
       {tabs.map(tab => {
         const isActive = tab.id === activeTabId;
-        const isNewTab = tab.url === NEW_TAB_URL || tab.url === 'about:blank' || tab.url === '';
 
         return (
           <div
@@ -42,11 +40,9 @@ export const WebviewContainer: React.FC = () => {
             className="absolute inset-0 flex flex-col"
             style={{ display: isActive ? 'flex' : 'none' }}
           >
-            {isNewTab ? (
-              <NewTab />
-            ) : (
+            <ErrorBoundary label={`Tab: ${tab.title}`}>
               <WebviewPane tab={tab} active={isActive} />
-            )}
+            </ErrorBoundary>
           </div>
         );
       })}

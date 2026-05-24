@@ -112,6 +112,7 @@
     },
     "win": {
       "icon": "assets/icon.ico",
+      "executableName": "Vyro",
       "artifactName": "Vyro-Setup-Windows-x64-${version}.${ext}",
       "target": [
         {
@@ -163,7 +164,7 @@
       "differentialPackage": true,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
-      "shortcutName": "Vyro Browser",
+      "shortcutName": "Vyro",
       "installerIcon": "assets/icon.ico",
       "uninstallerIcon": "assets/icon.ico",
       "installerHeaderIcon": "assets/icon.ico",

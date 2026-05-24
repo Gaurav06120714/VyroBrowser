@@ -369,11 +369,119 @@ const KeywordsTab: React.FC = () => {
 
 // ── General Tab ───────────────────────────────────────────────────────────────
 
-const GeneralTab: React.FC = () => (
-  <div className="flex flex-col gap-3 text-sm text-white/60">
-    <p className="text-white/30 text-xs">General settings — coming soon.</p>
-  </div>
-);
+const GeneralTab: React.FC = () => {
+  const [cacheSize, setCacheSize] = useState<string | null>(null);
+  const [versionInfo, setVersionInfo] = useState<any>(null);
+  const [busy, setBusy] = useState<string | null>(null);
+  const [msg, setMsg] = useState<string | null>(null);
+
+  useEffect(() => {
+    ipc.invoke(IPC.APP_GET_CACHE_SIZE).then((r: any) => setCacheSize(r?.mb ?? null));
+    ipc.invoke(IPC.APP_GET_VERSION).then((r: any) => setVersionInfo(r));
+  }, []);
+
+  const run = async (channel: string, label: string, confirm?: string) => {
+    if (confirm && !window.confirm(confirm)) return;
+    setBusy(label);
+    setMsg(null);
+    const r: any = await ipc.invoke(channel as any);
+    setBusy(null);
+    if (r?.ok === false) {
+      setMsg(`Error: ${r.error ?? 'unknown'}`);
+    } else if (channel !== IPC.APP_RESET) {
+      setMsg(`${label} complete.`);
+      if (channel === IPC.APP_CLEAR_CACHE || channel === IPC.APP_CLEAR_GPU_CACHE) {
+        ipc.invoke(IPC.APP_GET_CACHE_SIZE).then((r2: any) => setCacheSize(r2?.mb ?? null));
+      }
+    }
+  };
+
+  const btnCls = (color: string) =>
+    `flex-1 py-2 px-3 rounded-lg text-xs font-medium transition-all disabled:opacity-40 ${color}`;
+
+  return (
+    <div className="flex flex-col gap-5 text-sm">
+      {/* Version info */}
+      <div className="bg-white/3 border border-white/8 rounded-xl p-4 flex flex-col gap-1">
+        <p className="text-xs text-white/40 font-medium uppercase tracking-wider mb-1">About</p>
+        {versionInfo ? (
+          <>
+            <div className="flex justify-between text-xs">
+              <span className="text-white/50">Version</span>
+              <span className="text-white font-mono">{versionInfo.version}</span>
+            </div>
+            <div className="flex justify-between text-xs">
+              <span className="text-white/50">Electron</span>
+              <span className="text-white/70 font-mono">{versionInfo.electron}</span>
+            </div>
+            <div className="flex justify-between text-xs">
+              <span className="text-white/50">Chrome</span>
+              <span className="text-white/70 font-mono">{versionInfo.chrome}</span>
+            </div>
+            <div className="flex justify-between text-xs">
+              <span className="text-white/50">Platform</span>
+              <span className="text-white/70 font-mono">{versionInfo.platform} / {versionInfo.arch}</span>
+            </div>
+          </>
+        ) : (
+          <p className="text-white/20 text-xs">Loading…</p>
+        )}
+      </div>
+
+      {/* Cache management */}
+      <div className="bg-white/3 border border-white/8 rounded-xl p-4 flex flex-col gap-3">
+        <div className="flex items-center justify-between">
+          <p className="text-xs text-white/40 font-medium uppercase tracking-wider">Cache</p>
+          {cacheSize !== null && (
+            <span className="text-xs text-white/50 font-mono">{cacheSize} MB used</span>
+          )}
+        </div>
+        <div className="flex gap-2">
+          <button
+            className={btnCls('bg-white/6 hover:bg-white/10 text-white/80')}
+            disabled={!!busy}
+            onClick={() => run(IPC.APP_CLEAR_CACHE, 'Clear Cache')}
+          >
+            {busy === 'Clear Cache' ? 'Clearing…' : 'Clear Browser Cache'}
+          </button>
+          <button
+            className={btnCls('bg-white/6 hover:bg-white/10 text-white/80')}
+            disabled={!!busy}
+            onClick={() => run(IPC.APP_CLEAR_GPU_CACHE, 'Clear GPU Cache')}
+          >
+            {busy === 'Clear GPU Cache' ? 'Clearing…' : 'Clear GPU Cache'}
+          </button>
+        </div>
+        <p className="text-xs text-white/25">Clears cached pages and GPU shaders. Your browsing data is kept.</p>
+      </div>
+
+      {/* Reset */}
+      <div className="bg-white/3 border border-white/8 rounded-xl p-4 flex flex-col gap-3">
+        <p className="text-xs text-white/40 font-medium uppercase tracking-wider">Reset</p>
+        <div className="flex gap-2">
+          <button
+            className={btnCls('bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20')}
+            disabled={!!busy}
+            onClick={() => run(
+              IPC.APP_RESET,
+              'Reset Vyro',
+              'This will clear all cookies, sessions, and cached data. Your bookmarks and history are preserved. Vyro will restart. Continue?'
+            )}
+          >
+            {busy === 'Reset Vyro' ? 'Resetting…' : 'Reset Vyro'}
+          </button>
+        </div>
+        <p className="text-xs text-white/25">Clears all sessions and cache. Keeps bookmarks, history, and AI conversations. App will restart.</p>
+      </div>
+
+      {msg && (
+        <p className={`text-xs px-3 py-2 rounded-lg ${msg.startsWith('Error') ? 'bg-red-500/10 text-red-400' : 'bg-green-500/10 text-green-400'}`}>
+          {msg}
+        </p>
+      )}
+    </div>
+  );
+};
 
 // ── SettingsModal ─────────────────────────────────────────────────────────────
 

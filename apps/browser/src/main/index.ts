@@ -18,8 +18,9 @@
 //     exists, create + load one so the app never appears "dead".
 //   • before-quit — close the DB cleanly right before the process exits.
 // ─────────────────────────────────────────────────────────────────────────────
-import { app, BrowserWindow, Menu, session } from 'electron';
+import { app, BrowserWindow, Menu, session, ipcMain } from 'electron';
 import path from 'path';
+import fs from 'fs';
 import { getDb, closeDb } from './services/db';
 import { WindowManager } from './window-manager';
 import { registerAllIpc } from './ipc';
@@ -29,8 +30,23 @@ import { getDownloadService } from './ipc/downloads';
 import { registerShortcuts, unregisterShortcuts } from './shortcuts';
 import { createTray, destroyTray } from './tray';
 import { setupAutoUpdater } from './updater';
+import { runStartupMigration } from './ipc/app-management';
+import { IPC } from '../shared/ipc-channels';
 
+// ── App identity — must be set BEFORE app.whenReady() ─────────────────────
 app.name = 'Vyro';
+
+// Windows: set App User Model ID so taskbar/start menu shows "Vyro" not "Electron"
+if (process.platform === 'win32') {
+  app.setAppUserModelId('com.vyro.browser');
+}
+
+// Portable build: isolate userData so portable and installed copies never collide
+if (process.platform === 'win32' && process.env.PORTABLE_EXECUTABLE_DIR) {
+  const portableData = path.join(process.env.PORTABLE_EXECUTABLE_DIR, 'VyroData');
+  app.setPath('userData', portableData);
+  app.setPath('logs', path.join(portableData, 'logs'));
+}
 
 // ── Single instance lock ───────────────────────────────────────────────────
 const gotLock = app.requestSingleInstanceLock();
@@ -61,6 +77,9 @@ function createWindow(): BrowserWindow {
 
 // ── App ready ─────────────────────────────────────────────────────────────
 app.whenReady().then(async () => {
+  // Clean up old app identity remnants (one-time migration)
+  runStartupMigration();
+
   // Init SQLite DB + migrations
   const db = getDb();
 

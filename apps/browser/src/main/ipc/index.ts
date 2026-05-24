@@ -22,6 +22,7 @@ import { registerReaderIpc } from './reader';
 import { registerInjectionsIpc } from './injections';
 import { registerFindIpc } from './find';
 import { registerKeywordsIpc } from './keywords';
+import { registerOnboardingIpc } from './onboarding';
 import { KeywordService } from '../services/keyword-service';
 
 export function registerAllIpc(db: Database.Database, wm: WindowManager): void {
@@ -40,4 +41,5 @@ export function registerAllIpc(db: Database.Database, wm: WindowManager): void {
   registerInjectionsIpc(db);
   registerFindIpc();
   registerKeywordsIpc(keywordService);
+  registerOnboardingIpc(wm);
 }

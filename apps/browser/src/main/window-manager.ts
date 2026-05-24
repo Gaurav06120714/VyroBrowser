@@ -1,4 +1,4 @@
-import { BrowserWindow, screen } from 'electron';
+import { BrowserWindow, screen, session } from 'electron';
 import path from 'path';
 import fs from 'fs';
 import { app } from 'electron';
@@ -53,12 +53,46 @@ function ensureVisible(bounds: WindowBounds): WindowBounds {
   return bounds;
 }
 
+function getPlatformWindowOptions(): Electron.BrowserWindowConstructorOptions {
+  const platform = process.platform;
+
+  if (platform === 'darwin') {
+    return {
+      titleBarStyle: 'hiddenInset',
+      trafficLightPosition: { x: 16, y: 14 },
+      // Arc-style translucent chrome — macOS only
+      vibrancy: 'under-window',
+      visualEffectState: 'followWindow',
+      backgroundColor: '#00000000',
+      transparent: true,
+    };
+  }
+
+  if (platform === 'win32') {
+    return {
+      // Hidden title bar so we can render a custom one in the renderer
+      titleBarStyle: 'hidden',
+      backgroundColor: '#1a1a2e',
+      transparent: false,
+    };
+  }
+
+  // Linux — use standard frame to avoid compositor issues
+  return {
+    frame: true,
+    backgroundColor: '#1a1a2e',
+    transparent: false,
+  };
+}
+
 export class WindowManager {
   private mainWindow: BrowserWindow | null = null;
 
   createMain(): BrowserWindow {
     const saved = loadBounds();
     const bounds = saved ? ensureVisible(saved) : { x: undefined, y: undefined, width: 1280, height: 800 };
+
+    const platformOptions = getPlatformWindowOptions();
 
     const win = new BrowserWindow({
       x: bounds.x,
@@ -67,13 +101,7 @@ export class WindowManager {
       height: bounds.height,
       minWidth: 800,
       minHeight: 600,
-      titleBarStyle: 'hiddenInset',
-      trafficLightPosition: { x: 16, y: 14 },
-      // ── macOS native vibrancy — Arc-style translucent chrome ────────────────
-      vibrancy: 'under-window',
-      visualEffectState: 'followsWindowActiveState',
-      backgroundColor: '#00000000',
-      transparent: process.platform === 'darwin',
+      ...platformOptions,
       show: false,
       webPreferences: {
         contextIsolation: true,
@@ -95,6 +123,25 @@ export class WindowManager {
     win.on('closed', () => {
       this.mainWindow = null;
     });
+
+    // ── Content Security Policy ──────────────────────────────────────────
+    // Applied to the renderer shell only (not to webview content).
+    session.defaultSession.webRequest.onHeadersReceived(
+      { urls: ['http://localhost:5173/*', 'file://*/*'] },
+      (details, callback) => {
+        callback({
+          responseHeaders: {
+            ...details.responseHeaders,
+            'Content-Security-Policy': [
+              "default-src 'self' 'unsafe-inline' 'unsafe-eval' http://localhost:* blob: data:; " +
+              "connect-src 'self' http://localhost:* ws://localhost:*; " +
+              "img-src 'self' data: https: http:; " +
+              "font-src 'self' data:;",
+            ],
+          },
+        });
+      }
+    );
 
     win.webContents.setWindowOpenHandler(({ url }) => {
       // Block native new windows; let the renderer handle them via IPC

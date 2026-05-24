@@ -103,6 +103,14 @@ export const IPC = {
   SHORTCUT_ACTION: 'shortcut:action',
   // App lifecycle pushes from main → renderer
   APP_NEW_TAB: 'app:new-tab',
+  // Onboarding / Ollama management
+  ONBOARDING_CHECK_OLLAMA: 'onboarding:check-ollama',
+  ONBOARDING_PULL_MODEL: 'onboarding:pull-model',
+  ONBOARDING_PULL_PROGRESS: 'onboarding:pull-progress',
+  ONBOARDING_PULL_COMPLETE: 'onboarding:pull-complete',
+  ONBOARDING_PULL_ERROR: 'onboarding:pull-error',
+  ONBOARDING_LIST_MODELS: 'onboarding:list-models',
+  ONBOARDING_CANCEL_PULL: 'onboarding:cancel-pull',
   // Keywords
   KEYWORDS_RESOLVE: 'keywords:resolve',
   KEYWORDS_SUGGEST: 'keywords:suggest',
@@ -151,6 +159,10 @@ export const INVOKE_ALLOWLIST: IpcChannel[] = [
   IPC.KEYWORDS_SAVE_CUSTOM, IPC.KEYWORDS_DELETE_CUSTOM,
   IPC.KEYWORDS_TOGGLE, IPC.KEYWORDS_IMPORT, IPC.KEYWORDS_EXPORT,
   IPC.KEYWORDS_TRACK_USE, IPC.KEYWORDS_GET_USAGE, IPC.KEYWORDS_RESET,
+  IPC.ONBOARDING_CHECK_OLLAMA,
+  IPC.ONBOARDING_PULL_MODEL,
+  IPC.ONBOARDING_LIST_MODELS,
+  IPC.ONBOARDING_CANCEL_PULL,
 ];
 
 // Channels main pushes to renderer (allowlist for preload `on`)
@@ -163,4 +175,7 @@ export const PUSH_ALLOWLIST: IpcChannel[] = [
   IPC.PERMISSION_REQUEST,
   IPC.SHORTCUT_ACTION,
   IPC.APP_NEW_TAB,
+  IPC.ONBOARDING_PULL_PROGRESS,
+  IPC.ONBOARDING_PULL_COMPLETE,
+  IPC.ONBOARDING_PULL_ERROR,
 ];

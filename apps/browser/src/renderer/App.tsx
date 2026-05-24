@@ -10,7 +10,7 @@
 // App also owns global keyboard shortcut handling (both renderer-side keydown
 // and shortcuts pushed from the main process via IPC).
 // ─────────────────────────────────────────────────────────────────────────────
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { TabBar } from './components/browser/TabBar';
 import { NavigationButtons } from './components/browser/NavigationButtons';
 import { AddressBar } from './components/browser/AddressBar';
@@ -27,6 +27,8 @@ import { InjectionEditor } from './components/modals/InjectionEditor';
 import { ProfileSwitcher } from './components/modals/ProfileSwitcher';
 import { ToastContainer } from './components/shared/Toast';
 import { CommandPalette } from './components/browser/CommandPalette';
+import { WindowsTitleBar } from './components/browser/WindowsTitleBar';
+import { Onboarding } from './pages/Onboarding';
 import { useUiStore } from './store/ui.store';
 import { useTabsStore } from './store/tabs.store';
 import { NEW_TAB_URL } from '@shared/constants';
@@ -35,6 +37,8 @@ import { ipc, IPC } from './lib/ipc';
 import { useContextMenu } from './hooks/useContextMenu';
 import { useSettings } from './hooks/useSettings';
 import { useProfiles } from './hooks/useProfiles';
+
+const ONBOARDING_KEY = 'vyro:onboarding:complete';
 
 // ── NavBar — toolbar row below the tab strip ───────────────────────────────
 const NavBar: React.FC = () => {
@@ -98,6 +102,10 @@ const NavBar: React.FC = () => {
 
 // ── App — root shell: tab bar, content area, all modals and overlays ────────
 const App: React.FC = () => {
+  const [onboardingDone, setOnboardingDone] = useState<boolean>(() => {
+    try { return localStorage.getItem(ONBOARDING_KEY) === 'true'; } catch { return false; }
+  });
+
   const sidebarOpen = useUiStore(s => s.sidebarOpen);
   const activeModal = useUiStore(s => s.activeModal);
   const closeModal = useUiStore(s => s.closeModal);
@@ -154,8 +162,16 @@ const App: React.FC = () => {
     return off;
   }, []);
 
+  // Show onboarding if first launch
+  if (!onboardingDone) {
+    return <Onboarding onComplete={() => setOnboardingDone(true)} />;
+  }
+
   return (
     <div className="flex flex-col h-screen overflow-hidden bg-[#0f0f10] text-white">
+      {/* Windows custom title bar — renders only on win32 */}
+      <WindowsTitleBar />
+
       <TabBar />
 
       <div className="flex flex-col flex-1 overflow-hidden">

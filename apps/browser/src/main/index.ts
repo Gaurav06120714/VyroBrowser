@@ -26,6 +26,8 @@ import { registerAllIpc } from './ipc';
 import { ProfileService } from './services/profile-service';
 import { setupAdblocking } from './adblock/request-filter';
 import { getDownloadService } from './ipc/downloads';
+import { registerShortcuts, unregisterShortcuts } from './shortcuts';
+import { createTray, destroyTray } from './tray';
 
 app.name = 'Vyro';
 
@@ -72,6 +74,12 @@ app.whenReady().then(async () => {
   // Register all IPC handlers
   registerAllIpc(db, windowManager);
 
+  // Register global keyboard shortcuts
+  const mainWin = windowManager.getMain();
+  if (mainWin) {
+    registerShortcuts(mainWin);
+  }
+
   // Ad-blocking on the default session
   const defaultSession = session.defaultSession;
   setupAdblocking(defaultSession).catch(err => {
@@ -86,6 +94,9 @@ app.whenReady().then(async () => {
       downloadService.handleWillDownload(profileId, item);
     }
   });
+
+  // ── System tray (Windows / Linux) ────────────────────────────────────────
+  createTray(() => windowManager.getMain());
 
   // ── macOS Dock menu ──────────────────────────────────────────────────────
   // Right-clicking the Dock icon shows these options (Chrome/Brave style).
@@ -142,5 +153,7 @@ app.on('window-all-closed', () => {
 // This fires right before the process exits on all platforms.
 // Safe place to close the DB connection cleanly.
 app.on('before-quit', () => {
+  unregisterShortcuts();
+  destroyTray();
   closeDb();
 });

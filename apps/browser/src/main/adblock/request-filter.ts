@@ -6,17 +6,34 @@ export interface AdblockStats {
   totalBlocked: number;
   trackersBlocked: number;
   sessionBlocked: number;
+  totalAllowed: number;
 }
 
 const SITE_RULE_PREFIX = 'adblock:site:';
 
-const stats: AdblockStats = { totalBlocked: 0, trackersBlocked: 0, sessionBlocked: 0 };
+const stats: AdblockStats = { totalBlocked: 0, trackersBlocked: 0, sessionBlocked: 0, totalAllowed: 0 };
 
 // In-memory cache populated from DB on startup
 const siteOverridesCache = new Map<string, boolean>(); // origin → enabled
 
+let statsListenerAttached = false;
+
 export async function setupAdblocking(sess: Session): Promise<void> {
   const blocker = await initBlocker();
+
+  // Attach stats listeners once — the blocker is a singleton, so multiple sessions
+  // should not register duplicate handlers.
+  if (!statsListenerAttached) {
+    statsListenerAttached = true;
+    blocker.on('request-blocked', () => {
+      stats.totalBlocked++;
+      stats.sessionBlocked++;
+    });
+    blocker.on('request-allowed', () => {
+      stats.totalAllowed++;
+    });
+  }
+
   blocker.enableBlockingInSession(sess);
 }
 
@@ -27,7 +44,17 @@ export async function reloadBlocklists(sess: Session): Promise<void> {
     currentBlocker.disableBlockingInSession(sess);
   }
   resetBlocker();
+  statsListenerAttached = false; // Reset so new blocker gets listeners attached
   const newBlocker = await initBlocker();
+  // Re-attach stats listeners on new blocker instance
+  statsListenerAttached = true;
+  newBlocker.on('request-blocked', () => {
+    stats.totalBlocked++;
+    stats.sessionBlocked++;
+  });
+  newBlocker.on('request-allowed', () => {
+    stats.totalAllowed++;
+  });
   newBlocker.enableBlockingInSession(sess);
 }
 
@@ -37,7 +64,14 @@ export function incrementBlocked(isTracker = false): void {
   if (isTracker) stats.trackersBlocked++;
 }
 
-export function getStats(): AdblockStats { return { ...stats }; }
+export function getStats(): AdblockStats & { blocked: number; allowed: number; total: number } {
+  return {
+    ...stats,
+    blocked: stats.totalBlocked,
+    allowed: stats.totalAllowed,
+    total: stats.totalBlocked + stats.totalAllowed,
+  };
+}
 
 export function setSiteOverride(origin: string, enabled: boolean, settingsService?: SettingsService): void {
   siteOverridesCache.set(origin, enabled);

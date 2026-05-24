@@ -12,7 +12,7 @@
 // of infinite reload loops (Google fires did-navigate-in-page → tab.url updates
 // → effect calls loadURL → Google fires again → ...).
 // ─────────────────────────────────────────────────────────────────────────────
-import React, { useRef, useEffect, useCallback } from 'react';
+import React, { useRef, useEffect, useCallback, useState } from 'react';
 import { Tab } from '@shared/types/tab';
 import { useTabsStore } from '../../store/tabs.store';
 import { WEBVIEW_PARTITION_PREFIX, NEW_TAB_URL } from '@shared/constants';
@@ -69,11 +69,31 @@ const CHROME_UA =
   'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) ' +
   'AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36';
 
+// Skeleton overlay shown while the webview is loading
+const WebviewSkeleton: React.FC = () => (
+  <div className="absolute inset-0 z-10 bg-[#0f0f10] flex flex-col gap-3 p-5 pointer-events-none animate-pulse">
+    {/* URL bar shape */}
+    <div className="h-7 rounded-lg bg-white/8 w-3/4 mx-auto" />
+    {/* Content blocks */}
+    <div className="flex flex-col gap-3 mt-4 flex-1">
+      <div className="h-5 rounded-md bg-white/6 w-full" />
+      <div className="h-5 rounded-md bg-white/6 w-5/6" />
+      <div className="h-5 rounded-md bg-white/5 w-4/6" />
+      <div className="h-3 rounded-md bg-white/4 w-full mt-2" />
+      <div className="h-3 rounded-md bg-white/4 w-11/12" />
+      <div className="h-3 rounded-md bg-white/4 w-3/4" />
+      <div className="h-3 rounded-md bg-white/3 w-5/6 mt-2" />
+      <div className="h-3 rounded-md bg-white/3 w-2/3" />
+    </div>
+  </div>
+);
+
 export const WebviewPane: React.FC<WebviewPaneProps> = ({ tab, active }) => {
   const webviewRef = useRef<WebviewElement | null>(null);
   const updateTab = useTabsStore(s => s.updateTab);
   const createTab = useTabsStore(s => s.createTab);
   const registeredRef = useRef(false);
+  const [localLoading, setLocalLoading] = useState(false);
 
   // ── Event handlers — sync webview state back to the tab store ──────────────
 
@@ -128,9 +148,13 @@ export const WebviewPane: React.FC<WebviewPaneProps> = ({ tab, active }) => {
     const wv = webviewRef.current;
     if (!wv) return;
 
-    const onStartLoading = () => updateTab(tab.id, { isLoading: true });
+    const onStartLoading = () => {
+      setLocalLoading(true);
+      updateTab(tab.id, { isLoading: true });
+    };
 
     const onStopLoading = () => {
+      setLocalLoading(false);
       updateTab(tab.id, {
         isLoading: false,
         canGoBack: wv.canGoBack(),
@@ -223,7 +247,18 @@ export const WebviewPane: React.FC<WebviewPaneProps> = ({ tab, active }) => {
           </button>
         </div>
       ) : (
-        renderWebview(tab, webviewRef as React.RefObject<HTMLElement>, CHROME_UA)
+        <div className="relative flex flex-col flex-1 overflow-hidden">
+          {localLoading && <WebviewSkeleton />}
+          <div
+            className="flex flex-col flex-1"
+            style={{
+              opacity: localLoading ? 0 : 1,
+              transition: 'opacity 200ms ease-out',
+            }}
+          >
+            {renderWebview(tab, webviewRef as React.RefObject<HTMLElement>, CHROME_UA)}
+          </div>
+        </div>
       )}
     </div>
   );

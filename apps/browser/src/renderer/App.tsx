@@ -218,11 +218,19 @@ const App: React.FC = () => {
               <WebviewContainer />
             </ErrorBoundary>
             <ZoomIndicator />
-            {sidebarOpen && (
-              <ErrorBoundary label="Sidebar">
-                <Sidebar />
-              </ErrorBoundary>
-            )}
+            <div
+              className="overflow-hidden transition-all duration-200 ease-out shrink-0"
+              style={{
+                width: sidebarOpen ? undefined : 0,
+                opacity: sidebarOpen ? 1 : 0,
+              }}
+            >
+              {sidebarOpen && (
+                <ErrorBoundary label="Sidebar">
+                  <Sidebar />
+                </ErrorBoundary>
+              )}
+            </div>
           </div>
         </div>
 

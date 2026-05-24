@@ -641,7 +641,7 @@ export const Onboarding: React.FC<{ onComplete: () => void }> = ({ onComplete })
         <StepDots current={currentStep} total={TOTAL_STEPS} />
 
         {/* Step content */}
-        <div className="w-full flex justify-center">
+        <div className="w-full flex justify-center" key={currentStep} style={{ animation: 'stepIn 300ms cubic-bezier(0.34,1.56,0.64,1)' }}>
           {currentStep === 0 && (
             <StepWelcome onNext={next} onSkip={handleSkip} />
           )}
@@ -674,6 +674,12 @@ export const Onboarding: React.FC<{ onComplete: () => void }> = ({ onComplete })
             />
           )}
         </div>
+        <style>{`
+          @keyframes stepIn {
+            from { opacity: 0; transform: translateX(40px); }
+            to   { opacity: 1; transform: translateX(0); }
+          }
+        `}</style>
       </div>
     </div>
   );

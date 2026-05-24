@@ -122,11 +122,12 @@ export const CommandPalette: React.FC = () => {
       onMouseDown={() => closeCommandPalette()}
     >
       {/* Backdrop */}
-      <div className="absolute inset-0 bg-black/65 backdrop-blur-[6px]" />
+      <div className="absolute inset-0 bg-black/65 backdrop-blur-[6px]" style={{ animation: 'cpBackdropIn 150ms ease-out forwards' }} />
 
       {/* Panel */}
       <div
         className="relative z-10 w-full max-w-[640px] mx-4 rounded-2xl overflow-hidden border border-white/[0.07] bg-[#0e0e1a]/98 shadow-[0_28px_80px_-8px_rgba(0,0,0,0.85),0_0_0_1px_rgba(255,255,255,0.03)]"
+        style={{ animation: 'cpPanelIn 200ms cubic-bezier(0.34,1.56,0.64,1)' }}
         onMouseDown={e => e.stopPropagation()}
       >
         {/* Accent top */}
@@ -224,6 +225,17 @@ export const CommandPalette: React.FC = () => {
             </>
           )}
 
+          {/* Search: no results */}
+          {showSearch && displayItems.length === 0 && (
+            <div className="flex flex-col items-center justify-center py-10 gap-2">
+              <svg className="w-8 h-8 text-white/15" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clipRule="evenodd" />
+              </svg>
+              <p className="text-sm text-white/40">No results for "<span className="text-white/60">{query}</span>"</p>
+              <p className="text-xs text-white/20">Try a URL, search term, or keyword</p>
+            </div>
+          )}
+
           {/* Search results */}
           {showSearch && displayItems.map((s, i) => {
             const intentMeta = s.intent ? INTENT_META[s.intent] : null;
@@ -231,6 +243,7 @@ export const CommandPalette: React.FC = () => {
               <div
                 key={s.url + i}
                 className={['relative flex items-center gap-3 px-4 py-2.5 cursor-pointer transition-colors', i === selectedIdx ? 'bg-vyro-600/15' : 'hover:bg-white/[0.04]'].join(' ')}
+                style={{ animation: `cpItemIn 150ms ease-out ${i * 30}ms both` }}
                 onMouseEnter={() => setSelectedIdx(i)}
                 onMouseDown={() => navigate(s.url, s.entry?.keyword)}
               >
@@ -259,6 +272,20 @@ export const CommandPalette: React.FC = () => {
           })}
         </div>
 
+        <style>{`
+          @keyframes cpBackdropIn {
+            from { opacity: 0; }
+            to   { opacity: 1; }
+          }
+          @keyframes cpPanelIn {
+            from { opacity: 0; transform: translateY(-16px) scale(0.97); }
+            to   { opacity: 1; transform: translateY(0) scale(1); }
+          }
+          @keyframes cpItemIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to   { opacity: 1; transform: translateY(0); }
+          }
+        `}</style>
         {/* Footer */}
         <div className="flex items-center justify-between px-4 py-2.5 border-t border-white/[0.05] bg-white/[0.015]">
           <div className="flex items-center gap-2 text-[10px] text-white/20">

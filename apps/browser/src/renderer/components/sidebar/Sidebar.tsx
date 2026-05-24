@@ -97,6 +97,7 @@ export const Sidebar: React.FC = () => {
               onClick={() => setSidebarPanel(p.id === sidebarPanel ? null : p.id)}
               className={[
                 'flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs transition-all duration-150',
+                'hover:scale-[1.02] active:scale-[0.98]',
                 sidebarPanel === p.id
                   ? 'bg-white/10 text-white'
                   : 'text-white/40 hover:text-white hover:bg-white/6',

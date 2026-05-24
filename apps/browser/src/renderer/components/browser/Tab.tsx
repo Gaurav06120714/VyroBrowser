@@ -39,6 +39,7 @@ export const Tab: React.FC<TabProps> = ({ tab, isActive, onDragStart, onDragOver
       data-active={isActive ? 'true' : 'false'}
       className={[
         'tab-pill group flex items-center gap-1.5 rounded-lg cursor-pointer select-none no-drag shrink-0',
+        'transition-all duration-150 ease-out',
         tab.isPinned ? 'px-2 py-1.5 w-10' : 'px-2.5 py-1.5 min-w-[100px] max-w-[220px] flex-1',
         isActive ? 'text-white' : 'text-white/55 hover:text-white/90 hover:bg-white/[0.05]',
       ].join(' ')}

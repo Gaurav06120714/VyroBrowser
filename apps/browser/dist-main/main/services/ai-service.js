@@ -123,6 +123,7 @@ class AIService {
                                         this.db.prepare('UPDATE ai_conversations SET title = ?, updated_at = unixepoch() WHERE id = ?')
                                             .run(title, conversationId);
                                     }
+                                    this.abortControllers.delete(conversationId); // cleanup on success
                                     onChunk('', true);
                                     resolve();
                                 }
@@ -130,20 +131,28 @@ class AIService {
                             catch { /* ignore malformed JSON */ }
                         }
                     });
-                    res.on('error', reject);
+                    res.on('error', (err) => {
+                        this.abortControllers.delete(conversationId); // cleanup on error
+                        reject(err);
+                    });
                     res.on('end', () => {
+                        this.abortControllers.delete(conversationId); // cleanup on end
                         if (assistantContent && !assistantContent.endsWith('\n')) {
                             resolve();
                         }
                     });
                 });
-                req.on('error', reject);
+                req.on('error', (err) => {
+                    this.abortControllers.delete(conversationId); // cleanup on request error
+                    reject(err);
+                });
                 const abort = () => { req.destroy(); };
                 this.abortControllers.set(conversationId, abort);
                 req.write(payload);
                 req.end();
             }
             catch (err) {
+                this.abortControllers.delete(conversationId); // cleanup on sync error
                 reject(err);
             }
         });
@@ -151,6 +160,15 @@ class AIService {
     abort(conversationId) {
         this.abortControllers.get(conversationId)?.();
         this.abortControllers.delete(conversationId);
+    }
+    abortAll() {
+        for (const abort of this.abortControllers.values()) {
+            try {
+                abort();
+            }
+            catch { /* ignore */ }
+        }
+        this.abortControllers.clear();
     }
 }
 exports.AIService = AIService;

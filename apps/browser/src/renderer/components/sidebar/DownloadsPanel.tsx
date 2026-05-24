@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useDownloads } from '../../hooks/useDownloads';
+import { ipc, IPC } from '../../lib/ipc';
 import { Download, DownloadState } from '@shared/types/download';
 
 function formatBytes(n: number): string {
@@ -116,6 +117,27 @@ const DownloadRow: React.FC<DownloadRowProps> = ({ download, onPause, onResume, 
 
 export const DownloadsPanel: React.FC = () => {
   const { downloads, pause, resume, openFile, revealFile, deleteRecord, clearCompleted } = useDownloads();
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const loadDownloads = useCallback(async () => {
+    setError(null);
+    setIsLoading(true);
+    try {
+      // useDownloads fetches on mount; just wait a tick to confirm data is loaded
+      await ipc.invoke(IPC.DOWNLOADS_GET_ALL);
+    } catch {
+      setError('Failed to load downloads');
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    // Mark loading done once downloads are fetched (initial mount)
+    const timer = setTimeout(() => setIsLoading(false), 400);
+    return () => clearTimeout(timer);
+  }, []);
 
   return (
     <div className="flex flex-col h-full">
@@ -130,8 +152,34 @@ export const DownloadsPanel: React.FC = () => {
       </div>
 
       <div className="flex-1 overflow-y-auto divide-y divide-white/5">
-        {downloads.length === 0 ? (
-          <p className="text-white/25 text-xs text-center mt-8">No downloads</p>
+        {error ? (
+          <div className="flex flex-col items-center justify-center h-full gap-3 p-4">
+            <svg className="w-8 h-8 text-red-400/50" viewBox="0 0 20 20" fill="currentColor">
+              <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+            </svg>
+            <p className="text-sm text-white/50">{error}</p>
+            <button onClick={loadDownloads} className="px-3 py-1.5 text-xs rounded-lg bg-white/8 hover:bg-white/12 text-white/60 hover:text-white transition-all">
+              Retry
+            </button>
+          </div>
+        ) : isLoading ? (
+          <div className="flex flex-col gap-3 p-3 animate-pulse">
+            {[1,2,3].map(i => (
+              <div key={i} className="flex flex-col gap-2 py-2">
+                <div className="h-3 rounded bg-white/8 w-2/3" />
+                <div className="h-2.5 rounded bg-white/5 w-full" />
+                <div className="h-1 rounded-full bg-white/8 w-full mt-1" />
+              </div>
+            ))}
+          </div>
+        ) : downloads.length === 0 ? (
+          <div className="flex flex-col items-center justify-center h-full gap-3 text-white/30 p-4">
+            <svg className="w-10 h-10" viewBox="0 0 20 20" fill="currentColor">
+              <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clipRule="evenodd" />
+            </svg>
+            <p className="text-sm">No downloads yet</p>
+            <p className="text-xs text-white/20 text-center">Files you download will appear here</p>
+          </div>
         ) : (
           downloads.map(d => (
             <DownloadRow

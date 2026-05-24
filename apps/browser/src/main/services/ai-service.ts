@@ -144,21 +144,29 @@ export class AIService {
                       .run(title, conversationId);
                   }
 
+                  this.abortControllers.delete(conversationId); // cleanup on success
                   onChunk('', true);
                   resolve();
                 }
               } catch { /* ignore malformed JSON */ }
             }
           });
-          res.on('error', reject);
+          res.on('error', (err) => {
+            this.abortControllers.delete(conversationId); // cleanup on error
+            reject(err);
+          });
           res.on('end', () => {
+            this.abortControllers.delete(conversationId); // cleanup on end
             if (assistantContent && !assistantContent.endsWith('\n')) {
               resolve();
             }
           });
         });
 
-        req.on('error', reject);
+        req.on('error', (err) => {
+          this.abortControllers.delete(conversationId); // cleanup on request error
+          reject(err);
+        });
 
         const abort = () => { req.destroy(); };
         this.abortControllers.set(conversationId, abort);
@@ -166,6 +174,7 @@ export class AIService {
         req.write(payload);
         req.end();
       } catch (err) {
+        this.abortControllers.delete(conversationId); // cleanup on sync error
         reject(err);
       }
     });
@@ -174,5 +183,12 @@ export class AIService {
   abort(conversationId: string): void {
     this.abortControllers.get(conversationId)?.();
     this.abortControllers.delete(conversationId);
+  }
+
+  abortAll(): void {
+    for (const abort of this.abortControllers.values()) {
+      try { abort(); } catch { /* ignore */ }
+    }
+    this.abortControllers.clear();
   }
 }

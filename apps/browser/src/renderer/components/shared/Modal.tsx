@@ -30,16 +30,16 @@ export const Modal: React.FC<ModalProps> = ({ open, onClose, title, children, wi
       {/* Backdrop */}
       <div
         className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+        style={{ animation: 'backdropIn 150ms ease-out forwards' }}
         onClick={onClose}
       />
       {/* Panel */}
       <div
         className={[
           'relative z-10 w-full rounded-2xl glass shadow-2xl',
-          'animate-in fade-in zoom-in-95 duration-150',
           width,
         ].join(' ')}
-        style={{ animation: 'modalIn 150ms cubic-bezier(0.4,0,0.2,1)' }}
+        style={{ animation: 'modalIn 180ms cubic-bezier(0.34,1.56,0.64,1)' }}
       >
         {title && (
           <div className="flex items-center justify-between px-5 py-4 border-b border-white/8">
@@ -58,9 +58,13 @@ export const Modal: React.FC<ModalProps> = ({ open, onClose, title, children, wi
         <div className="p-5">{children}</div>
       </div>
       <style>{`
+        @keyframes backdropIn {
+          from { opacity: 0; }
+          to   { opacity: 1; }
+        }
         @keyframes modalIn {
-          from { opacity: 0; transform: scale(0.95); }
-          to   { opacity: 1; transform: scale(1); }
+          from { opacity: 0; transform: scale(0.95) translateY(-8px); }
+          to   { opacity: 1; transform: scale(1) translateY(0); }
         }
       `}</style>
     </div>,

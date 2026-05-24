@@ -161,7 +161,13 @@ export const BookmarksPanel: React.FC = () => {
 
       <div className="flex-1 overflow-y-auto py-2">
         {tree.length === 0 ? (
-          <p className="text-white/25 text-xs text-center mt-8">No bookmarks yet</p>
+          <div className="flex flex-col items-center justify-center h-full gap-3 text-white/30 p-4">
+            <svg className="w-10 h-10" viewBox="0 0 20 20" fill="currentColor">
+              <path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z" />
+            </svg>
+            <p className="text-sm">No bookmarks yet</p>
+            <p className="text-xs text-white/20 text-center">Bookmark pages using the toolbar button</p>
+          </div>
         ) : (
           tree.map(folder => (
             <FolderNode

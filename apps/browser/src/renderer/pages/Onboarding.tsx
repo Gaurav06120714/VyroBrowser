@@ -17,6 +17,113 @@ import {
   PullStatus,
 } from '../hooks/useOnboarding';
 
+// ── Vyro Logo component ──────────────────────────────────────────────────────
+
+const VyroLogo: React.FC<{ size?: number; animated?: boolean }> = ({
+  size = 80,
+  animated = false,
+}) => {
+  const platform = typeof window !== 'undefined' && window.vyro ? window.vyro.platform : 'darwin';
+  const isMac = platform === 'darwin';
+
+  return (
+    <div className="relative flex items-center justify-center" style={{ width: size, height: size }}>
+      {/* Outer glow rings */}
+      {animated && (
+        <>
+          <span
+            className="absolute rounded-full border border-violet-500/20"
+            style={{
+              width: size * 1.6,
+              height: size * 1.6,
+              animation: 'vyro-ping 2s cubic-bezier(0,0,0.2,1) infinite',
+            }}
+          />
+          <span
+            className="absolute rounded-full border border-cyan-400/15"
+            style={{
+              width: size * 1.35,
+              height: size * 1.35,
+              animation: 'vyro-ping 2s cubic-bezier(0,0,0.2,1) infinite 0.4s',
+            }}
+          />
+        </>
+      )}
+      {/* Glow backdrop */}
+      <div
+        className="absolute rounded-full"
+        style={{
+          width: size,
+          height: size,
+          background: 'radial-gradient(circle, rgba(99,102,241,0.35) 0%, rgba(6,182,212,0.15) 60%, transparent 80%)',
+          filter: 'blur(12px)',
+        }}
+      />
+      {/* Icon container — circular on macOS, rounded-square on Windows/Linux */}
+      <div
+        className="relative flex items-center justify-center overflow-hidden shadow-2xl"
+        style={{
+          width: size,
+          height: size,
+          borderRadius: isMac ? '50%' : `${size * 0.215}px`,
+          background: isMac
+            ? 'radial-gradient(circle at 40% 35%, #1a1a2e, #0a0a14)'
+            : 'radial-gradient(circle at 40% 35%, #1e2a5e, #080d1f)',
+          border: isMac
+            ? '2px solid rgba(209,213,219,0.25)'
+            : '1.5px solid rgba(59,130,246,0.35)',
+          boxShadow: isMac
+            ? '0 0 0 1px rgba(255,255,255,0.06), inset 0 1px 0 rgba(255,255,255,0.08)'
+            : '0 0 20px rgba(59,130,246,0.2), inset 0 1px 0 rgba(255,255,255,0.05)',
+        }}
+      >
+        <svg
+          viewBox="0 0 100 100"
+          style={{ width: size * 0.72, height: size * 0.72 }}
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <defs>
+            <linearGradient id="lg-v" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="#67e8f9" />
+              <stop offset="50%" stopColor="#3b82f6" />
+              <stop offset="100%" stopColor="#7c3aed" />
+            </linearGradient>
+            <linearGradient id="lg-w1" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="#22d3ee" />
+              <stop offset="60%" stopColor="#6366f1" />
+              <stop offset="100%" stopColor="#a855f7" />
+            </linearGradient>
+            <linearGradient id="lg-w2" x1="0%" y1="100%" x2="100%" y2="0%">
+              <stop offset="0%" stopColor="#06b6d4" />
+              <stop offset="50%" stopColor="#8b5cf6" />
+              <stop offset="100%" stopColor="#c084fc" />
+            </linearGradient>
+          </defs>
+          {/* V left stroke */}
+          <polygon points="15,18 28,18 50,62 37,62" fill="url(#lg-v)" opacity="0.95" />
+          {/* V right stroke */}
+          <polygon points="72,18 85,18 63,62 50,62" fill="url(#lg-v)" opacity="0.85" />
+          {/* Wave ribbons */}
+          <path d="M8 50 Q25 42 40 52 Q58 64 75 50 Q84 43 92 47"
+            stroke="url(#lg-w1)" strokeWidth="5.5" strokeLinecap="round" opacity="0.9" />
+          <path d="M8 58 Q25 50 40 60 Q58 72 75 58 Q84 51 92 55"
+            stroke="url(#lg-w2)" strokeWidth="4" strokeLinecap="round" opacity="0.7" />
+          <path d="M8 66 Q25 58 40 68 Q58 80 75 66 Q84 59 92 63"
+            stroke="url(#lg-w1)" strokeWidth="2.5" strokeLinecap="round" opacity="0.45" />
+        </svg>
+      </div>
+      <style>{`
+        @keyframes vyro-ping {
+          0%   { transform: scale(0.85); opacity: 0.8; }
+          70%  { transform: scale(1);    opacity: 0; }
+          100% { transform: scale(1);    opacity: 0; }
+        }
+      `}</style>
+    </div>
+  );
+};
+
 // ── Small shared primitives ──────────────────────────────────────────────────
 
 const StepDots: React.FC<{ current: number; total: number }> = ({ current, total }) => (
@@ -84,18 +191,8 @@ const StepWelcome: React.FC<{ onNext: () => void; onSkip: () => void }> = ({
 
   return (
     <div className="flex flex-col items-center text-center gap-6 max-w-md">
-      {/* Logo */}
-      <div className="relative">
-        <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-violet-600 to-indigo-700 flex items-center justify-center shadow-2xl shadow-violet-900/50">
-          <svg className="w-10 h-10 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-            <circle cx="12" cy="12" r="10" />
-            <path strokeLinecap="round" d="M12 6v6l4 2" />
-          </svg>
-        </div>
-        <span className="absolute -bottom-1 -right-1 text-xs font-bold bg-violet-500 text-white px-1.5 py-0.5 rounded-full">
-          v2
-        </span>
-      </div>
+      {/* Logo with animated glow */}
+      <VyroLogo size={96} animated />
 
       <div>
         <h1 className="text-3xl font-bold text-white mb-2">Welcome to Vyro</h1>

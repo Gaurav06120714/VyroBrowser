@@ -10,6 +10,7 @@
     "build": "npm run build:renderer && npm run build:main",
     "build:renderer": "vite build",
     "build:main": "tsc -p tsconfig.main.json",
+    "icons:generate": "node resources/icons/generate-icons.mjs",
     "package": "npm run build && CSC_IDENTITY_AUTO_DISCOVERY=false electron-builder --mac",
     "package:mac": "npm run build && CSC_IDENTITY_AUTO_DISCOVERY=false electron-builder --mac",
     "package:win": "npm run build && electron-builder --win",
@@ -48,18 +49,24 @@
     "copyright": "Copyright © 2025 Vyro Browser",
     "asar": true,
     "asarUnpack": [
-      "assets/**"
+      "assets/**",
+      "resources/icons/**"
     ],
     "files": [
       "dist-main/**",
       "dist-renderer/**",
       "assets/**",
+      "resources/icons/**",
       "package.json"
     ],
     "extraResources": [
       {
         "from": "assets/",
         "to": "assets/"
+      },
+      {
+        "from": "resources/icons/",
+        "to": "resources/icons/"
       }
     ],
     "mac": {
@@ -68,62 +75,63 @@
       "hardenedRuntime": false,
       "gatekeeperAssess": false,
       "target": [
-        {
-          "target": "dmg",
-          "arch": ["arm64", "x64"]
-        },
-        {
-          "target": "zip",
-          "arch": ["arm64", "x64"]
-        }
+        { "target": "dmg", "arch": ["arm64", "x64"] },
+        { "target": "zip", "arch": ["arm64", "x64"] }
       ],
       "darkModeSupport": true,
-      "minimumSystemVersion": "12.0"
+      "minimumSystemVersion": "12.0",
+      "extendInfo": {
+        "NSHighResolutionCapable": true,
+        "CFBundleIconFile": "icon"
+      }
     },
     "win": {
       "icon": "assets/icon.ico",
       "target": [
-        {
-          "target": "nsis",
-          "arch": ["x64", "ia32"]
-        },
-        {
-          "target": "portable",
-          "arch": ["x64"]
-        }
+        { "target": "nsis", "arch": ["x64", "ia32"] },
+        { "target": "portable", "arch": ["x64"] }
       ],
       "publisherName": "Vyro Browser"
     },
     "linux": {
       "icon": "assets/icons/",
       "target": [
-        {
-          "target": "AppImage",
-          "arch": ["x64"]
-        },
-        {
-          "target": "deb",
-          "arch": ["x64"]
-        }
+        { "target": "AppImage", "arch": ["x64"] },
+        { "target": "deb", "arch": ["x64"] }
       ],
       "category": "Network;WebBrowser",
-      "description": "AI-first desktop browser"
+      "description": "AI-first desktop browser",
+      "desktop": {
+        "Name": "Vyro Browser",
+        "Comment": "AI-first desktop browser",
+        "Categories": "Network;WebBrowser;"
+      }
     },
     "nsis": {
       "oneClick": false,
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
-      "shortcutName": "Vyro Browser"
+      "shortcutName": "Vyro Browser",
+      "installerIcon": "assets/icon.ico",
+      "uninstallerIcon": "assets/icon.ico",
+      "installerHeaderIcon": "assets/icon.ico",
+      "include": null,
+      "warningsAsErrors": false
     },
     "dmg": {
       "title": "Vyro Browser",
       "icon": "assets/icon.icns",
-      "iconSize": 128,
+      "iconSize": 160,
+      "iconTextSize": 13,
       "window": {
-        "width": 720,
+        "width": 660,
         "height": 400
-      }
+      },
+      "contents": [
+        { "x": 180, "y": 170, "type": "file" },
+        { "x": 480, "y": 170, "type": "link", "path": "/Applications" }
+      ]
     },
     "directories": {
       "output": "dist",

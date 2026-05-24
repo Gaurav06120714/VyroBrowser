@@ -11,6 +11,7 @@ import { useTabsStore } from '../store/tabs.store';
 import { ipc, IPC } from '../lib/ipc';
 import { useKeywords } from '../hooks/useKeywords';
 import { SuggestionDropdown } from '../components/browser/SuggestionDropdown';
+import { VyroLogo } from '../components/shared/VyroLogo';
 import { NEW_TAB_URL } from '@shared/constants';
 
 const SPEED_DIAL = [
@@ -92,12 +93,8 @@ export const NewTab: React.FC = () => {
   return (
     <div className="flex-1 flex flex-col items-center justify-center gap-8 bg-[#0f0f10] overflow-auto p-8 select-none">
       {/* Logo + greeting */}
-      <div className="flex flex-col items-center gap-2">
-        <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-vyro-500 to-vyro-700 flex items-center justify-center shadow-lg shadow-vyro-600/30">
-          <svg className="w-6 h-6 text-white" viewBox="0 0 20 20" fill="currentColor">
-            <path fillRule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" clipRule="evenodd" />
-          </svg>
-        </div>
+      <div className="flex flex-col items-center gap-3">
+        <VyroLogo size={56} />
         <p className="text-white/40 text-sm">{getGreeting()}</p>
       </div>
 

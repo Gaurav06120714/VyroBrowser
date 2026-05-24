@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { useAI } from '../../hooks/useAI';
 import { AIMessage } from './AIMessage';
 import { AIToolbar } from './AIToolbar';
+import { VyroLogo } from '../shared/VyroLogo';
 import { AIMessage as AIMessageType } from '@shared/types/ai';
 
 export const AIPanel: React.FC = () => {
@@ -88,9 +89,7 @@ export const AIPanel: React.FC = () => {
   if (noModels) {
     return (
       <div className="flex flex-col h-full items-center justify-center gap-3 p-6 text-center">
-        <svg className="w-12 h-12 text-white/20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1">
-          <path strokeLinecap="round" strokeLinejoin="round" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-        </svg>
+        <VyroLogo size={48} />
         <p className="text-white/50 text-sm font-medium">Ollama not running</p>
         <p className="text-white/30 text-xs leading-relaxed">
           Start Ollama and pull a model to use the AI assistant.

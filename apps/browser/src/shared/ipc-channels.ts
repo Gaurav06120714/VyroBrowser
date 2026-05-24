@@ -17,6 +17,7 @@ export const IPC = {
   TABS_RESTORE_SESSION: 'tabs:restore-session',
   TABS_SPLIT_TOGGLE: 'tabs:split-toggle',
   TABS_GET_ALL: 'tabs:get-all',
+  TABS_SAVE_SESSION: 'tabs:save-session',
   // Navigation
   NAV_LOAD_URL: 'nav:load-url',
   NAV_GO_BACK: 'nav:go-back',
@@ -119,6 +120,11 @@ export const IPC = {
   ONBOARDING_LIST_MODELS: 'onboarding:list-models',
   ONBOARDING_CANCEL_PULL: 'onboarding:cancel-pull',
   // Keywords
+  // Auto-update
+  UPDATE_AVAILABLE: 'update:available',
+  UPDATE_READY: 'update:ready',
+  UPDATE_INSTALL: 'update:install',
+  // Keywords
   KEYWORDS_RESOLVE: 'keywords:resolve',
   KEYWORDS_SUGGEST: 'keywords:suggest',
   KEYWORDS_GET_ALL: 'keywords:get-all',
@@ -138,7 +144,7 @@ export type IpcChannel = typeof IPC[keyof typeof IPC];
 export const INVOKE_ALLOWLIST: IpcChannel[] = [
   IPC.TABS_CREATE, IPC.TABS_CLOSE, IPC.TABS_ACTIVATE, IPC.TABS_REORDER,
   IPC.TABS_PIN, IPC.TABS_GROUP_CREATE, IPC.TABS_GROUP_UPDATE, IPC.TABS_GROUP_DELETE,
-  IPC.TABS_RESTORE_SESSION, IPC.TABS_SPLIT_TOGGLE, IPC.TABS_GET_ALL,
+  IPC.TABS_RESTORE_SESSION, IPC.TABS_SPLIT_TOGGLE, IPC.TABS_GET_ALL, IPC.TABS_SAVE_SESSION,
   IPC.NAV_LOAD_URL, IPC.NAV_GO_BACK, IPC.NAV_GO_FORWARD, IPC.NAV_RELOAD,
   IPC.NAV_STOP, IPC.NAV_ZOOM, IPC.NAV_DEVTOOLS,
   IPC.HISTORY_SEARCH, IPC.HISTORY_ADD, IPC.HISTORY_DELETE,
@@ -171,6 +177,7 @@ export const INVOKE_ALLOWLIST: IpcChannel[] = [
   IPC.ONBOARDING_LIST_MODELS,
   IPC.ONBOARDING_CANCEL_PULL,
   IPC.WINDOW_MINIMIZE, IPC.WINDOW_MAXIMIZE, IPC.WINDOW_CLOSE,
+  IPC.UPDATE_INSTALL,
 ];
 
 // Channels main pushes to renderer (allowlist for preload `on`)
@@ -188,4 +195,6 @@ export const PUSH_ALLOWLIST: IpcChannel[] = [
   IPC.ONBOARDING_PULL_ERROR,
   IPC.WINDOW_MAXIMIZED, IPC.WINDOW_RESTORED,
   IPC.FIND_RESULT,
+  IPC.UPDATE_AVAILABLE,
+  IPC.UPDATE_READY,
 ];

@@ -7,29 +7,10 @@ const uuid_1 = require("uuid");
 const ipc_channels_1 = require("../../shared/ipc-channels");
 const constants_1 = require("../../shared/constants");
 // tabId → webContentsId mapping (populated when renderer registers a webview)
+// This is required by navigation.ts and find.ts to route commands to the
+// correct webContents. It does NOT store tab metadata — renderer is the
+// source of truth for tab state.
 exports.tabWebContentsMap = new Map();
-// In-memory tab list (truth is in renderer; main just tracks for nav routing)
-const tabRegistry = new Map();
-// Track active tab for session saves
-let activeTabIdCache = '';
-function toSnapshot(tab) {
-    return {
-        id: tab.id,
-        url: tab.url,
-        title: tab.title,
-        isPinned: tab.isPinned,
-        groupId: tab.groupId,
-        profileId: tab.profileId,
-    };
-}
-function saveSession(db, crashRecovery, profileId) {
-    const tabs = Array.from(tabRegistry.values())
-        .filter(t => t.profileId === profileId)
-        .map(toSnapshot);
-    if (tabs.length === 0)
-        return;
-    crashRecovery.save(db, profileId, tabs, activeTabIdCache);
-}
 function registerTabsIpc(db, wm, crashRecovery) {
     // Internal: renderer registers webview webContentsId once dom-ready fires
     electron_1.ipcMain.handle('webview:register', (_event, { tabId, webContentsId }) => {
@@ -52,36 +33,20 @@ function registerTabsIpc(db, wm, crashRecovery) {
             scrollY: 0,
             createdAt: Date.now(),
         };
-        tabRegistry.set(tab.id, tab);
-        saveSession(db, crashRecovery, tab.profileId);
         return tab;
     });
     electron_1.ipcMain.handle(ipc_channels_1.IPC.TABS_CLOSE, (_event, { tabId }) => {
-        const tab = tabRegistry.get(tabId);
-        const profileId = tab?.profileId ?? constants_1.DEFAULT_PROFILE_ID;
         exports.tabWebContentsMap.delete(tabId);
-        tabRegistry.delete(tabId);
-        saveSession(db, crashRecovery, profileId);
         return { ok: true };
     });
     electron_1.ipcMain.handle(ipc_channels_1.IPC.TABS_ACTIVATE, (_event, { tabId }) => {
-        activeTabIdCache = tabId;
-        const tab = tabRegistry.get(tabId);
-        if (tab)
-            saveSession(db, crashRecovery, tab.profileId);
         return { ok: true, tabId };
     });
     electron_1.ipcMain.handle(ipc_channels_1.IPC.TABS_REORDER, (_event, { tabIds }) => {
-        // Renderer handles reorder visually; main acknowledges
         return { ok: true, tabIds };
     });
     electron_1.ipcMain.handle(ipc_channels_1.IPC.TABS_PIN, (_event, { tabId, pinned }) => {
-        const tab = tabRegistry.get(tabId);
-        if (tab) {
-            tab.isPinned = pinned;
-            tabRegistry.set(tabId, tab);
-        }
-        return { ok: true };
+        return { ok: true, tabId, pinned };
     });
     electron_1.ipcMain.handle(ipc_channels_1.IPC.TABS_GROUP_CREATE, (_event, args) => {
         const groupId = (0, uuid_1.v4)();
@@ -99,9 +64,17 @@ function registerTabsIpc(db, wm, crashRecovery) {
     electron_1.ipcMain.handle(ipc_channels_1.IPC.TABS_SPLIT_TOGGLE, (_event, { tabId }) => {
         return { ok: true, tabId };
     });
-    electron_1.ipcMain.handle(ipc_channels_1.IPC.TABS_GET_ALL, () => {
-        return Array.from(tabRegistry.values());
+    // Renderer sends its current tab snapshot list for crash recovery persistence.
+    // This replaces the old in-memory tabRegistry — renderer is source of truth.
+    electron_1.ipcMain.handle(ipc_channels_1.IPC.TABS_SAVE_SESSION, (_event, { profileId, tabs, activeTabId }) => {
+        if (Array.isArray(tabs) && tabs.length > 0) {
+            crashRecovery.save(db, profileId, tabs, activeTabId ?? '');
+        }
+        return { ok: true };
     });
-    // Push navigation events from webview webContents to the renderer window
-    // webContents events are wired up in navigation.ts after webview:register
+    // TABS_GET_ALL: renderer is the authoritative tab store.
+    // Returns empty array — callers should use the renderer Zustand store instead.
+    electron_1.ipcMain.handle(ipc_channels_1.IPC.TABS_GET_ALL, () => {
+        return [];
+    });
 }

@@ -5,6 +5,7 @@ const electron_1 = require("electron");
 const ipc_channels_1 = require("../../shared/ipc-channels");
 const bookmark_service_1 = require("../services/bookmark-service");
 const profile_service_1 = require("../services/profile-service");
+const validators_1 = require("./validators");
 function registerBookmarksIpc(db) {
     const bookmarkService = new bookmark_service_1.BookmarkService(db);
     const profileService = new profile_service_1.ProfileService(db);
@@ -12,7 +13,11 @@ function registerBookmarksIpc(db) {
         const profileId = profileService.getActive();
         return bookmarkService.getTree(profileId);
     });
-    electron_1.ipcMain.handle(ipc_channels_1.IPC.BOOKMARKS_ADD, (_event, { url, title, folderId, favicon }) => {
+    electron_1.ipcMain.handle(ipc_channels_1.IPC.BOOKMARKS_ADD, (_event, args) => {
+        const parsed = validators_1.BookmarkAddSchema.safeParse(args);
+        if (!parsed.success)
+            return { error: 'Invalid arguments' };
+        const { url, title, folderId, favicon } = parsed.data;
         const profileId = profileService.getActive();
         return bookmarkService.add(profileId, url, title, folderId, favicon);
     });

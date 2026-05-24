@@ -125,18 +125,30 @@ export class WindowManager {
 
     // ── Content Security Policy ──────────────────────────────────────────
     // Applied to the renderer shell only (not to webview content).
+    // Dev: relaxed CSP for Vite HMR. Prod: strict CSP.
+    const isDev = process.env.NODE_ENV === 'development' || process.env.ELECTRON_IS_DEV === '1';
+    const devCsp =
+      "default-src 'self' 'unsafe-inline' 'unsafe-eval' http://localhost:* blob: data:; " +
+      "connect-src 'self' http://localhost:* ws://localhost:*; " +
+      "img-src 'self' data: https: http:; " +
+      "font-src 'self' data:;";
+    const prodCsp =
+      "default-src 'self'; " +
+      "script-src 'self'; " +
+      "style-src 'self' 'unsafe-inline'; " +
+      "img-src 'self' data: https:; " +
+      "font-src 'self' data:; " +
+      "connect-src 'self'; " +
+      "worker-src blob:;";
+    const cspValue = isDev ? devCsp : prodCsp;
+
     session.defaultSession.webRequest.onHeadersReceived(
       { urls: ['http://localhost:5173/*', 'file://*/*'] },
       (details, callback) => {
         callback({
           responseHeaders: {
             ...details.responseHeaders,
-            'Content-Security-Policy': [
-              "default-src 'self' 'unsafe-inline' 'unsafe-eval' http://localhost:* blob: data:; " +
-              "connect-src 'self' http://localhost:* ws://localhost:*; " +
-              "img-src 'self' data: https: http:; " +
-              "font-src 'self' data:;",
-            ],
+            'Content-Security-Policy': [cspValue],
           },
         });
       }

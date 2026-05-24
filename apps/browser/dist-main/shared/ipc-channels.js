@@ -20,6 +20,7 @@ exports.IPC = {
     TABS_RESTORE_SESSION: 'tabs:restore-session',
     TABS_SPLIT_TOGGLE: 'tabs:split-toggle',
     TABS_GET_ALL: 'tabs:get-all',
+    TABS_SAVE_SESSION: 'tabs:save-session',
     // Navigation
     NAV_LOAD_URL: 'nav:load-url',
     NAV_GO_BACK: 'nav:go-back',
@@ -122,6 +123,11 @@ exports.IPC = {
     ONBOARDING_LIST_MODELS: 'onboarding:list-models',
     ONBOARDING_CANCEL_PULL: 'onboarding:cancel-pull',
     // Keywords
+    // Auto-update
+    UPDATE_AVAILABLE: 'update:available',
+    UPDATE_READY: 'update:ready',
+    UPDATE_INSTALL: 'update:install',
+    // Keywords
     KEYWORDS_RESOLVE: 'keywords:resolve',
     KEYWORDS_SUGGEST: 'keywords:suggest',
     KEYWORDS_GET_ALL: 'keywords:get-all',
@@ -138,7 +144,7 @@ exports.IPC = {
 exports.INVOKE_ALLOWLIST = [
     exports.IPC.TABS_CREATE, exports.IPC.TABS_CLOSE, exports.IPC.TABS_ACTIVATE, exports.IPC.TABS_REORDER,
     exports.IPC.TABS_PIN, exports.IPC.TABS_GROUP_CREATE, exports.IPC.TABS_GROUP_UPDATE, exports.IPC.TABS_GROUP_DELETE,
-    exports.IPC.TABS_RESTORE_SESSION, exports.IPC.TABS_SPLIT_TOGGLE, exports.IPC.TABS_GET_ALL,
+    exports.IPC.TABS_RESTORE_SESSION, exports.IPC.TABS_SPLIT_TOGGLE, exports.IPC.TABS_GET_ALL, exports.IPC.TABS_SAVE_SESSION,
     exports.IPC.NAV_LOAD_URL, exports.IPC.NAV_GO_BACK, exports.IPC.NAV_GO_FORWARD, exports.IPC.NAV_RELOAD,
     exports.IPC.NAV_STOP, exports.IPC.NAV_ZOOM, exports.IPC.NAV_DEVTOOLS,
     exports.IPC.HISTORY_SEARCH, exports.IPC.HISTORY_ADD, exports.IPC.HISTORY_DELETE,
@@ -171,6 +177,7 @@ exports.INVOKE_ALLOWLIST = [
     exports.IPC.ONBOARDING_LIST_MODELS,
     exports.IPC.ONBOARDING_CANCEL_PULL,
     exports.IPC.WINDOW_MINIMIZE, exports.IPC.WINDOW_MAXIMIZE, exports.IPC.WINDOW_CLOSE,
+    exports.IPC.UPDATE_INSTALL,
 ];
 // Channels main pushes to renderer (allowlist for preload `on`)
 exports.PUSH_ALLOWLIST = [
@@ -187,4 +194,6 @@ exports.PUSH_ALLOWLIST = [
     exports.IPC.ONBOARDING_PULL_ERROR,
     exports.IPC.WINDOW_MAXIMIZED, exports.IPC.WINDOW_RESTORED,
     exports.IPC.FIND_RESULT,
+    exports.IPC.UPDATE_AVAILABLE,
+    exports.IPC.UPDATE_READY,
 ];

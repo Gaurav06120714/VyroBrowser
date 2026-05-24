@@ -3,6 +3,7 @@ import Database from 'better-sqlite3';
 import { IPC } from '../../shared/ipc-channels';
 import { BookmarkService } from '../services/bookmark-service';
 import { ProfileService } from '../services/profile-service';
+import { BookmarkAddSchema } from './validators';
 
 export function registerBookmarksIpc(db: Database.Database): void {
   const bookmarkService = new BookmarkService(db);
@@ -13,7 +14,10 @@ export function registerBookmarksIpc(db: Database.Database): void {
     return bookmarkService.getTree(profileId);
   });
 
-  ipcMain.handle(IPC.BOOKMARKS_ADD, (_event, { url, title, folderId, favicon }: { url: string; title: string; folderId?: number; favicon?: string }) => {
+  ipcMain.handle(IPC.BOOKMARKS_ADD, (_event, args: unknown) => {
+    const parsed = BookmarkAddSchema.safeParse(args);
+    if (!parsed.success) return { error: 'Invalid arguments' };
+    const { url, title, folderId, favicon } = parsed.data;
     const profileId = profileService.getActive();
     return bookmarkService.add(profileId, url, title, folderId, favicon);
   });

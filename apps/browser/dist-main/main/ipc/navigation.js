@@ -4,6 +4,7 @@ exports.registerNavigationIpc = registerNavigationIpc;
 const electron_1 = require("electron");
 const ipc_channels_1 = require("../../shared/ipc-channels");
 const tabs_1 = require("./tabs");
+const validators_1 = require("./validators");
 function registerNavigationIpc(wm) {
     function getWc(tabId) {
         const wcId = tabs_1.tabWebContentsMap.get(tabId);
@@ -11,7 +12,11 @@ function registerNavigationIpc(wm) {
             return null;
         return electron_1.webContents.fromId(wcId) ?? null;
     }
-    electron_1.ipcMain.handle(ipc_channels_1.IPC.NAV_LOAD_URL, (_event, { tabId, url }) => {
+    electron_1.ipcMain.handle(ipc_channels_1.IPC.NAV_LOAD_URL, (_event, args) => {
+        const parsed = validators_1.NavLoadUrlSchema.safeParse(args);
+        if (!parsed.success)
+            return { error: 'Invalid arguments' };
+        const { tabId, url } = parsed.data;
         const wc = getWc(tabId);
         if (wc && !wc.isDestroyed()) {
             wc.loadURL(url).catch(() => { });

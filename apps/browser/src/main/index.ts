@@ -28,6 +28,7 @@ import { setupAdblocking } from './adblock/request-filter';
 import { getDownloadService } from './ipc/downloads';
 import { registerShortcuts, unregisterShortcuts } from './shortcuts';
 import { createTray, destroyTray } from './tray';
+import { setupAutoUpdater } from './updater';
 
 app.name = 'Vyro';
 
@@ -94,6 +95,11 @@ app.whenReady().then(async () => {
       downloadService.handleWillDownload(profileId, item);
     }
   });
+
+  // ── Auto-updater (production only) ──────────────────────────────────────
+  if (mainWin) {
+    setupAutoUpdater(mainWin);
+  }
 
   // ── System tray (Windows / Linux) ────────────────────────────────────────
   createTray(() => windowManager.getMain());

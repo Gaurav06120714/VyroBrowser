@@ -8,32 +8,10 @@ import { DEFAULT_PROFILE_ID, NEW_TAB_URL } from '../../shared/constants';
 import { CrashRecoveryService } from '../services/crash-recovery';
 
 // tabId → webContentsId mapping (populated when renderer registers a webview)
+// This is required by navigation.ts and find.ts to route commands to the
+// correct webContents. It does NOT store tab metadata — renderer is the
+// source of truth for tab state.
 export const tabWebContentsMap = new Map<string, number>();
-
-// In-memory tab list (truth is in renderer; main just tracks for nav routing)
-const tabRegistry = new Map<string, Tab>();
-
-// Track active tab for session saves
-let activeTabIdCache = '';
-
-function toSnapshot(tab: Tab): TabSnapshot {
-  return {
-    id: tab.id,
-    url: tab.url,
-    title: tab.title,
-    isPinned: tab.isPinned,
-    groupId: tab.groupId,
-    profileId: tab.profileId,
-  };
-}
-
-function saveSession(db: Database.Database, crashRecovery: CrashRecoveryService, profileId: string): void {
-  const tabs = Array.from(tabRegistry.values())
-    .filter(t => t.profileId === profileId)
-    .map(toSnapshot);
-  if (tabs.length === 0) return;
-  crashRecovery.save(db, profileId, tabs, activeTabIdCache);
-}
 
 export function registerTabsIpc(db: Database.Database, wm: WindowManager, crashRecovery: CrashRecoveryService): void {
   // Internal: renderer registers webview webContentsId once dom-ready fires
@@ -58,39 +36,24 @@ export function registerTabsIpc(db: Database.Database, wm: WindowManager, crashR
       scrollY: 0,
       createdAt: Date.now(),
     };
-    tabRegistry.set(tab.id, tab);
-    saveSession(db, crashRecovery, tab.profileId);
     return tab;
   });
 
   ipcMain.handle(IPC.TABS_CLOSE, (_event, { tabId }: { tabId: string }) => {
-    const tab = tabRegistry.get(tabId);
-    const profileId = tab?.profileId ?? DEFAULT_PROFILE_ID;
     tabWebContentsMap.delete(tabId);
-    tabRegistry.delete(tabId);
-    saveSession(db, crashRecovery, profileId);
     return { ok: true };
   });
 
   ipcMain.handle(IPC.TABS_ACTIVATE, (_event, { tabId }: { tabId: string }) => {
-    activeTabIdCache = tabId;
-    const tab = tabRegistry.get(tabId);
-    if (tab) saveSession(db, crashRecovery, tab.profileId);
     return { ok: true, tabId };
   });
 
   ipcMain.handle(IPC.TABS_REORDER, (_event, { tabIds }: { tabIds: string[] }) => {
-    // Renderer handles reorder visually; main acknowledges
     return { ok: true, tabIds };
   });
 
   ipcMain.handle(IPC.TABS_PIN, (_event, { tabId, pinned }: { tabId: string; pinned: boolean }) => {
-    const tab = tabRegistry.get(tabId);
-    if (tab) {
-      tab.isPinned = pinned;
-      tabRegistry.set(tabId, tab);
-    }
-    return { ok: true };
+    return { ok: true, tabId, pinned };
   });
 
   ipcMain.handle(IPC.TABS_GROUP_CREATE, (_event, args: { name: string; color: string; tabIds: string[] }) => {
@@ -114,10 +77,21 @@ export function registerTabsIpc(db: Database.Database, wm: WindowManager, crashR
     return { ok: true, tabId };
   });
 
-  ipcMain.handle(IPC.TABS_GET_ALL, () => {
-    return Array.from(tabRegistry.values());
+  // Renderer sends its current tab snapshot list for crash recovery persistence.
+  // This replaces the old in-memory tabRegistry — renderer is source of truth.
+  ipcMain.handle(IPC.TABS_SAVE_SESSION, (
+    _event,
+    { profileId, tabs, activeTabId }: { profileId: string; tabs: TabSnapshot[]; activeTabId: string }
+  ) => {
+    if (Array.isArray(tabs) && tabs.length > 0) {
+      crashRecovery.save(db, profileId, tabs, activeTabId ?? '');
+    }
+    return { ok: true };
   });
 
-  // Push navigation events from webview webContents to the renderer window
-  // webContents events are wired up in navigation.ts after webview:register
+  // TABS_GET_ALL: renderer is the authoritative tab store.
+  // Returns empty array — callers should use the renderer Zustand store instead.
+  ipcMain.handle(IPC.TABS_GET_ALL, () => {
+    return [];
+  });
 }

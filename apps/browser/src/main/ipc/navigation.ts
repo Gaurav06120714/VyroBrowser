@@ -2,6 +2,7 @@ import { ipcMain, webContents } from 'electron';
 import { IPC } from '../../shared/ipc-channels';
 import { tabWebContentsMap } from './tabs';
 import { WindowManager } from '../window-manager';
+import { NavLoadUrlSchema } from './validators';
 
 export function registerNavigationIpc(wm: WindowManager): void {
   function getWc(tabId: string) {
@@ -10,7 +11,10 @@ export function registerNavigationIpc(wm: WindowManager): void {
     return webContents.fromId(wcId) ?? null;
   }
 
-  ipcMain.handle(IPC.NAV_LOAD_URL, (_event, { tabId, url }: { tabId: string; url: string }) => {
+  ipcMain.handle(IPC.NAV_LOAD_URL, (_event, args: unknown) => {
+    const parsed = NavLoadUrlSchema.safeParse(args);
+    if (!parsed.success) return { error: 'Invalid arguments' };
+    const { tabId, url } = parsed.data;
     const wc = getWc(tabId);
     if (wc && !wc.isDestroyed()) {
       wc.loadURL(url).catch(() => {/* ignore */});

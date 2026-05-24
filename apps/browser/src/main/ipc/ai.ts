@@ -5,6 +5,7 @@ import { AIService } from '../services/ai-service';
 import { SettingsService } from '../services/settings-service';
 import { ProfileService } from '../services/profile-service';
 import { WindowManager } from '../window-manager';
+import { AiSendSchema } from './validators';
 
 export function registerAIIpc(db: Database.Database, wm: WindowManager): void {
   const profileService = new ProfileService(db);
@@ -41,7 +42,10 @@ export function registerAIIpc(db: Database.Database, wm: WindowManager): void {
     return aiService.getMessages(conversationId);
   });
 
-  ipcMain.handle(IPC.AI_SEND, async (event, { conversationId, content, model }: { conversationId: string; content: string; model: string }) => {
+  ipcMain.handle(IPC.AI_SEND, async (_event, args: unknown) => {
+    const parsed = AiSendSchema.safeParse(args);
+    if (!parsed.success) return { error: 'Invalid arguments' };
+    const { conversationId, content, model } = parsed.data;
     const win = wm.getMain();
     try {
       await aiService.sendMessage(conversationId, content, model, (delta, done) => {

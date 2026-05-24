@@ -33,6 +33,7 @@ const request_filter_1 = require("./adblock/request-filter");
 const downloads_1 = require("./ipc/downloads");
 const shortcuts_1 = require("./shortcuts");
 const tray_1 = require("./tray");
+const updater_1 = require("./updater");
 electron_1.app.name = 'Vyro';
 // ── Single instance lock ───────────────────────────────────────────────────
 const gotLock = electron_1.app.requestSingleInstanceLock();
@@ -89,6 +90,10 @@ electron_1.app.whenReady().then(async () => {
             downloadService.handleWillDownload(profileId, item);
         }
     });
+    // ── Auto-updater (production only) ──────────────────────────────────────
+    if (mainWin) {
+        (0, updater_1.setupAutoUpdater)(mainWin);
+    }
     // ── System tray (Windows / Linux) ────────────────────────────────────────
     (0, tray_1.createTray)(() => windowManager.getMain());
     // ── macOS Dock menu ──────────────────────────────────────────────────────

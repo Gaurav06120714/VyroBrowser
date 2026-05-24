@@ -3,17 +3,24 @@ import Database from 'better-sqlite3';
 import { IPC } from '../../shared/ipc-channels';
 import { HistoryService } from '../services/history-service';
 import { ProfileService } from '../services/profile-service';
+import { HistorySearchSchema, HistoryAddSchema } from './validators';
 
 export function registerHistoryIpc(db: Database.Database): void {
   const historyService = new HistoryService(db);
   const profileService = new ProfileService(db);
 
-  ipcMain.handle(IPC.HISTORY_SEARCH, (_event, { query, limit, offset }: { query: string; limit?: number; offset?: number }) => {
+  ipcMain.handle(IPC.HISTORY_SEARCH, (_event, args: unknown) => {
+    const parsed = HistorySearchSchema.safeParse(args);
+    if (!parsed.success) return { error: 'Invalid arguments' };
+    const { query, limit, offset } = parsed.data;
     const profileId = profileService.getActive();
     return historyService.search(profileId, query ?? '', limit, offset);
   });
 
-  ipcMain.handle(IPC.HISTORY_ADD, (_event, { url, title, favicon }: { url: string; title: string; favicon?: string }) => {
+  ipcMain.handle(IPC.HISTORY_ADD, (_event, args: unknown) => {
+    const parsed = HistoryAddSchema.safeParse(args);
+    if (!parsed.success) return { error: 'Invalid arguments' };
+    const { url, title, favicon } = parsed.data;
     const profileId = profileService.getActive();
     historyService.add(profileId, url, title, favicon);
     return { ok: true };

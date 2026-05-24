@@ -21,6 +21,7 @@ const electron_1 = require("electron");
 const http_1 = __importDefault(require("http"));
 const https_1 = __importDefault(require("https"));
 const ipc_channels_1 = require("../../shared/ipc-channels");
+const validators_1 = require("./validators");
 function getOllamaBase() {
     return process.env.OLLAMA_BASE_URL ?? 'http://localhost:11434';
 }
@@ -130,7 +131,11 @@ function registerOnboardingIpc(wm) {
         }
     });
     // ── Pull a model ──────────────────────────────────────────────────────────
-    electron_1.ipcMain.handle(ipc_channels_1.IPC.ONBOARDING_PULL_MODEL, async (_event, { model }) => {
+    electron_1.ipcMain.handle(ipc_channels_1.IPC.ONBOARDING_PULL_MODEL, async (_event, args) => {
+        const parsed = validators_1.OnboardingPullModelSchema.safeParse(args);
+        if (!parsed.success)
+            return { ok: false, error: 'Invalid arguments' };
+        const { model } = parsed.data;
         const base = getOllamaBase();
         const win = wm.getMain();
         const controller = new AbortController();
@@ -182,7 +187,11 @@ function registerOnboardingIpc(wm) {
         }
     });
     // ── Cancel an active pull ─────────────────────────────────────────────────
-    electron_1.ipcMain.handle(ipc_channels_1.IPC.ONBOARDING_CANCEL_PULL, (_event, { model }) => {
+    electron_1.ipcMain.handle(ipc_channels_1.IPC.ONBOARDING_CANCEL_PULL, (_event, args) => {
+        const parsed = validators_1.OnboardingCancelPullSchema.safeParse(args);
+        if (!parsed.success)
+            return { ok: false, error: 'Invalid arguments' };
+        const { model } = parsed.data;
         const controller = activePulls.get(model);
         if (controller) {
             controller.abort();

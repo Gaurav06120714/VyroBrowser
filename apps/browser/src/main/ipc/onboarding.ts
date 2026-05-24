@@ -16,6 +16,7 @@ import http from 'http';
 import https from 'https';
 import { IPC } from '../../shared/ipc-channels';
 import { WindowManager } from '../window-manager';
+import { OnboardingPullModelSchema, OnboardingCancelPullSchema } from './validators';
 
 interface OllamaTag {
   name: string;
@@ -141,7 +142,10 @@ export function registerOnboardingIpc(wm: WindowManager): void {
   });
 
   // ── Pull a model ──────────────────────────────────────────────────────────
-  ipcMain.handle(IPC.ONBOARDING_PULL_MODEL, async (_event, { model }: { model: string }) => {
+  ipcMain.handle(IPC.ONBOARDING_PULL_MODEL, async (_event, args: unknown) => {
+    const parsed = OnboardingPullModelSchema.safeParse(args);
+    if (!parsed.success) return { ok: false, error: 'Invalid arguments' };
+    const { model } = parsed.data;
     const base = getOllamaBase();
     const win = wm.getMain();
 
@@ -203,7 +207,10 @@ export function registerOnboardingIpc(wm: WindowManager): void {
   });
 
   // ── Cancel an active pull ─────────────────────────────────────────────────
-  ipcMain.handle(IPC.ONBOARDING_CANCEL_PULL, (_event, { model }: { model: string }) => {
+  ipcMain.handle(IPC.ONBOARDING_CANCEL_PULL, (_event, args: unknown) => {
+    const parsed = OnboardingCancelPullSchema.safeParse(args);
+    if (!parsed.success) return { ok: false, error: 'Invalid arguments' };
+    const { model } = parsed.data;
     const controller = activePulls.get(model);
     if (controller) {
       controller.abort();

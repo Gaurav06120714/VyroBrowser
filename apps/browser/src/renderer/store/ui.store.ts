@@ -20,6 +20,10 @@ interface UiState {
   zoomLevel: number;
   toasts: Toast[];
   commandPaletteOpen: boolean;
+  // Auto-update state
+  updateStatus: null | 'available' | 'ready';
+  updateVersion: string | null;
+  updateDismissed: boolean;
 }
 
 interface UiActions {
@@ -37,6 +41,10 @@ interface UiActions {
   removeToast: (id: string) => void;
   openCommandPalette: () => void;
   closeCommandPalette: () => void;
+  // Auto-update actions
+  setUpdateAvailable: (version: string) => void;
+  setUpdateReady: () => void;
+  dismissUpdate: () => void;
 }
 
 import { v4 as uuidv4 } from 'uuid';
@@ -52,6 +60,10 @@ export const useUiStore = create<UiState & UiActions>((set, get) => ({
   zoomLevel: 1,
   toasts: [],
   commandPaletteOpen: false,
+  // Auto-update
+  updateStatus: null,
+  updateVersion: null,
+  updateDismissed: false,
 
   toggleSidebar: () => set(s => ({ sidebarOpen: !s.sidebarOpen })),
   setSidebarOpen: (open) => set({ sidebarOpen: open }),
@@ -74,4 +86,8 @@ export const useUiStore = create<UiState & UiActions>((set, get) => ({
 
   openCommandPalette: () => set({ commandPaletteOpen: true }),
   closeCommandPalette: () => set({ commandPaletteOpen: false }),
+
+  setUpdateAvailable: (version) => set({ updateStatus: 'available', updateVersion: version, updateDismissed: false }),
+  setUpdateReady: () => set({ updateStatus: 'ready' }),
+  dismissUpdate: () => set({ updateDismissed: true }),
 }));

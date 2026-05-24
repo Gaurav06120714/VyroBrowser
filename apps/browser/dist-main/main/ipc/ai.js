@@ -6,6 +6,7 @@ const ipc_channels_1 = require("../../shared/ipc-channels");
 const ai_service_1 = require("../services/ai-service");
 const settings_service_1 = require("../services/settings-service");
 const profile_service_1 = require("../services/profile-service");
+const validators_1 = require("./validators");
 function registerAIIpc(db, wm) {
     const profileService = new profile_service_1.ProfileService(db);
     const settingsService = new settings_service_1.SettingsService(db);
@@ -33,7 +34,11 @@ function registerAIIpc(db, wm) {
     electron_1.ipcMain.handle(ipc_channels_1.IPC.AI_MESSAGES_GET, (_event, { conversationId }) => {
         return aiService.getMessages(conversationId);
     });
-    electron_1.ipcMain.handle(ipc_channels_1.IPC.AI_SEND, async (event, { conversationId, content, model }) => {
+    electron_1.ipcMain.handle(ipc_channels_1.IPC.AI_SEND, async (_event, args) => {
+        const parsed = validators_1.AiSendSchema.safeParse(args);
+        if (!parsed.success)
+            return { error: 'Invalid arguments' };
+        const { conversationId, content, model } = parsed.data;
         const win = wm.getMain();
         try {
             await aiService.sendMessage(conversationId, content, model, (delta, done) => {

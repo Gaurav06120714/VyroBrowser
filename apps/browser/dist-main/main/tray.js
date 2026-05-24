@@ -7,34 +7,88 @@ exports.createTray = createTray;
 exports.destroyTray = destroyTray;
 const electron_1 = require("electron");
 const path_1 = __importDefault(require("path"));
+const fs_1 = __importDefault(require("fs"));
 let tray = null;
 /** Resolve the best tray icon for the current platform and DPI. */
 function getTrayIcon() {
     const base = path_1.default.join(__dirname, '../../assets');
     if (process.platform === 'win32') {
         // Windows: use .ico — Windows scales it automatically for all DPIs
-        const ico = path_1.default.join(base, 'icon.ico');
-        const img = electron_1.nativeImage.createFromPath(ico);
-        if (!img.isEmpty())
-            return img;
+        try {
+            const ico = path_1.default.join(base, 'icon.ico');
+            if (fs_1.default.existsSync(ico)) {
+                const img = electron_1.nativeImage.createFromPath(ico);
+                if (!img.isEmpty())
+                    return img;
+            }
+        }
+        catch {
+            // fall through to PNG fallbacks
+        }
     }
-    // Linux / macOS fallback: use the 32px PNG (tray icons are ~22–24px rendered)
-    const png32 = path_1.default.join(base, 'icons', '32x32.png');
-    const img32 = electron_1.nativeImage.createFromPath(png32);
-    if (!img32.isEmpty())
-        return img32.resize({ width: 22, height: 22 });
+    if (process.platform === 'linux') {
+        // Try multiple icon sizes — prefer larger sizes for HiDPI displays
+        for (const size of [256, 48, 32, 16]) {
+            try {
+                const p = path_1.default.join(base, 'icons', `${size}x${size}.png`);
+                if (fs_1.default.existsSync(p)) {
+                    const img = electron_1.nativeImage.createFromPath(p);
+                    if (!img.isEmpty())
+                        return img.resize({ width: 22, height: 22 });
+                }
+            }
+            catch {
+                // try next size
+            }
+        }
+        // Final Linux fallback: empty image with colored tint is not possible via
+        // nativeImage API, so return a 16x16 blank image to prevent crash
+        return electron_1.nativeImage.createEmpty();
+    }
+    // macOS / Windows fallback: use the 32px PNG
+    try {
+        const png32 = path_1.default.join(base, 'icons', '32x32.png');
+        if (fs_1.default.existsSync(png32)) {
+            const img32 = electron_1.nativeImage.createFromPath(png32);
+            if (!img32.isEmpty())
+                return img32.resize({ width: 22, height: 22 });
+        }
+    }
+    catch {
+        // fall through
+    }
     // Ultimate fallback: resize icon.png
-    const fallback = electron_1.nativeImage
-        .createFromPath(path_1.default.join(base, 'icon.png'))
-        .resize({ width: 22, height: 22 });
-    return fallback;
+    try {
+        const iconPng = path_1.default.join(base, 'icon.png');
+        if (fs_1.default.existsSync(iconPng)) {
+            return electron_1.nativeImage.createFromPath(iconPng).resize({ width: 22, height: 22 });
+        }
+    }
+    catch {
+        // fall through
+    }
+    return electron_1.nativeImage.createEmpty();
 }
 function createTray(getWindow) {
     if (process.platform !== 'win32' && process.platform !== 'linux')
         return;
     if (tray)
         return;
-    tray = new electron_1.Tray(getTrayIcon());
+    let icon;
+    try {
+        icon = getTrayIcon();
+    }
+    catch {
+        icon = electron_1.nativeImage.createEmpty();
+    }
+    try {
+        tray = new electron_1.Tray(icon);
+    }
+    catch (err) {
+        // Tray creation failed (e.g. no system tray on this Linux session) — ignore
+        console.warn('Failed to create system tray:', err);
+        return;
+    }
     tray.setToolTip('Vyro Browser');
     const rebuild = () => {
         const win = getWindow();

@@ -28,6 +28,7 @@ import { ProfileSwitcher } from './components/modals/ProfileSwitcher';
 import { ToastContainer } from './components/shared/Toast';
 import { CommandPalette } from './components/browser/CommandPalette';
 import { WindowsTitleBar } from './components/browser/WindowsTitleBar';
+import { UpdateBanner } from './components/browser/UpdateBanner';
 import { Onboarding } from './pages/Onboarding';
 import { useUiStore } from './store/ui.store';
 import { useTabsStore } from './store/tabs.store';
@@ -111,6 +112,8 @@ const App: React.FC = () => {
 
   const sidebarOpen = useUiStore(s => s.sidebarOpen);
   const activeModal = useUiStore(s => s.activeModal);
+  const setUpdateAvailable = useUiStore(s => s.setUpdateAvailable);
+  const setUpdateReady = useUiStore(s => s.setUpdateReady);
   const closeModal = useUiStore(s => s.closeModal);
   const openCommandPalette = useUiStore(s => s.openCommandPalette);
   const createTab = useTabsStore(s => s.createTab);
@@ -182,6 +185,49 @@ const App: React.FC = () => {
     return off;
   }, [createTab]);
 
+  // Persist session state to main process for crash recovery
+  // Debounced to avoid hammering IPC on every keystroke/navigation
+  useEffect(() => {
+    let timer: ReturnType<typeof setTimeout> | null = null;
+    const saveSession = () => {
+      const { tabs, activeTabId } = useTabsStore.getState();
+      if (tabs.length === 0) return;
+      const snapshots = tabs.map(t => ({
+        id: t.id,
+        url: t.url,
+        title: t.title,
+        isPinned: t.isPinned,
+        groupId: t.groupId ?? null,
+        profileId: t.profileId,
+      }));
+      ipc.invoke(IPC.TABS_SAVE_SESSION as never, {
+        profileId: DEFAULT_PROFILE_ID,
+        tabs: snapshots,
+        activeTabId: activeTabId ?? '',
+      }).catch(() => {/* silent */});
+    };
+    const unsubscribe = useTabsStore.subscribe(() => {
+      if (timer) clearTimeout(timer);
+      timer = setTimeout(saveSession, 1500);
+    });
+    return () => {
+      unsubscribe();
+      if (timer) clearTimeout(timer);
+    };
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Listen for auto-update events pushed from main
+  useEffect(() => {
+    const offAvailable = ipc.on(IPC.UPDATE_AVAILABLE, (...args: unknown[]) => {
+      const payload = args[0] as { version?: string };
+      setUpdateAvailable(payload?.version ?? '');
+    });
+    const offReady = ipc.on(IPC.UPDATE_READY, () => {
+      setUpdateReady();
+    });
+    return () => { offAvailable(); offReady(); };
+  }, [setUpdateAvailable, setUpdateReady]);
+
   // Listen for shortcut actions pushed from main
   useEffect(() => {
     const off = ipc.on(IPC.SHORTCUT_ACTION, (...args: unknown[]) => {
@@ -205,6 +251,9 @@ const App: React.FC = () => {
       <div className="flex flex-col h-screen overflow-hidden bg-[#0f0f10] text-white">
         {/* Windows custom title bar — renders only on win32 */}
         <WindowsTitleBar />
+
+        {/* Auto-update notification banner */}
+        <UpdateBanner />
 
         <ErrorBoundary label="TabBar">
           <TabBar />

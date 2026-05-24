@@ -15,13 +15,103 @@
 [![License](https://img.shields.io/badge/License-MIT-22c55e?style=flat-square)](LICENSE)
 [![CI](https://img.shields.io/github/actions/workflow/status/Gaurav06120714/Vyro/ci.yml?style=flat-square&label=CI)](https://github.com/Gaurav06120714/Vyro/actions)
 
-[**Download**](#-download) · [**Quick Start**](#-quick-start) · [**Ollama Setup**](#-ollama-setup) · [**Features**](#-features) · [**Architecture**](#-architecture) · [**Contributing**](#-contributing)
+[**Download**](#-download) · [**Install from Source**](#-install-from-source) · [**Ollama Setup**](#-ollama-setup) · [**Features**](#-features) · [**Architecture**](#-architecture) · [**Contributing**](#-contributing)
 
 ---
 
 > Vyro is a Chromium-based desktop browser built on Electron that runs a **local AI assistant powered by Ollama** — your AI data never leaves your machine. Every inference, every suggestion, every summary happens entirely on-device.
 
 </div>
+
+---
+
+## ⚡ Install from Source
+
+> Works on macOS, Windows, and Linux. Copy-paste the block for your OS.
+
+### macOS
+
+```bash
+# 1. Clone the repo
+git clone https://github.com/Gaurav06120714/VyroBrowser.git
+cd VyroBrowser/apps/browser
+
+# 2. Install dependencies
+npm install
+
+# 3. Rebuild native module (better-sqlite3)
+npx electron-rebuild -f -w better-sqlite3
+
+# 4a. Run in development mode (hot-reload + DevTools)
+npm run dev
+
+# 4b. OR install directly to /Applications and launch
+npm run install-app
+```
+
+### Windows
+
+```powershell
+# Prerequisite: Visual Studio Build Tools with "Desktop development with C++"
+# https://visualstudio.microsoft.com/downloads/
+
+# 1. Clone the repo
+git clone https://github.com/Gaurav06120714/VyroBrowser.git
+cd VyroBrowser\apps\browser
+
+# 2. Install dependencies
+npm install
+
+# 3. Rebuild native module (better-sqlite3)
+npx electron-rebuild -f -w better-sqlite3
+
+# 4. Run in development mode
+npm run dev
+```
+
+### Linux
+
+```bash
+# Prerequisite: build-essential
+sudo apt install build-essential   # Debian/Ubuntu
+# sudo dnf install gcc-c++ make    # Fedora
+
+# 1. Clone the repo
+git clone https://github.com/Gaurav06120714/VyroBrowser.git
+cd VyroBrowser/apps/browser
+
+# 2. Install dependencies
+npm install
+
+# 3. Rebuild native module (better-sqlite3)
+npx electron-rebuild -f -w better-sqlite3
+
+# 4. Run in development mode
+npm run dev
+```
+
+### Build a distributable installer
+
+```bash
+npm run package:mac    # → dist/Vyro-arm64.dmg  (macOS)
+npm run package:win    # → dist/Vyro Setup.exe   (Windows)
+npm run package:linux  # → dist/Vyro.AppImage    (Linux)
+```
+
+### Set up Ollama (AI features)
+
+```bash
+# macOS
+brew install ollama && brew services start ollama && ollama pull llama3.2
+
+# Linux
+curl -fsSL https://ollama.ai/install.sh | sh && ollama pull llama3.2
+
+# Windows — download from https://ollama.ai/download/windows, then:
+ollama pull llama3.2
+```
+
+> Vyro's onboarding wizard will guide you through this on first launch — Ollama setup is optional to run the browser.
 
 ---
 

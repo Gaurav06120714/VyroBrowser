@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.SettingsService = void 0;
 const settings_1 = require("../../shared/types/settings");
+const sync_service_1 = require("./sync-service");
 class SettingsService {
     db;
     constructor(db) {
@@ -30,18 +31,22 @@ class SettingsService {
     `);
         const setMany = this.db.transaction((entries) => {
             for (const [key, value] of entries) {
-                upsert.run(profileId, key, JSON.stringify(value));
+                const serialized = JSON.stringify(value);
+                upsert.run(profileId, key, serialized);
+                (0, sync_service_1.syncSettingsSet)(profileId, key, serialized);
             }
         });
         setMany(Object.entries(partial));
     }
     /** Write an arbitrary key/value (used for adblock site rules and similar). */
     setRaw(profileId, key, value) {
+        const serialized = JSON.stringify(value);
         this.db.prepare(`
       INSERT INTO settings (profile_id, key, value)
       VALUES (?, ?, ?)
       ON CONFLICT (profile_id, key) DO UPDATE SET value = excluded.value
-    `).run(profileId, key, JSON.stringify(value));
+    `).run(profileId, key, serialized);
+        (0, sync_service_1.syncSettingsSet)(profileId, key, serialized);
     }
     /** Return all keys that start with the given prefix, as key→parsed-value map. */
     getAllByPrefix(profileId, prefix) {

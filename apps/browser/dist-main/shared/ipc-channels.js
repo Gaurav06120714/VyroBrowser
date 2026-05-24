@@ -127,6 +127,19 @@ exports.IPC = {
     UPDATE_AVAILABLE: 'update:available',
     UPDATE_READY: 'update:ready',
     UPDATE_INSTALL: 'update:install',
+    // App management
+    APP_CLEAR_CACHE: 'app:clear-cache',
+    APP_CLEAR_GPU_CACHE: 'app:clear-gpu-cache',
+    APP_RESET: 'app:reset',
+    APP_GET_CACHE_SIZE: 'app:get-cache-size',
+    APP_GET_VERSION: 'app:get-version',
+    // Keywords
+    // Auth (Supabase)
+    AUTH_SIGN_IN: 'auth:sign-in',
+    AUTH_SIGN_UP: 'auth:sign-up',
+    AUTH_SIGN_OUT: 'auth:sign-out',
+    AUTH_GET_SESSION: 'auth:get-session',
+    AUTH_STATE_CHANGED: 'auth:state-changed',
     // Keywords
     KEYWORDS_RESOLVE: 'keywords:resolve',
     KEYWORDS_SUGGEST: 'keywords:suggest',
@@ -178,6 +191,9 @@ exports.INVOKE_ALLOWLIST = [
     exports.IPC.ONBOARDING_CANCEL_PULL,
     exports.IPC.WINDOW_MINIMIZE, exports.IPC.WINDOW_MAXIMIZE, exports.IPC.WINDOW_CLOSE,
     exports.IPC.UPDATE_INSTALL,
+    exports.IPC.APP_CLEAR_CACHE, exports.IPC.APP_CLEAR_GPU_CACHE, exports.IPC.APP_RESET,
+    exports.IPC.APP_GET_CACHE_SIZE, exports.IPC.APP_GET_VERSION,
+    exports.IPC.AUTH_SIGN_IN, exports.IPC.AUTH_SIGN_UP, exports.IPC.AUTH_SIGN_OUT, exports.IPC.AUTH_GET_SESSION,
 ];
 // Channels main pushes to renderer (allowlist for preload `on`)
 exports.PUSH_ALLOWLIST = [
@@ -196,4 +212,5 @@ exports.PUSH_ALLOWLIST = [
     exports.IPC.FIND_RESULT,
     exports.IPC.UPDATE_AVAILABLE,
     exports.IPC.UPDATE_READY,
+    exports.IPC.AUTH_STATE_CHANGED,
 ];

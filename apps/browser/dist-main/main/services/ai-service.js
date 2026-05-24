@@ -6,6 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.AIService = void 0;
 const uuid_1 = require("uuid");
 const http_1 = __importDefault(require("http"));
+const sync_service_1 = require("./sync-service");
 class AIService {
     db;
     getOllamaUrl;
@@ -52,7 +53,9 @@ class AIService {
         const id = (0, uuid_1.v4)();
         const now = Math.floor(Date.now() / 1000);
         this.db.prepare('INSERT INTO ai_conversations (id, profile_id, title, model, system_prompt, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)').run(id, profileId, 'New Chat', model, systemPrompt ?? null, now, now);
-        return { id, profileId, title: 'New Chat', model, systemPrompt: systemPrompt ?? null, createdAt: now, updatedAt: now };
+        const conv = { id, profileId, title: 'New Chat', model, systemPrompt: systemPrompt ?? null, createdAt: now, updatedAt: now };
+        (0, sync_service_1.syncAIConversationCreate)({ id, profile_id: profileId, title: 'New Chat', model, system_prompt: systemPrompt ?? null, created_at: now, updated_at: now });
+        return conv;
     }
     getConversations(profileId) {
         return this.db.prepare('SELECT * FROM ai_conversations WHERE profile_id = ? ORDER BY updated_at DESC').all(profileId).map(r => ({
@@ -67,6 +70,7 @@ class AIService {
     }
     deleteConversation(id) {
         this.db.prepare('DELETE FROM ai_conversations WHERE id = ?').run(id);
+        (0, sync_service_1.syncAIConversationDelete)(id);
     }
     getMessages(conversationId) {
         return this.db.prepare('SELECT * FROM ai_messages WHERE conversation_id = ? ORDER BY created_at ASC').all(conversationId).map(r => ({
@@ -82,6 +86,7 @@ class AIService {
         const msgId = (0, uuid_1.v4)();
         const now = Math.floor(Date.now() / 1000);
         this.db.prepare('INSERT INTO ai_messages (id, conversation_id, role, content, created_at) VALUES (?, ?, ?, ?, ?)').run(msgId, conversationId, 'user', userContent, now);
+        (0, sync_service_1.syncAIMessageAdd)({ id: msgId, conversation_id: conversationId, role: 'user', content: userContent, created_at: now });
         const messages = this.getMessages(conversationId);
         const conv = this.db.prepare('SELECT * FROM ai_conversations WHERE id = ?').get(conversationId);
         const payload = JSON.stringify({
@@ -117,7 +122,9 @@ class AIService {
                                 }
                                 if (obj.done) {
                                     const aId = (0, uuid_1.v4)();
-                                    this.db.prepare('INSERT INTO ai_messages (id, conversation_id, role, content, created_at) VALUES (?, ?, ?, ?, ?)').run(aId, conversationId, 'assistant', assistantContent, Math.floor(Date.now() / 1000));
+                                    const aNow = Math.floor(Date.now() / 1000);
+                                    this.db.prepare('INSERT INTO ai_messages (id, conversation_id, role, content, created_at) VALUES (?, ?, ?, ?, ?)').run(aId, conversationId, 'assistant', assistantContent, aNow);
+                                    (0, sync_service_1.syncAIMessageAdd)({ id: aId, conversation_id: conversationId, role: 'assistant', content: assistantContent, created_at: aNow });
                                     if (conv?.title === 'New Chat') {
                                         const title = userContent.slice(0, 50);
                                         this.db.prepare('UPDATE ai_conversations SET title = ?, updated_at = unixepoch() WHERE id = ?')

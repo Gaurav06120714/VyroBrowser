@@ -16,6 +16,9 @@ const injections_1 = require("./injections");
 const find_1 = require("./find");
 const keywords_1 = require("./keywords");
 const onboarding_1 = require("./onboarding");
+const app_management_1 = require("./app-management");
+const window_controls_1 = require("./window-controls");
+const auth_1 = require("./auth");
 const keyword_service_1 = require("../services/keyword-service");
 const crash_recovery_1 = require("../services/crash-recovery");
 function registerAllIpc(db, wm) {
@@ -36,4 +39,7 @@ function registerAllIpc(db, wm) {
     (0, find_1.registerFindIpc)();
     (0, keywords_1.registerKeywordsIpc)(keywordService);
     (0, onboarding_1.registerOnboardingIpc)(wm);
+    (0, app_management_1.registerAppManagementIpc)();
+    (0, window_controls_1.registerWindowControlsIpc)(wm);
+    (0, auth_1.registerAuthIpc)(wm);
 }

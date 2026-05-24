@@ -34,7 +34,19 @@ const downloads_1 = require("./ipc/downloads");
 const shortcuts_1 = require("./shortcuts");
 const tray_1 = require("./tray");
 const updater_1 = require("./updater");
+const app_management_1 = require("./ipc/app-management");
+// ── App identity — must be set BEFORE app.whenReady() ─────────────────────
 electron_1.app.name = 'Vyro';
+// Windows: set App User Model ID so taskbar/start menu shows "Vyro" not "Electron"
+if (process.platform === 'win32') {
+    electron_1.app.setAppUserModelId('com.vyro.browser');
+}
+// Portable build: isolate userData so portable and installed copies never collide
+if (process.platform === 'win32' && process.env.PORTABLE_EXECUTABLE_DIR) {
+    const portableData = path_1.default.join(process.env.PORTABLE_EXECUTABLE_DIR, 'VyroData');
+    electron_1.app.setPath('userData', portableData);
+    electron_1.app.setPath('logs', path_1.default.join(portableData, 'logs'));
+}
 // ── Single instance lock ───────────────────────────────────────────────────
 const gotLock = electron_1.app.requestSingleInstanceLock();
 if (!gotLock) {
@@ -62,6 +74,8 @@ function createWindow() {
 }
 // ── App ready ─────────────────────────────────────────────────────────────
 electron_1.app.whenReady().then(async () => {
+    // Clean up old app identity remnants (one-time migration)
+    (0, app_management_1.runStartupMigration)();
     // Init SQLite DB + migrations
     const db = (0, db_1.getDb)();
     // Ensure default profile row exists

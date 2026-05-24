@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.HistoryService = void 0;
+const sync_service_1 = require("./sync-service");
 class HistoryService {
     db;
     constructor(db) {
@@ -10,9 +11,21 @@ class HistoryService {
         const existing = this.db.prepare('SELECT id FROM history WHERE profile_id = ? AND url = ?').get(profileId, url);
         if (existing) {
             this.db.prepare('UPDATE history SET visit_count = visit_count + 1, last_visited_at = unixepoch(), title = ?, favicon = ? WHERE id = ?').run(title, favicon ?? null, existing.id);
+            const updated = this.db.prepare('SELECT * FROM history WHERE id = ?').get(existing.id);
+            (0, sync_service_1.syncHistoryAdd)({
+                id: updated.id, profile_id: updated.profile_id,
+                url: updated.url, title: updated.title,
+                favicon: updated.favicon, visit_count: updated.visit_count,
+                last_visited_at: updated.last_visited_at,
+            });
         }
         else {
-            this.db.prepare('INSERT INTO history (profile_id, url, title, favicon) VALUES (?, ?, ?, ?)').run(profileId, url, title, favicon ?? null);
+            const info = this.db.prepare('INSERT INTO history (profile_id, url, title, favicon) VALUES (?, ?, ?, ?)').run(profileId, url, title, favicon ?? null);
+            (0, sync_service_1.syncHistoryAdd)({
+                id: info.lastInsertRowid, profile_id: profileId,
+                url, title, favicon: favicon ?? null, visit_count: 1,
+                last_visited_at: Math.floor(Date.now() / 1000),
+            });
         }
     }
     search(profileId, query, limit = 50, offset = 0) {
@@ -32,12 +45,15 @@ class HistoryService {
     }
     delete(id) {
         this.db.prepare('DELETE FROM history WHERE id = ?').run(id);
+        (0, sync_service_1.syncHistoryDelete)(id);
     }
     clearRange(profileId, from, to) {
         this.db.prepare('DELETE FROM history WHERE profile_id = ? AND last_visited_at BETWEEN ? AND ?').run(profileId, from, to);
+        (0, sync_service_1.syncHistoryClear)(profileId);
     }
     clearAll(profileId) {
         this.db.prepare('DELETE FROM history WHERE profile_id = ?').run(profileId);
+        (0, sync_service_1.syncHistoryClear)(profileId);
     }
     toEntry(row) {
         return {

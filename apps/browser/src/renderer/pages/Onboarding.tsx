@@ -202,20 +202,39 @@ const StepWelcome: React.FC<{ onNext: () => void; onSkip: () => void }> = ({
         </p>
       </div>
 
-      <div className="grid grid-cols-3 gap-3 w-full">
-        {[
-          { label: 'Local AI', desc: 'Runs on your machine — nothing sent to the cloud' },
-          { label: 'No ads', desc: 'Blocked at the network level' },
-          { label: 'Keyboard-first', desc: 'Cmd+K opens everything' },
-        ].map(({ label, desc }) => (
-          <div
-            key={label}
-            className="flex flex-col items-center gap-1 p-3 rounded-xl bg-white/5 border border-white/10"
-          >
-            <span className="text-xs font-semibold text-white">{label}</span>
-            <span className="text-[11px] text-white/40 text-center leading-tight">{desc}</span>
+      {/* Browser UI mockup */}
+      <div className="w-full rounded-xl border border-white/10 bg-white/[0.03] overflow-hidden text-left">
+        {/* Chrome bar */}
+        <div className="flex items-center gap-2 px-3 h-8 border-b border-white/[0.07] bg-white/[0.04]">
+          <span className="w-2 h-2 rounded-full bg-[#ff5f57]/60" />
+          <span className="w-2 h-2 rounded-full bg-[#febc2e]/60" />
+          <span className="w-2 h-2 rounded-full bg-[#28c840]/60" />
+          <div className="flex items-center gap-1 ml-2">
+            <div className="flex items-center gap-1 px-2 h-5 rounded-md bg-white/10 text-[10px] text-white/60">
+              <span className="w-2 h-2 rounded-sm bg-[#4285f4]" /> Google
+            </div>
+            <div className="flex items-center gap-1 px-2 h-5 rounded-md text-[10px] text-white/25">
+              <span className="w-2 h-2 rounded-sm bg-white/15" /> GitHub
+            </div>
           </div>
-        ))}
+          <div className="ml-auto flex-1 max-w-[140px] h-5 rounded bg-white/[0.06] flex items-center px-2">
+            <span className="text-[9px] text-white/30 font-mono truncate">google.com</span>
+          </div>
+        </div>
+        {/* Content + AI sidebar */}
+        <div className="flex" style={{ height: 96 }}>
+          <div className="flex-1 p-3 space-y-1.5">
+            <div className="h-1.5 w-3/4 rounded bg-white/[0.07]" />
+            <div className="h-1.5 w-1/2 rounded bg-white/[0.05]" />
+            <div className="h-1.5 w-2/3 rounded bg-white/[0.07]" />
+            <div className="h-1.5 w-2/5 rounded bg-white/[0.04]" />
+          </div>
+          <div className="w-32 border-l border-white/[0.07] bg-white/[0.02] p-2 flex flex-col gap-1.5">
+            <div className="text-[9px] uppercase tracking-widest text-white/25 font-semibold">AI · llama3.1</div>
+            <div className="rounded bg-white/[0.05] px-1.5 py-1 text-[9px] text-white/50 leading-tight">Summarise this page</div>
+            <div className="rounded bg-violet-600/20 border border-violet-500/20 px-1.5 py-1 text-[9px] text-white/70 leading-tight">Google lets you search the web…</div>
+          </div>
+        </div>
       </div>
 
       <div className="flex flex-col gap-3 w-full">

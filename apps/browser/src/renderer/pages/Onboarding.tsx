@@ -197,22 +197,21 @@ const StepWelcome: React.FC<{ onNext: () => void; onSkip: () => void }> = ({
       <div>
         <h1 className="text-3xl font-bold text-white mb-2">Welcome to Vyro</h1>
         <p className="text-white/60 text-sm leading-relaxed">
-          An AI-powered browser running entirely on your {platformLabel} machine.
-          No cloud, no subscriptions — your data stays yours.
+          A browser that runs AI models locally on your {platformLabel} machine.
+          No cloud, no subscription, no data leaving your device.
         </p>
       </div>
 
       <div className="grid grid-cols-3 gap-3 w-full">
         {[
-          { icon: '🧠', label: 'Local AI', desc: 'Ollama runs on device' },
-          { icon: '🚫', label: 'Ad-free', desc: 'Network-level blocking' },
-          { icon: '⌨️', label: 'Keyboard-first', desc: 'Cmd+K for everything' },
-        ].map(({ icon, label, desc }) => (
+          { label: 'Local AI', desc: 'Runs on your machine — nothing sent to the cloud' },
+          { label: 'No ads', desc: 'Blocked at the network level' },
+          { label: 'Keyboard-first', desc: 'Cmd+K opens everything' },
+        ].map(({ label, desc }) => (
           <div
             key={label}
             className="flex flex-col items-center gap-1 p-3 rounded-xl bg-white/5 border border-white/10"
           >
-            <span className="text-2xl">{icon}</span>
             <span className="text-xs font-semibold text-white">{label}</span>
             <span className="text-[11px] text-white/40 text-center leading-tight">{desc}</span>
           </div>
@@ -630,11 +629,6 @@ export const Onboarding: React.FC<{ onComplete: () => void }> = ({ onComplete })
 
   return (
     <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-[#0f0f10]">
-      {/* Ambient gradient background */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-[-20%] left-[10%] w-[600px] h-[600px] rounded-full bg-violet-900/20 blur-[120px]" />
-        <div className="absolute bottom-[-10%] right-[-5%] w-[400px] h-[400px] rounded-full bg-indigo-900/20 blur-[100px]" />
-      </div>
 
       <div className="relative z-10 flex flex-col items-center gap-8 px-6 w-full max-w-xl">
         {/* Step dots */}

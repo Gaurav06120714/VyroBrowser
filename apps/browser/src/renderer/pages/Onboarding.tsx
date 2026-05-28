@@ -21,60 +21,23 @@ import {
 
 const VyroLogo: React.FC<{ size?: number; animated?: boolean }> = ({
   size = 80,
-  animated = false,
 }) => {
   const platform = typeof window !== 'undefined' && window.vyro ? window.vyro.platform : 'darwin';
   const isMac = platform === 'darwin';
 
   return (
     <div className="relative flex items-center justify-center" style={{ width: size, height: size }}>
-      {/* Outer glow rings */}
-      {animated && (
-        <>
-          <span
-            className="absolute rounded-full border border-violet-500/20"
-            style={{
-              width: size * 1.6,
-              height: size * 1.6,
-              animation: 'vyro-ping 2s cubic-bezier(0,0,0.2,1) infinite',
-            }}
-          />
-          <span
-            className="absolute rounded-full border border-cyan-400/15"
-            style={{
-              width: size * 1.35,
-              height: size * 1.35,
-              animation: 'vyro-ping 2s cubic-bezier(0,0,0.2,1) infinite 0.4s',
-            }}
-          />
-        </>
-      )}
-      {/* Glow backdrop */}
-      <div
-        className="absolute rounded-full"
-        style={{
-          width: size,
-          height: size,
-          background: 'radial-gradient(circle, rgba(99,102,241,0.35) 0%, rgba(6,182,212,0.15) 60%, transparent 80%)',
-          filter: 'blur(12px)',
-        }}
-      />
       {/* Icon container — circular on macOS, rounded-square on Windows/Linux */}
       <div
-        className="relative flex items-center justify-center overflow-hidden shadow-2xl"
+        className="relative flex items-center justify-center overflow-hidden"
         style={{
           width: size,
           height: size,
           borderRadius: isMac ? '50%' : `${size * 0.215}px`,
-          background: isMac
-            ? 'radial-gradient(circle at 40% 35%, #1a1a2e, #0a0a14)'
-            : 'radial-gradient(circle at 40% 35%, #1e2a5e, #080d1f)',
+          background: isMac ? '#111122' : '#0e1630',
           border: isMac
-            ? '2px solid rgba(209,213,219,0.25)'
-            : '1.5px solid rgba(59,130,246,0.35)',
-          boxShadow: isMac
-            ? '0 0 0 1px rgba(255,255,255,0.06), inset 0 1px 0 rgba(255,255,255,0.08)'
-            : '0 0 20px rgba(59,130,246,0.2), inset 0 1px 0 rgba(255,255,255,0.05)',
+            ? '2px solid rgba(209,213,219,0.15)'
+            : '1.5px solid rgba(99,102,241,0.3)',
         }}
       >
         <svg
@@ -113,13 +76,6 @@ const VyroLogo: React.FC<{ size?: number; animated?: boolean }> = ({
             stroke="url(#lg-w1)" strokeWidth="2.5" strokeLinecap="round" opacity="0.45" />
         </svg>
       </div>
-      <style>{`
-        @keyframes vyro-ping {
-          0%   { transform: scale(0.85); opacity: 0.8; }
-          70%  { transform: scale(1);    opacity: 0; }
-          100% { transform: scale(1);    opacity: 0; }
-        }
-      `}</style>
     </div>
   );
 };

@@ -20,6 +20,9 @@
 html, body {
   background: transparent;
   color: var(--vyro-ink);
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 16px;
+  line-height: 1.6;
   font-feature-settings: "cv11", "ss01";
   -webkit-font-smoothing: antialiased;
 }
@@ -53,42 +56,29 @@ webview {
   background: #ffffff;
 }
 
-/* ─── Glass system (3 tiers — Arc-quality) ──────────────────────────────── */
+/* ─── Flat surface system ───────────────────────────────────────────────── */
 .glass {
-  /* legacy alias for backward compat — maps to floor */
-  background: rgba(15, 15, 17, 0.55);
-  backdrop-filter: blur(28px) saturate(160%);
-  -webkit-backdrop-filter: blur(28px) saturate(160%);
+  background: #0f0f11;
   border: 1px solid var(--vyro-hairline);
 }
 
-/* Floor — chrome bar, sticky elements close to content */
+/* Floor — chrome bar, sticky elements */
 .glass-floor {
-  background: rgba(15, 15, 17, 0.55);
-  backdrop-filter: blur(28px) saturate(160%);
-  -webkit-backdrop-filter: blur(28px) saturate(160%);
+  background: #0f0f11;
   border-bottom: 1px solid var(--vyro-hairline);
-  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.03) inset;
 }
 
 /* Surface — sidebar, panels */
 .glass-surface {
-  background: rgba(18, 18, 22, 0.62);
-  backdrop-filter: blur(40px) saturate(180%);
-  -webkit-backdrop-filter: blur(40px) saturate(180%);
+  background: #121216;
   border-right: 1px solid var(--vyro-hairline);
 }
 
 /* Lifted — modals, command palette, popovers */
 .glass-lifted {
-  background: rgba(26, 26, 30, 0.78);
-  backdrop-filter: blur(56px) saturate(200%);
-  -webkit-backdrop-filter: blur(56px) saturate(200%);
+  background: #1a1a1e;
   border: 1px solid var(--vyro-hairline-strong);
-  box-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.06) inset,
-    0 24px 60px rgba(0, 0, 0, 0.5),
-    0 0 0 0.5px rgba(255, 255, 255, 0.03);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
 }
 
 /* ─── Smooth premium transitions (default) ──────────────────────────────── */
@@ -113,14 +103,14 @@ webview {
     0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
-/* Active tab underline indicator — animated */
+/* Active tab underline indicator */
 .tab-indicator {
   position: absolute;
   bottom: -1px;
   left: 12px;
   right: 12px;
   height: 2px;
-  background: linear-gradient(90deg, transparent, var(--vyro-accent), transparent);
+  background: var(--vyro-accent);
   border-radius: 2px;
   opacity: 0;
   transform: scaleX(0.4);
@@ -287,15 +277,9 @@ a:focus-visible {
   }
 }
 
-/* ─── New tab page polish ───────────────────────────────────────────────── */
+/* ─── New tab page ──────────────────────────────────────────────────────── */
 .newtab-blob {
-  position: absolute;
-  inset: 0;
-  background:
-    radial-gradient(circle at 30% 20%, rgba(129, 140, 248, 0.08) 0%, transparent 40%),
-    radial-gradient(circle at 70% 80%, rgba(168, 85, 247, 0.04) 0%, transparent 40%);
-  pointer-events: none;
-  z-index: 0;
+  display: none;
 }
 
 /* Speed-dial card hover */

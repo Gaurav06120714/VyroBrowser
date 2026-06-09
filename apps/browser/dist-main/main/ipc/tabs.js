@@ -6,13 +6,10 @@ const electron_1 = require("electron");
 const uuid_1 = require("uuid");
 const ipc_channels_1 = require("../../shared/ipc-channels");
 const constants_1 = require("../../shared/constants");
-// tabId → webContentsId mapping (populated when renderer registers a webview)
-// This is required by navigation.ts and find.ts to route commands to the
-// correct webContents. It does NOT store tab metadata — renderer is the
-// source of truth for tab state.
+
 exports.tabWebContentsMap = new Map();
 function registerTabsIpc(db, wm, crashRecovery) {
-    // Internal: renderer registers webview webContentsId once dom-ready fires
+    
     electron_1.ipcMain.handle('webview:register', (_event, { tabId, webContentsId }) => {
         exports.tabWebContentsMap.set(tabId, webContentsId);
         return { ok: true };
@@ -64,16 +61,14 @@ function registerTabsIpc(db, wm, crashRecovery) {
     electron_1.ipcMain.handle(ipc_channels_1.IPC.TABS_SPLIT_TOGGLE, (_event, { tabId }) => {
         return { ok: true, tabId };
     });
-    // Renderer sends its current tab snapshot list for crash recovery persistence.
-    // This replaces the old in-memory tabRegistry — renderer is source of truth.
+    
     electron_1.ipcMain.handle(ipc_channels_1.IPC.TABS_SAVE_SESSION, (_event, { profileId, tabs, activeTabId }) => {
         if (Array.isArray(tabs) && tabs.length > 0) {
             crashRecovery.save(db, profileId, tabs, activeTabId ?? '');
         }
         return { ok: true };
     });
-    // TABS_GET_ALL: renderer is the authoritative tab store.
-    // Returns empty array — callers should use the renderer Zustand store instead.
+    
     electron_1.ipcMain.handle(ipc_channels_1.IPC.TABS_GET_ALL, () => {
         return [];
     });

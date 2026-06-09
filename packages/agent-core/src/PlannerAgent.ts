@@ -9,10 +9,6 @@ export interface PlannerConfig {
   logger: Logger;
 }
 
-/**
- * PlannerAgent uses Ollama (llama3.1:8b) to transform a high-level task instruction
- * into a structured execution plan with goals, subgoals, and estimated steps.
- */
 export class PlannerAgent {
   private readonly ollama: Ollama;
   private readonly model: string;
@@ -39,7 +35,7 @@ export class PlannerAgent {
         ],
         stream: false,
         options: {
-          temperature: 0.1, // Low temperature for consistent JSON output
+          temperature: 0.1, 
         },
       });
     } catch (error) {
@@ -50,12 +46,10 @@ export class PlannerAgent {
 
     let raw = response.message.content.trim();
 
-    // Strip markdown code blocks if present
     if (raw.startsWith('```')) {
       raw = raw.replace(/^```(?:json)?\s*/m, '').replace(/\s*```$/m, '').trim();
     }
 
-    // Extract JSON if there is surrounding text
     const jsonMatch = raw.match(/\{[\s\S]*\}/);
     if (jsonMatch) {
       raw = jsonMatch[0];

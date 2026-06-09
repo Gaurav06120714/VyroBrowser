@@ -1,9 +1,3 @@
-/**
- * Browser tool definitions in Ollama/OpenAI-compatible format.
- * These are passed to ollama.chat() as the `tools` parameter.
- * Ollama supports the same JSON schema as OpenAI tool-calling.
- */
-
 export interface OllamaToolParameter {
   type: string;
   description: string;

@@ -124,7 +124,6 @@ class ShortcutsPage {
         return;
       }
 
-      // Ignore modifier-only keypresses
       if (['Meta', 'Control', 'Alt', 'Shift'].includes(e.key)) return;
 
       const binding = {

@@ -12,6 +12,6 @@ export interface Download {
   state: DownloadState;
   startedAt: number;
   completedAt: number | null;
-  speed?: number; // bytes/sec, live only
-  eta?: number;   // seconds remaining, live only
+  speed?: number; 
+  eta?: number;   
 }

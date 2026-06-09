@@ -1,14 +1,3 @@
-// ─────────────────────────────────────────────────────────────────────────────
-// Onboarding.tsx — First-launch wizard shown before the main browser UI.
-//
-// Steps:
-//   0 — Welcome            Intro to Vyro, platform awareness
-//   1 — Ollama check       Detect if Ollama is running, show install guide
-//   2 — Model selection    Pull recommended models or confirm existing ones
-//   3 — Ready              All set, launch button
-//
-// All steps are self-contained sections of this file for clarity.
-// ─────────────────────────────────────────────────────────────────────────────
 import React, { useEffect } from 'react';
 import {
   useOnboarding,
@@ -16,8 +5,6 @@ import {
   OllamaModel,
   PullStatus,
 } from '../hooks/useOnboarding';
-
-// ── Vyro Logo component ──────────────────────────────────────────────────────
 
 const VyroLogo: React.FC<{ size?: number; animated?: boolean }> = ({
   size = 80,
@@ -27,7 +14,7 @@ const VyroLogo: React.FC<{ size?: number; animated?: boolean }> = ({
 
   return (
     <div className="relative flex items-center justify-center" style={{ width: size, height: size }}>
-      {/* Icon container — circular on macOS, rounded-square on Windows/Linux */}
+      {}
       <div
         className="relative flex items-center justify-center overflow-hidden"
         style={{
@@ -63,11 +50,11 @@ const VyroLogo: React.FC<{ size?: number; animated?: boolean }> = ({
               <stop offset="100%" stopColor="#c084fc" />
             </linearGradient>
           </defs>
-          {/* V left stroke */}
+          {}
           <polygon points="15,18 28,18 50,62 37,62" fill="url(#lg-v)" opacity="0.95" />
-          {/* V right stroke */}
+          {}
           <polygon points="72,18 85,18 63,62 50,62" fill="url(#lg-v)" opacity="0.85" />
-          {/* Wave ribbons */}
+          {}
           <path d="M8 50 Q25 42 40 52 Q58 64 75 50 Q84 43 92 47"
             stroke="url(#lg-w1)" strokeWidth="5.5" strokeLinecap="round" opacity="0.9" />
           <path d="M8 58 Q25 50 40 60 Q58 72 75 58 Q84 51 92 55"
@@ -79,8 +66,6 @@ const VyroLogo: React.FC<{ size?: number; animated?: boolean }> = ({
     </div>
   );
 };
-
-// ── Small shared primitives ──────────────────────────────────────────────────
 
 const StepDots: React.FC<{ current: number; total: number }> = ({ current, total }) => (
   <div className="flex items-center justify-center gap-2">
@@ -135,8 +120,6 @@ const GhostButton: React.FC<React.ButtonHTMLAttributes<HTMLButtonElement>> = ({
   </button>
 );
 
-// ── Step 0: Welcome ──────────────────────────────────────────────────────────
-
 const StepWelcome: React.FC<{ onNext: () => void; onSkip: () => void }> = ({
   onNext,
   onSkip,
@@ -147,7 +130,7 @@ const StepWelcome: React.FC<{ onNext: () => void; onSkip: () => void }> = ({
 
   return (
     <div className="flex flex-col items-center text-center gap-6 max-w-md">
-      {/* Logo with animated glow */}
+      {}
       <VyroLogo size={96} animated />
 
       <div>
@@ -158,9 +141,9 @@ const StepWelcome: React.FC<{ onNext: () => void; onSkip: () => void }> = ({
         </p>
       </div>
 
-      {/* Browser UI mockup */}
+      {}
       <div className="w-full rounded-xl border border-white/10 bg-white/[0.03] overflow-hidden text-left">
-        {/* Chrome bar */}
+        {}
         <div className="flex items-center gap-2 px-3 h-8 border-b border-white/[0.07] bg-white/[0.04]">
           <span className="w-2 h-2 rounded-full bg-[#ff5f57]/60" />
           <span className="w-2 h-2 rounded-full bg-[#febc2e]/60" />
@@ -177,7 +160,7 @@ const StepWelcome: React.FC<{ onNext: () => void; onSkip: () => void }> = ({
             <span className="text-[9px] text-white/30 font-mono truncate">google.com</span>
           </div>
         </div>
-        {/* Content + AI sidebar */}
+        {}
         <div className="flex" style={{ height: 96 }}>
           <div className="flex-1 p-3 space-y-1.5">
             <div className="h-1.5 w-3/4 rounded bg-white/[0.07]" />
@@ -204,8 +187,6 @@ const StepWelcome: React.FC<{ onNext: () => void; onSkip: () => void }> = ({
     </div>
   );
 };
-
-// ── Step 1: Ollama check ──────────────────────────────────────────────────────
 
 const StepOllama: React.FC<{
   ollamaRunning: boolean | null;
@@ -257,7 +238,7 @@ const StepOllama: React.FC<{
         </p>
       </div>
 
-      {/* Status card */}
+      {}
       <div
         className={[
           'flex items-center gap-3 p-4 rounded-xl border',
@@ -330,8 +311,6 @@ const StepOllama: React.FC<{
     </div>
   );
 };
-
-// ── Step 2: Model selection / pull ────────────────────────────────────────────
 
 interface RecommendedModel {
   name: string;
@@ -563,8 +542,6 @@ const StepReady: React.FC<{
   );
 };
 
-// ── Root Onboarding component ─────────────────────────────────────────────────
-
 export const Onboarding: React.FC<{ onComplete: () => void }> = ({ onComplete }) => {
   const {
     currentStep,
@@ -582,7 +559,6 @@ export const Onboarding: React.FC<{ onComplete: () => void }> = ({ onComplete })
     skip,
   } = useOnboarding();
 
-  // Check Ollama and list models whenever we arrive on those steps.
   useEffect(() => {
     if (currentStep === 1) {
       checkOllama();
@@ -606,10 +582,10 @@ export const Onboarding: React.FC<{ onComplete: () => void }> = ({ onComplete })
     <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-[#0f0f10]">
 
       <div className="relative z-10 flex flex-col items-center gap-8 px-6 w-full max-w-xl">
-        {/* Step dots */}
+        {}
         <StepDots current={currentStep} total={TOTAL_STEPS} />
 
-        {/* Step content */}
+        {}
         <div className="w-full flex justify-center" key={currentStep} style={{ animation: 'stepIn 300ms cubic-bezier(0.34,1.56,0.64,1)' }}>
           {currentStep === 0 && (
             <StepWelcome onNext={next} onSkip={handleSkip} />

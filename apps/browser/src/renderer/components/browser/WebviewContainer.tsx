@@ -1,17 +1,3 @@
-// ─────────────────────────────────────────────────────────────────────────────
-// WebviewContainer — renders the active tab's content area.
-//
-// Two rendering modes (selected per-tab based on tab.url):
-//   • NewTab mode  (url === NEW_TAB_URL / about:blank / '')  — renders the
-//     React <NewTab> page. No Electron webview is mounted.  When the user
-//     navigates, NewTab calls updateTab(url) and WebviewContainer remounts
-//     the same slot as <WebviewPane>, which loads via its src attribute.
-//   • WebviewPane mode (any real URL) — renders an Electron <webview>
-//     inside <WebviewPane> for full browser functionality.
-//
-// All tabs are kept in the DOM (display:none when inactive) so webviews are
-// never destroyed on tab switch, preserving page state and scroll position.
-// ─────────────────────────────────────────────────────────────────────────────
 import React from 'react';
 import { useTabsStore } from '../../store/tabs.store';
 import { WebviewPane } from './WebviewPane';

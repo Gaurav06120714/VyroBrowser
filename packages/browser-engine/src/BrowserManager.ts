@@ -24,11 +24,6 @@ interface SessionEntry {
   lastActiveAt: Date;
 }
 
-/**
- * BrowserManager handles the lifecycle of Playwright browser sessions.
- * It maintains a pool of browser contexts for session isolation,
- * enforces per-session limits, and provides clean teardown.
- */
 export class BrowserManager {
   private browser: Browser | null = null;
   private sessions: Map<string, SessionEntry> = new Map();
@@ -90,31 +85,28 @@ export class BrowserManager {
       geolocation: undefined,
       ignoreHTTPSErrors: false,
       javaScriptEnabled: true,
-      // Block unnecessary resources for performance
+      
       extraHTTPHeaders: {
         'Accept-Language': 'en-US,en;q=0.9',
       },
     });
 
-    // Route to block heavy non-essential resources
     await context.route('**/*.{mp4,webm,ogg,mp3,wav,flac,aac}', (route) => route.abort());
 
-    // Set timeouts
     context.setDefaultTimeout(this.config.timeout);
     context.setDefaultNavigationTimeout(this.config.navigationTimeout);
 
-    // Inject stealth scripts
     await context.addInitScript(() => {
-      // Hide webdriver property
+      
       Object.defineProperty(navigator, 'webdriver', { get: () => undefined });
-      // Override chrome property
+      
       (window as unknown as Record<string, unknown>)['chrome'] = {
         runtime: {},
         loadTimes: () => ({}),
         csi: () => ({}),
         app: {},
       };
-      // Override permissions query
+      
       const originalQuery = window.navigator.permissions.query.bind(window.navigator.permissions);
       window.navigator.permissions.query = (parameters: PermissionDescriptor) =>
         parameters.name === 'notifications'
@@ -189,7 +181,6 @@ export class BrowserManager {
     }));
   }
 
-  /** Garbage collect sessions idle for more than idleMs */
   async gcIdleSessions(idleMs: number = 5 * 60 * 1000): Promise<void> {
     const now = Date.now();
     for (const [taskId, entry] of this.sessions.entries()) {

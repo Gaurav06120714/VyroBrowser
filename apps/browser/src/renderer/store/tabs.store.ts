@@ -1,16 +1,3 @@
-// ─────────────────────────────────────────────────────────────────────────────
-// tabs.store — Zustand store for all open browser tabs.
-//
-// Key actions:
-//   createTab    — adds a new tab (defaults to NEW_TAB_URL) and activates it.
-//   closeTab     — removes the tab, saves a snapshot to closedTabsHistory,
-//                  and activates the nearest remaining tab.
-//   updateTab    — patch any fields on a tab (url, title, isLoading, etc.).
-//                  This is the primary way navigation state flows back from
-//                  WebviewPane event handlers into the UI.
-//   activateTab  — switches the visible tab without unmounting any webview.
-//   activeTab()  — selector helper: returns the current Tab object or null.
-// ─────────────────────────────────────────────────────────────────────────────
 import { create } from 'zustand';
 import { v4 as uuidv4 } from 'uuid';
 import { Tab, TabGroup, TabSnapshot } from '@shared/types/tab';
@@ -88,7 +75,7 @@ export const useTabsStore = create<TabsState & TabsActions>((set, get) => ({
 
       if (state.activeTabId === tabId) {
         if (newTabs.length > 0) {
-          // Prefer next tab, then previous
+          
           newActiveId = (newTabs[idx] ?? newTabs[idx - 1])?.id ?? null;
         } else {
           newActiveId = null;

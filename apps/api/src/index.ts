@@ -24,7 +24,6 @@ async function bootstrap(): Promise<void> {
         : undefined,
   });
 
-  // Initialize SQLite database (creates tables if they don't exist)
   try {
     initDatabase();
     logger.info({ path: config.DATABASE_PATH }, 'SQLite database initialized');
@@ -36,23 +35,21 @@ async function bootstrap(): Promise<void> {
   const app = Fastify({
     logger: config.NODE_ENV === 'development' ? { level: config.LOG_LEVEL } : logger,
     trustProxy: true,
-    bodyLimit: 5 * 1024 * 1024, // 5MB
+    bodyLimit: 5 * 1024 * 1024, 
   });
 
-  // ── Plugins ─────────────────────────────────────────────────────────────────
   await app.register(helmet, {
     contentSecurityPolicy: false,
   });
 
   await app.register(cors, {
-    origin: true, // Allow all origins in this local-only tool
+    origin: true, 
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   });
 
   await app.register(websocket);
 
-  // ── In-process task queue ────────────────────────────────────────────────────
   const taskQueue = new SimpleQueue<AgentJobPayload>({
     concurrency: config.WORKER_CONCURRENCY,
     logger: logger.child({ component: 'queue' }),
@@ -67,13 +64,11 @@ async function bootstrap(): Promise<void> {
     blockedDomains: config.BLOCKED_DOMAINS.split(',').map((d) => d.trim()),
   });
 
-  // ── Routes ───────────────────────────────────────────────────────────────────
   await app.register(healthRoutes);
   await app.register(taskRoutes, { taskQueue });
   await app.register(sessionRoutes);
   await app.register(agentSocketRoutes);
 
-  // ── Global error handler ─────────────────────────────────────────────────────
   app.setErrorHandler((error, _request, reply) => {
     app.log.error({ err: error }, 'Unhandled error');
     reply.code(error.statusCode ?? 500).send({
@@ -81,7 +76,6 @@ async function bootstrap(): Promise<void> {
     });
   });
 
-  // ── Graceful shutdown ─────────────────────────────────────────────────────────
   const shutdown = async (signal: string) => {
     app.log.info({ signal }, 'Shutting down...');
     await taskQueue.shutdown();
@@ -92,7 +86,6 @@ async function bootstrap(): Promise<void> {
   process.on('SIGTERM', () => void shutdown('SIGTERM'));
   process.on('SIGINT', () => void shutdown('SIGINT'));
 
-  // ── Start ─────────────────────────────────────────────────────────────────────
   try {
     await app.listen({ port: config.PORT, host: '0.0.0.0' });
     app.log.info(

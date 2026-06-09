@@ -3,7 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.VERB_DEFAULT_KEYWORDS = exports.INTENT_CATEGORIES = void 0;
 exports.detectIntent = detectIntent;
 exports.parseNLPCommand = parseNLPCommand;
-// ── Trigger word banks ────────────────────────────────────────────────────────
+
 const STREAMING_TRIGGERS = [
     'watch', 'stream', 'episode', 'season', 'anime', 'movie', 'film',
     'series', 'documentary', 'show', 'trailer', 'cricket', 'ipl', 'sports',
@@ -54,23 +54,23 @@ function detectIntent(input) {
         return 'social';
     return null;
 }
-// Ordered patterns — more specific first
+
 const NLP_PATTERNS = [
-    // "search <site> for <query>"  /  "search <site> <query>"
+    
     { re: /^search\s+(\w+)\s+(?:for\s+)?(.+)$/i, verb: 'search-on', targetGroup: 1, queryGroup: 2 },
-    // "search <query> on <site>"
+    
     { re: /^search\s+(.+?)\s+on\s+(\w+)$/i, verb: 'search-on', targetGroup: 2, queryGroup: 1 },
-    // "watch <query>"
+    
     { re: /^watch\s+(.+)$/i, verb: 'watch', targetGroup: -1, queryGroup: 1 },
-    // "play <query>"
+    
     { re: /^play\s+(.+)$/i, verb: 'play', targetGroup: -1, queryGroup: 1 },
-    // "buy <query>"
+    
     { re: /^buy\s+(.+)$/i, verb: 'buy', targetGroup: -1, queryGroup: 1 },
-    // "find <query>"
+    
     { re: /^find\s+(.+)$/i, verb: 'find', targetGroup: -1, queryGroup: 1 },
-    // "go to <site>"  /  "goto <site>"
+    
     { re: /^go\s*to\s+(.+)$/i, verb: 'go-to', targetGroup: 1, queryGroup: null },
-    // "open <my?> <site>" — "open my gmail inbox" → target=gmail query=inbox
+    
     { re: /^open\s+(?:my\s+)?(\w+)(?:\s+(.+))?$/i, verb: 'open', targetGroup: 1, queryGroup: 2 },
 ];
 function parseNLPCommand(input) {
@@ -85,7 +85,7 @@ function parseNLPCommand(input) {
     }
     return { verb: 'none', target: null, query: null };
 }
-/** Which categories are relevant for each intent (ordered by priority) */
+
 exports.INTENT_CATEGORIES = {
     streaming: ['streaming', 'video'],
     video: ['video', 'streaming'],
@@ -94,7 +94,7 @@ exports.INTENT_CATEGORIES = {
     music: ['music', 'streaming'],
     social: ['social', 'messaging'],
 };
-/** Default keyword for each NLP verb (when no target site specified) */
+
 exports.VERB_DEFAULT_KEYWORDS = {
     watch: ['jiohotstar', 'netflix', 'primevideo', 'youtube'],
     play: ['spotify', 'youtube', 'jiohotstar'],

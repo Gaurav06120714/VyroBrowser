@@ -1,9 +1,4 @@
-// ─────────────────────────────────────────────────────────────────────────────
-// Intent Detection v2 — NLP command parsing + intent routing
-// ─────────────────────────────────────────────────────────────────────────────
 import { IntentType, KeywordCategory } from './types';
-
-// ── Trigger word banks ────────────────────────────────────────────────────────
 
 const STREAMING_TRIGGERS = [
   'watch', 'stream', 'episode', 'season', 'anime', 'movie', 'film',
@@ -57,44 +52,40 @@ export function detectIntent(input: string): IntentType {
   return null;
 }
 
-// ── NLP command patterns ──────────────────────────────────────────────────────
-// Returns { verb, target, query } or null if no pattern matches.
-
 export interface ParsedCommand {
   verb: NLPVerb;
-  // The keyword/site name from the command ("youtube", "github", "gmail")
+  
   target: string | null;
-  // The search query extracted from the command ("electron browser")
+  
   query: string | null;
 }
 
 export type NLPVerb =
-  | 'open'           // "open gmail", "open my youtube"
-  | 'search-on'      // "search github electron browser"
-  | 'watch'          // "watch cricket highlights"
-  | 'play'           // "play lofi music"
-  | 'buy'            // "buy headphones"
-  | 'find'           // "find react hooks tutorial"
-  | 'go-to'          // "go to notion"
+  | 'open'           
+  | 'search-on'      
+  | 'watch'          
+  | 'play'           
+  | 'buy'            
+  | 'find'           
+  | 'go-to'          
   | 'none';
 
-// Ordered patterns — more specific first
 const NLP_PATTERNS: Array<{ re: RegExp; verb: NLPVerb; targetGroup: number; queryGroup: number | null }> = [
-  // "search <site> for <query>"  /  "search <site> <query>"
+  
   { re: /^search\s+(\w+)\s+(?:for\s+)?(.+)$/i,   verb: 'search-on', targetGroup: 1, queryGroup: 2 },
-  // "search <query> on <site>"
+  
   { re: /^search\s+(.+?)\s+on\s+(\w+)$/i,         verb: 'search-on', targetGroup: 2, queryGroup: 1 },
-  // "watch <query>"
+  
   { re: /^watch\s+(.+)$/i,                         verb: 'watch',     targetGroup: -1, queryGroup: 1 },
-  // "play <query>"
+  
   { re: /^play\s+(.+)$/i,                          verb: 'play',      targetGroup: -1, queryGroup: 1 },
-  // "buy <query>"
+  
   { re: /^buy\s+(.+)$/i,                           verb: 'buy',       targetGroup: -1, queryGroup: 1 },
-  // "find <query>"
+  
   { re: /^find\s+(.+)$/i,                          verb: 'find',      targetGroup: -1, queryGroup: 1 },
-  // "go to <site>"  /  "goto <site>"
+  
   { re: /^go\s*to\s+(.+)$/i,                       verb: 'go-to',     targetGroup: 1, queryGroup: null },
-  // "open <my?> <site>" — "open my gmail inbox" → target=gmail query=inbox
+  
   { re: /^open\s+(?:my\s+)?(\w+)(?:\s+(.+))?$/i,  verb: 'open',      targetGroup: 1, queryGroup: 2 },
 ];
 
@@ -110,7 +101,6 @@ export function parseNLPCommand(input: string): ParsedCommand {
   return { verb: 'none', target: null, query: null };
 }
 
-/** Which categories are relevant for each intent (ordered by priority) */
 export const INTENT_CATEGORIES: Record<NonNullable<IntentType>, KeywordCategory[]> = {
   streaming: ['streaming', 'video'],
   video:     ['video', 'streaming'],
@@ -120,7 +110,6 @@ export const INTENT_CATEGORIES: Record<NonNullable<IntentType>, KeywordCategory[
   social:    ['social', 'messaging'],
 };
 
-/** Default keyword for each NLP verb (when no target site specified) */
 export const VERB_DEFAULT_KEYWORDS: Partial<Record<NLPVerb, string[]>> = {
   watch:     ['jiohotstar', 'netflix', 'primevideo', 'youtube'],
   play:      ['spotify', 'youtube', 'jiohotstar'],

@@ -1,6 +1,3 @@
-// ─────────────────────────────────────────────────────────────────────────────
-// Keyword Service — persists custom keywords in SQLite
-// ─────────────────────────────────────────────────────────────────────────────
 import Database from 'better-sqlite3';
 import { v4 as uuidv4 } from 'uuid';
 import {
@@ -41,13 +38,10 @@ export class KeywordService {
     `);
   }
 
-  // ── Custom keyword CRUD ──────────────────────────────────────────────────
-
   getAll(): { builtin: KeywordEntry[]; custom: CustomKeyword[] } {
     const custom = (this.db.prepare('SELECT * FROM custom_keywords ORDER BY keyword').all() as any[])
       .map(this.rowToCustom);
 
-    // Merge overrides into built-ins
     const overrides = new Map<string, boolean>(
       (this.db.prepare('SELECT * FROM keyword_overrides').all() as any[])
         .map((r: any) => [r.keyword, Boolean(r.enabled)])
@@ -106,8 +100,6 @@ export class KeywordService {
     invalidateIndex();
   }
 
-  // ── Usage tracking ───────────────────────────────────────────────────────
-
   trackUse(keyword: string): void {
     const now = Math.floor(Date.now() / 1000);
     this.db.prepare(`
@@ -126,8 +118,6 @@ export class KeywordService {
     invalidateIndex();
   }
 
-  // ── Resolve & Suggest (delegate to engine) ───────────────────────────────
-
   resolve(input: string, searchEngine?: string): KeywordMatch {
     const extras = this.getExtras();
     return resolve(input, extras, searchEngine);
@@ -140,8 +130,6 @@ export class KeywordService {
     );
     return suggest(input, extras, maxResults, usageMap);
   }
-
-  // ── Import / Export ──────────────────────────────────────────────────────
 
   exportJson(): string {
     const { custom } = this.getAll();
@@ -169,8 +157,6 @@ export class KeywordService {
     }
     return count;
   }
-
-  // ── Private ──────────────────────────────────────────────────────────────
 
   private getExtras(): KeywordEntry[] {
     const { custom } = this.getAll();

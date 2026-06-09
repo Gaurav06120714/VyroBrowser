@@ -26,20 +26,19 @@ export const AIPanel: React.FC = () => {
   const scrollRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  // Load models on mount — auto-select first model if current model isn't installed
   useEffect(() => {
     listModels()
       .then(list => {
         const names = list.map(m => m.name);
         setAvailableModels(names);
         setModelsLoaded(true);
-        // If the stored model name isn't in the list, fall back to the first one
+        
         if (names.length > 0 && !names.includes(model)) {
           setModel(names[0]);
         }
       })
       .catch(() => setModelsLoaded(true));
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []); 
 
   const currentMessages: AIMessageType[] = activeConversationId
     ? (messages[activeConversationId] ?? [])
@@ -47,7 +46,6 @@ export const AIPanel: React.FC = () => {
 
   const streamingText = activeConversationId ? (streamingContent[activeConversationId] ?? '') : '';
 
-  // Streaming message object for display
   const streamingMessage: AIMessageType | null = isStreaming && streamingText
     ? {
         id: 'streaming',
@@ -59,7 +57,6 @@ export const AIPanel: React.FC = () => {
       }
     : null;
 
-  // Auto-scroll on new messages
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
@@ -134,7 +131,7 @@ export const AIPanel: React.FC = () => {
         isStreaming={isStreaming}
       />
 
-      {/* Messages area */}
+      {}
       <div
         ref={scrollRef}
         className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-thin"
@@ -166,7 +163,7 @@ export const AIPanel: React.FC = () => {
         )}
       </div>
 
-      {/* Input area */}
+      {}
       <div className="p-3 border-t border-white/[0.08] shrink-0">
         <textarea
           ref={textareaRef}

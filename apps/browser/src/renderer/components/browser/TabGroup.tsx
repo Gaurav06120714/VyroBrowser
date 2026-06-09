@@ -55,7 +55,7 @@ export const TabGroupComponent: React.FC<Props> = ({ group, tabs }) => {
 
   return (
     <div className="flex items-center gap-1 shrink-0">
-      {/* Color swatch + label pill */}
+      {}
       <div className="relative">
         <div
           className="flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium text-white cursor-pointer select-none"
@@ -88,7 +88,7 @@ export const TabGroupComponent: React.FC<Props> = ({ group, tabs }) => {
           <span className="text-white/40 text-[10px]">({tabs.length})</span>
         </div>
 
-        {/* Color picker popover */}
+        {}
         {colorPickerOpen && (
           <div className="absolute top-full left-0 mt-1 z-50 bg-[#1a1a2e] border border-white/10 rounded-xl p-2 flex gap-1.5 shadow-xl">
             {GROUP_COLORS.map(c => (
@@ -102,7 +102,7 @@ export const TabGroupComponent: React.FC<Props> = ({ group, tabs }) => {
         )}
       </div>
 
-      {/* Collapse/expand button */}
+      {}
       <button
         onClick={toggleCollapse}
         className="w-4 h-4 flex items-center justify-center rounded text-white/30 hover:text-white transition-colors"

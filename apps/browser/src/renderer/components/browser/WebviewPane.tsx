@@ -1,17 +1,3 @@
-// ─────────────────────────────────────────────────────────────────────────────
-// WebviewPane — renders a single Electron <webview> for a live browser tab.
-//
-// Navigation architecture (no refresh loops):
-//   • New tab → real page: WebviewContainer mounts this component with src=url
-//     (the webview's src attribute triggers the initial load).
-//   • Address bar nav on existing page: main process calls wc.loadURL() via IPC.
-//   • In-page navigation (SPAs, Google search): webview handles it internally;
-//     did-navigate / did-navigate-in-page only sync the address bar display.
-//
-// There is intentionally NO useEffect watching tab.url — that was the source
-// of infinite reload loops (Google fires did-navigate-in-page → tab.url updates
-// → effect calls loadURL → Google fires again → ...).
-// ─────────────────────────────────────────────────────────────────────────────
 import React, { useRef, useEffect, useCallback, useState } from 'react';
 import { Tab } from '@shared/types/tab';
 import { useTabsStore } from '../../store/tabs.store';
@@ -19,7 +5,6 @@ import { WEBVIEW_PARTITION_PREFIX, NEW_TAB_URL } from '@shared/constants';
 import { NewTab } from '../../pages/NewTab';
 import { IPC } from '../../lib/ipc';
 
-// Electron webview element types
 interface WebviewElement extends HTMLElement {
   src: string;
   partition: string;
@@ -43,8 +28,6 @@ interface WebviewPaneProps {
   active: boolean;
 }
 
-// Render the <webview> element via createElement to avoid TSX type errors
-// (webview is Electron-specific and not in the standard DOM type declarations)
 function renderWebview(
   tab: Tab,
   ref: React.RefObject<HTMLElement>,
@@ -69,12 +52,11 @@ const CHROME_UA =
   'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) ' +
   'AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36';
 
-// Skeleton overlay shown while the webview is loading
 const WebviewSkeleton: React.FC = () => (
   <div className="absolute inset-0 z-10 bg-[#0f0f10] flex flex-col gap-3 p-5 pointer-events-none animate-pulse">
-    {/* URL bar shape */}
+    {}
     <div className="h-7 rounded-lg bg-white/8 w-3/4 mx-auto" />
-    {/* Content blocks */}
+    {}
     <div className="flex flex-col gap-3 mt-4 flex-1">
       <div className="h-5 rounded-md bg-white/6 w-full" />
       <div className="h-5 rounded-md bg-white/6 w-5/6" />
@@ -95,8 +77,6 @@ export const WebviewPane: React.FC<WebviewPaneProps> = ({ tab, active }) => {
   const registeredRef = useRef(false);
   const [localLoading, setLocalLoading] = useState(false);
 
-  // ── Event handlers — sync webview state back to the tab store ──────────────
-
   const handleDomReady = useCallback(() => {
     const wv = webviewRef.current;
     if (!wv || registeredRef.current) return;
@@ -104,7 +84,7 @@ export const WebviewPane: React.FC<WebviewPaneProps> = ({ tab, active }) => {
 
     try {
       const wcId = wv.getWebContentsId();
-      // Register with main process for nav command routing
+      
       if (window.vyro) {
         window.vyro.invoke('webview:register' as never, { tabId: tab.id, webContentsId: wcId });
       }
@@ -114,11 +94,10 @@ export const WebviewPane: React.FC<WebviewPaneProps> = ({ tab, active }) => {
         canGoForward: wv.canGoForward(),
       });
     } catch {
-      // webview not ready
+      
     }
   }, [tab.id, updateTab]);
 
-  // FIX 3: Apply CSS/JS injections after page finishes loading
   const handleDidFinishLoad = useCallback(async () => {
     const wv = webviewRef.current;
     if (!wv) return;
@@ -140,7 +119,7 @@ export const WebviewPane: React.FC<WebviewPaneProps> = ({ tab, active }) => {
         );
       }
     } catch {
-      // injection failed — ignore silently
+      
     }
   }, [tab.url]);
 
@@ -216,8 +195,6 @@ export const WebviewPane: React.FC<WebviewPaneProps> = ({ tab, active }) => {
       wv.removeEventListener('crashed', onCrashed);
     };
   }, [tab.id, handleDomReady, handleDidFinishLoad, updateTab, createTab]);
-
-  // ── Render — show NewTab, crash UI, or the live webview ──────────────────────
 
   const isCrashed = tab.title === 'Tab Crashed';
   const showNewTab = isNewTab(tab.url);

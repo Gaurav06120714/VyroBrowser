@@ -1,13 +1,8 @@
-// ─────────────────────────────────────────────────────────────────────────────
-// SettingsModal — tabbed settings with Keywords management
-// ─────────────────────────────────────────────────────────────────────────────
 import React, { useState, useEffect, useCallback } from 'react';
 import { Modal } from '../shared/Modal';
 import { useUiStore } from '../../store/ui.store';
 import { ipc, IPC } from '../../lib/ipc';
 import { KeywordEntry, CustomKeyword } from '@shared/keyword-engine/types';
-
-// ── Types ────────────────────────────────────────────────────────────────────
 
 type Tab = 'general' | 'keywords';
 
@@ -15,8 +10,6 @@ interface KeywordsData {
   builtin: KeywordEntry[];
   custom: CustomKeyword[];
 }
-
-// ── Keyword Form ─────────────────────────────────────────────────────────────
 
 const EMPTY_FORM = {
   keyword: '', aliases: '', url: '', searchUrl: '', name: '', favicon: '', category: 'other', enabled: true,
@@ -110,8 +103,6 @@ const KeywordForm: React.FC<{
   );
 };
 
-// ── Keywords Tab ─────────────────────────────────────────────────────────────
-
 const KeywordsTab: React.FC = () => {
   const [data, setData] = useState<KeywordsData>({ builtin: [], custom: [] });
   const [loading, setLoading] = useState(true);
@@ -126,7 +117,7 @@ const KeywordsTab: React.FC = () => {
       const result = await ipc.invoke<KeywordsData>(IPC.KEYWORDS_GET_ALL, {});
       setData(result);
     } catch {
-      // silently fail
+      
     } finally {
       setLoading(false);
     }
@@ -214,7 +205,7 @@ const KeywordsTab: React.FC = () => {
 
   return (
     <div className="flex flex-col gap-4">
-      {/* Toolbar */}
+      {}
       <div className="flex items-center gap-2">
         <div className="flex-1 flex items-center gap-2 bg-white/5 border border-white/8 rounded-lg px-3 py-1.5">
           <svg className="w-3.5 h-3.5 text-white/30" viewBox="0 0 20 20" fill="currentColor">
@@ -233,12 +224,12 @@ const KeywordsTab: React.FC = () => {
         <button onClick={() => setEditingCustom('new')} className="px-3 py-1.5 text-xs bg-vyro-600 hover:bg-vyro-500 text-white rounded-lg transition-colors">+ Add</button>
       </div>
 
-      {/* Status flash */}
+      {}
       {statusMsg && (
         <div className="text-xs text-vyro-400 bg-vyro-500/10 border border-vyro-500/20 rounded-lg px-3 py-2">{statusMsg}</div>
       )}
 
-      {/* Add/Edit form */}
+      {}
       {editingCustom !== null && (
         <div className="border border-white/10 rounded-xl p-4 bg-white/3">
           <p className="text-xs font-semibold text-white/50 uppercase tracking-wider mb-3">
@@ -252,7 +243,7 @@ const KeywordsTab: React.FC = () => {
         </div>
       )}
 
-      {/* Section tabs */}
+      {}
       <div className="flex gap-1 border-b border-white/8 pb-0">
         {(['builtin', 'custom'] as const).map(s => (
           <button
@@ -268,7 +259,7 @@ const KeywordsTab: React.FC = () => {
         ))}
       </div>
 
-      {/* Keyword list */}
+      {}
       <div className="flex flex-col gap-0.5 max-h-72 overflow-y-auto pr-1">
         {loading ? (
           <p className="text-xs text-white/30 text-center py-8">Loading…</p>
@@ -367,8 +358,6 @@ const KeywordsTab: React.FC = () => {
   );
 };
 
-// ── General Tab ───────────────────────────────────────────────────────────────
-
 const GeneralTab: React.FC = () => {
   const [cacheSize, setCacheSize] = useState<string | null>(null);
   const [versionInfo, setVersionInfo] = useState<any>(null);
@@ -401,7 +390,7 @@ const GeneralTab: React.FC = () => {
 
   return (
     <div className="flex flex-col gap-5 text-sm">
-      {/* Version info */}
+      {}
       <div className="bg-white/3 border border-white/8 rounded-xl p-4 flex flex-col gap-1">
         <p className="text-xs text-white/40 font-medium uppercase tracking-wider mb-1">About</p>
         {versionInfo ? (
@@ -428,7 +417,7 @@ const GeneralTab: React.FC = () => {
         )}
       </div>
 
-      {/* Cache management */}
+      {}
       <div className="bg-white/3 border border-white/8 rounded-xl p-4 flex flex-col gap-3">
         <div className="flex items-center justify-between">
           <p className="text-xs text-white/40 font-medium uppercase tracking-wider">Cache</p>
@@ -455,7 +444,7 @@ const GeneralTab: React.FC = () => {
         <p className="text-xs text-white/25">Clears cached pages and GPU shaders. Your browsing data is kept.</p>
       </div>
 
-      {/* Reset */}
+      {}
       <div className="bg-white/3 border border-white/8 rounded-xl p-4 flex flex-col gap-3">
         <p className="text-xs text-white/40 font-medium uppercase tracking-wider">Reset</p>
         <div className="flex gap-2">
@@ -482,8 +471,6 @@ const GeneralTab: React.FC = () => {
     </div>
   );
 };
-
-// ── SettingsModal ─────────────────────────────────────────────────────────────
 
 const TABS: { id: Tab; label: string }[] = [
   { id: 'general', label: 'General' },

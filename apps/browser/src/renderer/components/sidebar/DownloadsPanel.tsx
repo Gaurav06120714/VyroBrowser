@@ -57,7 +57,7 @@ const DownloadRow: React.FC<DownloadRowProps> = ({ download, onPause, onResume, 
 
       <p className="text-[10px] text-white/30 truncate mb-2">{d.url}</p>
 
-      {/* Progress bar */}
+      {}
       {(isActive || d.state === 'paused') && d.totalBytes > 0 && (
         <div className="w-full h-1 bg-white/10 rounded-full overflow-hidden mb-1.5">
           <div
@@ -67,7 +67,7 @@ const DownloadRow: React.FC<DownloadRowProps> = ({ download, onPause, onResume, 
         </div>
       )}
 
-      {/* Stats */}
+      {}
       {(isActive || d.state === 'paused') && (
         <p className="text-[10px] text-white/40 mb-2">
           {formatBytes(d.receivedBytes)} / {formatBytes(d.totalBytes)}
@@ -80,7 +80,7 @@ const DownloadRow: React.FC<DownloadRowProps> = ({ download, onPause, onResume, 
         <p className="text-[10px] text-white/40 mb-2">{formatBytes(d.totalBytes)}</p>
       )}
 
-      {/* Action buttons */}
+      {}
       <div className="flex items-center gap-1.5">
         {isActive && (
           <button
@@ -124,7 +124,7 @@ export const DownloadsPanel: React.FC = () => {
     setError(null);
     setIsLoading(true);
     try {
-      // useDownloads fetches on mount; just wait a tick to confirm data is loaded
+      
       await ipc.invoke(IPC.DOWNLOADS_GET_ALL);
     } catch {
       setError('Failed to load downloads');
@@ -134,7 +134,7 @@ export const DownloadsPanel: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    // Mark loading done once downloads are fetched (initial mount)
+    
     const timer = setTimeout(() => setIsLoading(false), 400);
     return () => clearTimeout(timer);
   }, []);

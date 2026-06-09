@@ -34,7 +34,7 @@ export const AIMessage: React.FC<Props> = ({ message, isStreaming = false }) => 
       onMouseLeave={() => setHovered(false)}
     >
       <div className="relative max-w-[85%]">
-        {/* Copy button */}
+        {}
         {hovered && (
           <button
             onClick={handleCopy}
@@ -50,7 +50,7 @@ export const AIMessage: React.FC<Props> = ({ message, isStreaming = false }) => 
           </button>
         )}
 
-        {/* Bubble */}
+        {}
         <div
           className={[
             'px-4 py-2.5',
@@ -71,7 +71,7 @@ export const AIMessage: React.FC<Props> = ({ message, isStreaming = false }) => 
           )}
         </div>
 
-        {/* Timestamp */}
+        {}
         <p className={`text-[10px] text-white/25 mt-1 ${isUser ? 'text-right' : 'text-left'}`}>
           {formatRelativeTime(message.createdAt)}
         </p>

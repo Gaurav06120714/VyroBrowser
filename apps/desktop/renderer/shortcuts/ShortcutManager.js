@@ -1,13 +1,3 @@
-/**
- * ShortcutManager — renderer-side (IPC-driven)
- *
- * Root cause of broken shortcuts in Electron:
- *   When a <webview> has focus, ALL keydown events go to the webview process.
- *   document.addEventListener in the renderer NEVER fires.
- *
- * Fix: All shortcuts are fired from main process Menu accelerators via IPC.
- *   This file just receives them and dispatches to action handlers.
- */
 class ShortcutManager {
   constructor() {
     this._actions      = new Map();
@@ -26,7 +16,6 @@ class ShortcutManager {
     this._initUIKeyboard();
   }
 
-  // IPC from main — fires regardless of webview focus
   _initIPC() {
     const { ipcRenderer } = require('electron');
     ipcRenderer.on('shortcut:action', (_, actionId, payload) => {
@@ -35,7 +24,6 @@ class ShortcutManager {
     });
   }
 
-  // Keyboard listener only for our own UI elements (address bar, modals)
   _initUIKeyboard() {
     document.addEventListener('keydown', (e) => {
       if (this._paused) return;

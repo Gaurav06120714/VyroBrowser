@@ -30,16 +30,6 @@ export interface RunResult {
   durationMs: number;
 }
 
-/**
- * AgentLoop orchestrates the full observe → plan → act → verify cycle.
- *
- * Flow:
- * 1. PlannerAgent analyzes the instruction and produces a TaskPlan
- * 2. BrowserSession is created for the task
- * 3. BrowserAgent runs the Ollama tool-calling loop, driving browser actions
- * 4. Events are streamed to the caller via onEvent callback
- * 5. On completion or failure, resources are cleaned up
- */
 export class AgentLoop {
   private readonly config: AgentLoopConfig;
   private readonly planner: PlannerAgent;
@@ -74,17 +64,15 @@ export class AgentLoop {
     this.emitEvent(onEvent, taskId, 'task:started', { taskId, instruction });
 
     try {
-      // ── Phase 1: Planning ──────────────────────────────────────────────
+      
       logger.info('Phase 1: Planning');
       plan = await this.planner.plan(instruction);
 
       this.emitEvent(onEvent, taskId, 'task:plan', { plan });
       logger.info({ plan }, 'Plan ready');
 
-      // ── Phase 2: Browser Setup ─────────────────────────────────────────
       const session = await this.config.browserManager.createSession(taskId);
 
-      // Navigate to start URL if specified
       const resolvedStartUrl = startUrl ?? plan.startUrl;
       if (resolvedStartUrl) {
         const safetyCheck = this.safetyGuard.checkUrl(resolvedStartUrl);
@@ -95,7 +83,6 @@ export class AgentLoop {
         logger.info({ url: resolvedStartUrl }, 'Navigated to start URL');
       }
 
-      // ── Phase 3: Agent Execution ───────────────────────────────────────
       const memory = new ShortTermMemory();
       memory.setPlan(plan);
 
@@ -122,7 +109,6 @@ export class AgentLoop {
         onApprovalRequired,
       });
 
-      // ── Phase 4: Cleanup ───────────────────────────────────────────────
       await this.config.browserManager.closeSession(taskId);
 
       const durationMs = Date.now() - startTime;

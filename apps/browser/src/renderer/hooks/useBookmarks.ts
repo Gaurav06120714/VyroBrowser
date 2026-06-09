@@ -17,7 +17,7 @@ export function useBookmarks() {
 
   useEffect(() => {
     loadTree();
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []); 
 
   const addBookmark = useCallback(async (url: string, title: string, folderId?: number, favicon?: string): Promise<Bookmark> => {
     const bookmark = await ipc.invoke<Bookmark>(IPC.BOOKMARKS_ADD, { url, title, folderId, favicon });

@@ -1,8 +1,6 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-/* ─── Design tokens ─────────────────────────────────────────────────────── */
 :root {
   --vyro-accent: #818cf8;
   --vyro-accent-glow: rgba(129, 140, 248, 0.35);
@@ -15,8 +13,6 @@
   --ease-in-out-cubic: cubic-bezier(0.65, 0, 0.35, 1);
   --spring: cubic-bezier(0.22, 1, 0.36, 1);
 }
-
-/* ─── Base ──────────────────────────────────────────────────────────────── */
 html, body {
   background: transparent;
   color: var(--vyro-ink);
@@ -26,13 +22,9 @@ html, body {
   font-feature-settings: "cv11", "ss01";
   -webkit-font-smoothing: antialiased;
 }
-
-/* Subtle vibrancy fallback on non-mac platforms */
 @supports not (backdrop-filter: blur(1px)) {
   html, body { background: #0f0f10; }
 }
-
-/* ─── Scrollbar ─────────────────────────────────────────────────────────── */
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb {
@@ -41,12 +33,8 @@ html, body {
   transition: background 0.15s;
 }
 ::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.22); }
-
-/* ─── Drag regions ──────────────────────────────────────────────────────── */
 .drag { -webkit-app-region: drag; }
 .no-drag { -webkit-app-region: no-drag; }
-
-/* ─── Webview ───────────────────────────────────────────────────────────── */
 webview {
   display: flex;
   flex: 1;
@@ -55,38 +43,26 @@ webview {
   border: none;
   background: #ffffff;
 }
-
-/* ─── Flat surface system ───────────────────────────────────────────────── */
 .glass {
   background: #0f0f11;
   border: 1px solid var(--vyro-hairline);
 }
-
-/* Floor — chrome bar, sticky elements */
 .glass-floor {
   background: #0f0f11;
   border-bottom: 1px solid var(--vyro-hairline);
 }
-
-/* Surface — sidebar, panels */
 .glass-surface {
   background: #121216;
   border-right: 1px solid var(--vyro-hairline);
 }
-
-/* Lifted — modals, command palette, popovers */
 .glass-lifted {
   background: #1a1a1e;
   border: 1px solid var(--vyro-hairline-strong);
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
 }
-
-/* ─── Smooth premium transitions (default) ──────────────────────────────── */
 * {
   transition-timing-function: var(--ease-out-quart);
 }
-
-/* ─── Tab styling (Linear / Arc style) ──────────────────────────────────── */
 .tab-pill {
   position: relative;
   transition: background-color 180ms var(--ease-out-quart),
@@ -95,15 +71,12 @@ webview {
 }
 .tab-pill:hover { transform: translateY(-0.5px); }
 .tab-pill:active { transform: translateY(0); }
-
 .tab-pill[data-active="true"] {
   background: rgba(255, 255, 255, 0.08);
   box-shadow:
     0 0 0 1px rgba(255, 255, 255, 0.06),
     0 4px 12px rgba(0, 0, 0, 0.2);
 }
-
-/* Active tab underline indicator */
 .tab-indicator {
   position: absolute;
   bottom: -1px;
@@ -121,8 +94,6 @@ webview {
   opacity: 1;
   transform: scaleX(1);
 }
-
-/* ─── Buttons — magnetic hover ──────────────────────────────────────────── */
 .btn-toolbar {
   display: inline-flex;
   align-items: center;
@@ -148,8 +119,6 @@ webview {
   transform: none;
   background: transparent;
 }
-
-/* Primary accent button */
 .btn-accent {
   background: var(--vyro-accent);
   color: white;
@@ -170,8 +139,6 @@ webview {
   transform: translateY(-0.5px);
 }
 .btn-accent:active { transform: scale(0.98); }
-
-/* ─── Address bar polish ────────────────────────────────────────────────── */
 .address-bar {
   background: rgba(255, 255, 255, 0.04);
   border: 1px solid var(--vyro-hairline);
@@ -183,8 +150,6 @@ webview {
   border-color: rgba(129, 140, 248, 0.4);
   box-shadow: 0 0 0 3px rgba(129, 140, 248, 0.12);
 }
-
-/* ─── Card / panel ──────────────────────────────────────────────────────── */
 .panel-row {
   position: relative;
   transition: background-color 140ms var(--ease-out-quart),
@@ -194,8 +159,6 @@ webview {
   background: rgba(255, 255, 255, 0.04);
 }
 .panel-row:active { transform: scale(0.997); }
-
-/* ─── Animations ────────────────────────────────────────────────────────── */
 @keyframes fade-in {
   from { opacity: 0; transform: translateY(4px); }
   to { opacity: 1; transform: translateY(0); }
@@ -203,7 +166,6 @@ webview {
 .animate-fade-in {
   animation: fade-in 240ms var(--ease-out-quart) backwards;
 }
-
 @keyframes scale-in {
   from { opacity: 0; transform: scale(0.96); }
   to { opacity: 1; transform: scale(1); }
@@ -211,13 +173,11 @@ webview {
 .animate-scale-in {
   animation: scale-in 200ms var(--spring) backwards;
 }
-
 @keyframes pulse-glow {
   0%, 100% { box-shadow: 0 0 0 0 var(--vyro-accent-glow); }
   50% { box-shadow: 0 0 0 8px transparent; }
 }
 .pulse-glow { animation: pulse-glow 2.4s ease-out infinite; }
-
 @keyframes shimmer {
   0% { background-position: -200% 0; }
   100% { background-position: 200% 0; }
@@ -230,8 +190,6 @@ webview {
   -webkit-text-fill-color: transparent;
   animation: shimmer 2.5s linear infinite;
 }
-
-/* Loading skeleton */
 @keyframes skeleton {
   0% { background-position: -200% 0; }
   100% { background-position: 200% 0; }
@@ -246,8 +204,6 @@ webview {
   background-size: 200% 100%;
   animation: skeleton 1.4s linear infinite;
 }
-
-/* ─── Focus ring ────────────────────────────────────────────────────────── */
 :focus-visible {
   outline: 2px solid var(--vyro-accent);
   outline-offset: 2px;
@@ -257,8 +213,6 @@ button:focus-visible,
 a:focus-visible {
   outline-offset: 2px;
 }
-
-/* ─── Sidebar slide animation ───────────────────────────────────────────── */
 .sidebar-slide-enter {
   transform: translateX(-100%);
   opacity: 0;
@@ -268,21 +222,15 @@ a:focus-visible {
   opacity: 1;
   transition: transform 280ms var(--spring), opacity 200ms;
 }
-
-/* ─── Reduced motion ────────────────────────────────────────────────────── */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.01ms !important;
     transition-duration: 0.01ms !important;
   }
 }
-
-/* ─── New tab page ──────────────────────────────────────────────────────── */
 .newtab-blob {
   display: none;
 }
-
-/* Speed-dial card hover */
 .dial-card {
   background: rgba(255, 255, 255, 0.04);
   border: 1px solid var(--vyro-hairline);
@@ -295,8 +243,6 @@ a:focus-visible {
   transform: translateY(-2px) scale(1.02);
 }
 .dial-card:active { transform: translateY(0) scale(0.99); }
-
-/* ─── Command palette result row ────────────────────────────────────────── */
 .cmd-row {
   position: relative;
   transition: background-color 100ms, transform 160ms var(--spring);

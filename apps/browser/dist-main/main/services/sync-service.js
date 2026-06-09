@@ -12,12 +12,7 @@ exports.syncSettingsSet = syncSettingsSet;
 exports.syncAIConversationCreate = syncAIConversationCreate;
 exports.syncAIConversationDelete = syncAIConversationDelete;
 exports.syncAIMessageAdd = syncAIMessageAdd;
-// ─────────────────────────────────────────────────────────────────────────────
-// sync-service.ts — Push local SQLite data to Supabase after every write.
-// Strategy: offline-first. SQLite is always the source of truth locally.
-// Supabase is the cloud mirror. Last-write-wins on conflict.
-// All methods are fire-and-forget (never throw, never block local ops).
-// ─────────────────────────────────────────────────────────────────────────────
+
 const supabase_client_1 = require("./supabase-client");
 async function push(table, payload) {
     try {
@@ -30,7 +25,7 @@ async function push(table, payload) {
         await client.from(table).upsert(payload, { onConflict: 'id' });
     }
     catch {
-        // sync errors are silent — local data is never affected
+        
     }
 }
 async function remove(table, id) {
@@ -43,9 +38,9 @@ async function remove(table, id) {
             return;
         await client.from(table).delete().eq('id', id);
     }
-    catch { /* silent */ }
+    catch {  }
 }
-// ── History ───────────────────────────────────────────────────────────────────
+
 function syncHistoryAdd(entry) {
     push('history', {
         id: String(entry.id),
@@ -69,9 +64,9 @@ function syncHistoryClear(profileId) {
             client.from('history').delete().eq('profile_id', profileId).then(() => { });
         });
     }
-    catch { /* silent */ }
+    catch {  }
 }
-// ── Bookmarks ─────────────────────────────────────────────────────────────────
+
 function syncBookmarkAdd(bm) {
     push('bookmarks', {
         id: String(bm.id),
@@ -99,11 +94,11 @@ function syncFolderAdd(folder) {
     });
 }
 function syncFolderDelete(id) { remove('bookmark_folders', String(id)); }
-// ── Settings ──────────────────────────────────────────────────────────────────
+
 function syncSettingsSet(profileId, key, value) {
     push('settings', { profile_id: profileId, key, value, updated_at: new Date().toISOString() });
 }
-// ── AI Conversations ──────────────────────────────────────────────────────────
+
 function syncAIConversationCreate(conv) {
     push('ai_conversations', {
         id: conv.id,

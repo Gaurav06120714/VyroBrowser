@@ -82,14 +82,14 @@ export const Sidebar: React.FC = () => {
       className="flex bg-[#111113] border-l border-white/8 shrink-0 relative"
       style={{ width: sidebarWidth }}
     >
-      {/* Resize handle on left edge */}
+      {}
       <div
         className="absolute left-0 top-0 w-1 h-full cursor-col-resize hover:bg-vyro-500/30 transition-colors z-10"
         onMouseDown={onResizeStart}
       />
 
       <div className="flex flex-col flex-1 min-w-0">
-        {/* Panel tab bar */}
+        {}
         <div className="flex items-center gap-0.5 px-2 py-2 border-b border-white/8 shrink-0">
           {PANELS.map(p => (
             <button
@@ -108,7 +108,7 @@ export const Sidebar: React.FC = () => {
             </button>
           ))}
 
-          {/* Close sidebar */}
+          {}
           <button
             onClick={() => setSidebarOpen(false)}
             className="ml-auto text-white/30 hover:text-white p-1 rounded-lg hover:bg-white/6 transition-all"
@@ -119,7 +119,7 @@ export const Sidebar: React.FC = () => {
           </button>
         </div>
 
-        {/* Panel content */}
+        {}
         <div className="flex-1 overflow-hidden">
           {sidebarPanel === 'ai' && <AIPanel />}
           {sidebarPanel === 'history' && <HistoryPanel />}

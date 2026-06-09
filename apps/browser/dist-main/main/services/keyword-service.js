@@ -36,11 +36,11 @@ class KeywordService {
       );
     `);
     }
-    // ── Custom keyword CRUD ──────────────────────────────────────────────────
+    
     getAll() {
         const custom = this.db.prepare('SELECT * FROM custom_keywords ORDER BY keyword').all()
             .map(this.rowToCustom);
-        // Merge overrides into built-ins
+        
         const overrides = new Map(this.db.prepare('SELECT * FROM keyword_overrides').all()
             .map((r) => [r.keyword, Boolean(r.enabled)]));
         const builtin = database_1.BUILTIN_KEYWORDS.map(e => ({
@@ -75,7 +75,7 @@ class KeywordService {
     `).run(keyword.toLowerCase().trim(), enabled ? 1 : 0);
         (0, database_1.invalidateIndex)();
     }
-    // ── Usage tracking ───────────────────────────────────────────────────────
+    
     trackUse(keyword) {
         const now = Math.floor(Date.now() / 1000);
         this.db.prepare(`
@@ -91,7 +91,7 @@ class KeywordService {
         this.db.prepare('DELETE FROM keyword_overrides').run();
         (0, database_1.invalidateIndex)();
     }
-    // ── Resolve & Suggest (delegate to engine) ───────────────────────────────
+    
     resolve(input, searchEngine) {
         const extras = this.getExtras();
         return (0, matcher_1.resolve)(input, extras, searchEngine);
@@ -101,7 +101,7 @@ class KeywordService {
         const usageMap = new Map(this.getUsage().map(u => [u.keyword, u.count]));
         return (0, matcher_1.suggest)(input, extras, maxResults, usageMap);
     }
-    // ── Import / Export ──────────────────────────────────────────────────────
+    
     exportJson() {
         const { custom } = this.getAll();
         return JSON.stringify(custom, null, 2);
@@ -129,7 +129,7 @@ class KeywordService {
         }
         return count;
     }
-    // ── Private ──────────────────────────────────────────────────────────────
+    
     getExtras() {
         const { custom } = this.getAll();
         return custom.map(c => ({

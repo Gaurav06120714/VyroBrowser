@@ -1,6 +1,3 @@
-// ─────────────────────────────────────────────────────────────────────────────
-// CommandPalette v2 — Cmd+K · smart launcher with recents + keyword search
-// ─────────────────────────────────────────────────────────────────────────────
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import { useTabsStore } from '../../store/tabs.store';
@@ -9,8 +6,6 @@ import { ipc, IPC } from '../../lib/ipc';
 import { useKeywords } from '../../hooks/useKeywords';
 import { KeywordSuggestion, IntentType } from '@shared/keyword-engine/types';
 import { INTENT_META } from './SuggestionDropdown';
-
-// ── Quick action definitions ──────────────────────────────────────────────────
 
 const QUICK_ACTIONS = [
   { id: 'new-tab',  label: 'New Tab',       sub: 'Open a blank tab',         kbd: '⌘T',  icon: 'M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z' },
@@ -36,7 +31,6 @@ export const CommandPalette: React.FC = () => {
 
   const { suggestions, getSuggestions, resolve, trackUse, clearSuggestions } = useKeywords();
 
-  // Load recent history when palette opens
   useEffect(() => {
     if (!isOpen) return;
     setQuery('');
@@ -121,19 +115,19 @@ export const CommandPalette: React.FC = () => {
       style={{ paddingTop: '13vh' }}
       onMouseDown={() => closeCommandPalette()}
     >
-      {/* Backdrop */}
+      {}
       <div className="absolute inset-0 bg-black/65 backdrop-blur-[6px]" style={{ animation: 'cpBackdropIn 150ms ease-out forwards' }} />
 
-      {/* Panel */}
+      {}
       <div
         className="relative z-10 w-full max-w-[640px] mx-4 rounded-2xl overflow-hidden border border-white/[0.07] bg-[#0e0e1a]/98 shadow-[0_28px_80px_-8px_rgba(0,0,0,0.85),0_0_0_1px_rgba(255,255,255,0.03)]"
         style={{ animation: 'cpPanelIn 200ms cubic-bezier(0.34,1.56,0.64,1)' }}
         onMouseDown={e => e.stopPropagation()}
       >
-        {/* Accent top */}
+        {}
         <div className="h-px bg-gradient-to-r from-transparent via-vyro-500/40 to-transparent" />
 
-        {/* Search */}
+        {}
         <div className="flex items-center gap-3 px-5 py-4 border-b border-white/[0.06]">
           <svg className="w-5 h-5 text-vyro-400/60 shrink-0" viewBox="0 0 20 20" fill="currentColor">
             <path fillRule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clipRule="evenodd" />
@@ -159,9 +153,9 @@ export const CommandPalette: React.FC = () => {
           )}
         </div>
 
-        {/* Body */}
+        {}
         <div className="max-h-[52vh] overflow-y-auto">
-          {/* Quick actions (empty state) */}
+          {}
           {!showSearch && (
             <>
               <div className="px-4 pt-3 pb-1.5">
@@ -188,7 +182,7 @@ export const CommandPalette: React.FC = () => {
                 </div>
               ))}
 
-              {/* Recent history */}
+              {}
               {recentHistory.length > 0 && (
                 <>
                   <div className="mx-4 my-2 border-t border-white/[0.05]" />
@@ -225,7 +219,7 @@ export const CommandPalette: React.FC = () => {
             </>
           )}
 
-          {/* Search: no results */}
+          {}
           {showSearch && displayItems.length === 0 && (
             <div className="flex flex-col items-center justify-center py-10 gap-2">
               <svg className="w-8 h-8 text-white/15" viewBox="0 0 20 20" fill="currentColor">
@@ -236,7 +230,7 @@ export const CommandPalette: React.FC = () => {
             </div>
           )}
 
-          {/* Search results */}
+          {}
           {showSearch && displayItems.map((s, i) => {
             const intentMeta = s.intent ? INTENT_META[s.intent] : null;
             return (
@@ -286,7 +280,7 @@ export const CommandPalette: React.FC = () => {
             to   { opacity: 1; transform: translateY(0); }
           }
         `}</style>
-        {/* Footer */}
+        {}
         <div className="flex items-center justify-between px-4 py-2.5 border-t border-white/[0.05] bg-white/[0.015]">
           <div className="flex items-center gap-2 text-[10px] text-white/20">
             <span>↑↓ navigate</span><span className="text-white/10">·</span>

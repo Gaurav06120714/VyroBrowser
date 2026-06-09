@@ -19,10 +19,9 @@ export function useHistory() {
     }
   }, [setEntries, setLoading]);
 
-  // Load initial history on mount
   useEffect(() => {
     search('');
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []); 
 
   const handleQueryChange = useCallback((q: string) => {
     setQuery(q);

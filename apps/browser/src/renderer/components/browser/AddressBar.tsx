@@ -1,18 +1,3 @@
-// ─────────────────────────────────────────────────────────────────────────────
-// AddressBar — omnibox component for the browser toolbar.
-//
-// Displays the current tab's URL (or an empty field on new-tab), handles user
-// input, shows keyword suggestions via SuggestionDropdown, and navigates on
-// Enter.  Two-path navigation strategy ensures both new-tab and live-page cases
-// work correctly:
-//   1. updateTab(url) — WebviewContainer re-renders and mounts WebviewPane when
-//      the tab transitions from new-tab to a real URL (no live webview yet).
-//   2. ipc.invoke(NAV_LOAD_URL) — main process calls wc.loadURL() when the tab
-//      already has a live webview (user navigating from one real page to another).
-//
-// Double-fire is prevented by navigatingRef which is set true on Enter and
-// cleared once navigate() completes.
-// ─────────────────────────────────────────────────────────────────────────────
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useTabsStore } from '../../store/tabs.store';
 import { ipc, IPC } from '../../lib/ipc';
@@ -48,21 +33,17 @@ export const AddressBar: React.FC = () => {
   const [anchorRect, setAnchorRect] = useState<DOMRect | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const wrapperRef = useRef<HTMLDivElement>(null);
-  const navigatingRef = useRef(false); // prevent double-fire
+  const navigatingRef = useRef(false); 
 
   const { suggestions, getSuggestions, resolve, trackUse, clearSuggestions } = useKeywords();
 
-  // Sync display when not focused
   useEffect(() => {
     if (!focused) setInput(url);
   }, [url, focused]);
 
-  // ── Navigation — resolve input to URL and load it ──────────────────────────
-
   const navigate = useCallback((targetUrl: string, keyword?: string) => {
     if (!tabId || !targetUrl) return;
 
-    // Always update store — needed when tab is on newtab (no webview yet)
     useTabsStore.getState().updateTab(tabId, {
       url: targetUrl,
       isLoading: true,
@@ -70,7 +51,6 @@ export const AddressBar: React.FC = () => {
       favicon: null,
     });
 
-    // Also try IPC — works when webview is already alive (navigating from a real page)
     ipc.invoke(IPC.NAV_LOAD_URL, { tabId, url: targetUrl });
 
     if (keyword) trackUse(keyword);
@@ -79,8 +59,6 @@ export const AddressBar: React.FC = () => {
     navigatingRef.current = false;
     inputRef.current?.blur();
   }, [tabId, trackUse, clearSuggestions]);
-
-  // ── Suggestions — fetch and display keyword matches ────────────────────────
 
   const handleFocus = useCallback(() => {
     setFocused(true);
@@ -125,10 +103,9 @@ export const AddressBar: React.FC = () => {
     }
     if (e.key === 'Enter') {
       e.preventDefault();
-      if (navigatingRef.current) return; // prevent double-fire
+      if (navigatingRef.current) return; 
       navigatingRef.current = true;
 
-      // Use highlighted suggestion directly (instant, no IPC needed)
       if (selectedIdx >= 0 && suggestions[selectedIdx]) {
         const s = suggestions[selectedIdx];
         navigate(s.url, s.entry?.keyword);
@@ -138,7 +115,6 @@ export const AddressBar: React.FC = () => {
       const current = input.trim();
       if (!current) { navigatingRef.current = false; return; }
 
-      // Resolve via keyword engine
       const match = await resolve(current);
       navigate(match.url, match.entry?.keyword ?? undefined);
     }
@@ -159,7 +135,7 @@ export const AddressBar: React.FC = () => {
           : 'border-white/8 hover:border-white/15',
       ].join(' ')}>
 
-        {/* Security / search icon */}
+        {}
         {focused ? (
           <svg className="w-3.5 h-3.5 text-white/25 shrink-0" viewBox="0 0 20 20" fill="currentColor">
             <path fillRule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clipRule="evenodd" />
@@ -177,7 +153,7 @@ export const AddressBar: React.FC = () => {
             )}
           </span>
         ) : (
-          // Vyro spark icon when on new tab
+          
           <svg className="w-3.5 h-3.5 text-vyro-500/50 shrink-0" viewBox="0 0 20 20" fill="currentColor">
             <path fillRule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" clipRule="evenodd" />
           </svg>
@@ -196,7 +172,7 @@ export const AddressBar: React.FC = () => {
           className="flex-1 bg-transparent text-sm text-white placeholder:text-white/20 focus:outline-none min-w-0 text-center focus:text-left"
         />
 
-        {/* Loading bar */}
+        {}
         {isLoading && (
           <div className="absolute bottom-0 left-0 right-0 h-[2px] overflow-hidden rounded-b-lg">
             <div className="h-full bg-gradient-to-r from-vyro-500 to-vyro-400 rounded-full animate-loadbar" />

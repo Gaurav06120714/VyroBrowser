@@ -18,10 +18,6 @@ export interface ActionResult {
   screenshot?: Screenshot;
 }
 
-/**
- * BrowserSession wraps a Playwright BrowserContext and provides
- * high-level action methods for the agent to use.
- */
 export class BrowserSession {
   private page: Page | null = null;
   private readonly config: BrowserSessionConfig;
@@ -217,12 +213,10 @@ export class BrowserSession {
       const root = selector ? page.locator(selector) : page.locator('body');
       const html = await root.innerHTML();
 
-      // Return the HTML for the AI to parse according to the schema
-      // The actual extraction happens in the AI reasoning step
       return {
         success: true,
         data: {
-          html: html.slice(0, 50000), // Cap to avoid token overflow
+          html: html.slice(0, 50000), 
           url: page.url(),
           schema,
           context,

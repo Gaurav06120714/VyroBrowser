@@ -50,7 +50,7 @@ export const InjectionEditor: React.FC<Props> = ({ origin: initialOrigin, onClos
       } else {
         setJs(newValue);
       }
-      // Restore cursor after state update
+      
       requestAnimationFrame(() => {
         target.selectionStart = start + 2;
         target.selectionEnd = start + 2;
@@ -95,7 +95,7 @@ export const InjectionEditor: React.FC<Props> = ({ origin: initialOrigin, onClos
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
       <div className="relative z-10 bg-[#111113] border border-white/10 rounded-2xl shadow-2xl w-[640px] h-[520px] flex flex-col overflow-hidden">
-        {/* Header */}
+        {}
         <div className="flex items-center gap-3 px-4 py-3 border-b border-white/8 shrink-0">
           <input
             value={origin}
@@ -119,7 +119,7 @@ export const InjectionEditor: React.FC<Props> = ({ origin: initialOrigin, onClos
           </button>
         </div>
 
-        {/* Tabs */}
+        {}
         <div className="flex border-b border-white/8 shrink-0">
           {(['css', 'js'] as const).map(tab => (
             <button
@@ -136,7 +136,7 @@ export const InjectionEditor: React.FC<Props> = ({ origin: initialOrigin, onClos
           ))}
         </div>
 
-        {/* Editor */}
+        {}
         <div className="flex-1 overflow-hidden">
           {activeTab === 'css' ? (
             <textarea
@@ -159,7 +159,7 @@ export const InjectionEditor: React.FC<Props> = ({ origin: initialOrigin, onClos
           )}
         </div>
 
-        {/* Footer */}
+        {}
         <div className="flex items-center justify-between px-4 py-3 border-t border-white/8 shrink-0">
           <div className="flex items-center gap-2">
             {exists && (

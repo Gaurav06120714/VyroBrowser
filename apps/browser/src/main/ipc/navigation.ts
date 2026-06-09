@@ -17,7 +17,7 @@ export function registerNavigationIpc(wm: WindowManager): void {
     const { tabId, url } = parsed.data;
     const wc = getWc(tabId);
     if (wc && !wc.isDestroyed()) {
-      wc.loadURL(url).catch(() => {/* ignore */});
+      wc.loadURL(url).catch(() => {});
     }
     return { ok: true };
   });

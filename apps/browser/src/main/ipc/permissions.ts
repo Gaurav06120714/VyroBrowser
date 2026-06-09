@@ -7,7 +7,7 @@ type PermissionCallback = (granted: boolean) => void;
 const pendingCallbacks = new Map<string, PermissionCallback>();
 
 export function registerPermissionsIpc(wm: WindowManager): void {
-  // Override the default session permission handler to prompt the UI
+  
   const defaultSession = session.defaultSession;
 
   defaultSession.setPermissionRequestHandler((_webContents, permission, callback, details) => {
@@ -22,7 +22,7 @@ export function registerPermissionsIpc(wm: WindowManager): void {
         origin: details.requestingUrl,
       });
     } else {
-      // No window to prompt — deny
+      
       pendingCallbacks.delete(requestId);
       callback(false);
     }

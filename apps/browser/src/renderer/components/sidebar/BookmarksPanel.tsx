@@ -130,7 +130,7 @@ export const BookmarksPanel: React.FC = () => {
   const openInTab = (url: string) => {
     const active = tabs.find(t => t.id === activeTabId);
     if (active) {
-      // Navigate active tab via store update — main process handles actual nav via webview
+      
       createTab({ url });
     } else {
       createTab({ url });

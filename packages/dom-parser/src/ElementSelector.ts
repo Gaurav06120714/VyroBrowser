@@ -1,18 +1,5 @@
-/**
- * ElementSelector provides utilities for generating stable, readable
- * CSS selectors for elements identified by various attributes.
- */
-
 export class ElementSelector {
-  /**
-   * Generate the most stable selector for an element, in priority order:
-   * 1. ID
-   * 2. data-testid
-   * 3. aria-label
-   * 4. name attribute (for form fields)
-   * 5. role + text
-   * 6. tag + text
-   */
+  
   static generateSelector(element: {
     id?: string;
     testId?: string;
@@ -56,13 +43,9 @@ export class ElementSelector {
     return tag;
   }
 
-  /**
-   * Validates that a selector string is syntactically reasonable.
-   * Returns false for clearly dynamic selectors.
-   */
   static isStableSelector(selector: string): boolean {
-    // Red flags: pure numeric classes, generated hashes
-    if (/\.\w*\d{4,}\w*/.test(selector)) return false; // .css-1h2i3j
+    
+    if (/\.\w*\d{4,}\w*/.test(selector)) return false; 
     if (/nth-child\(\d+\)/.test(selector)) return false;
     if (/nth-of-type\(\d+\)/.test(selector)) return false;
     return true;

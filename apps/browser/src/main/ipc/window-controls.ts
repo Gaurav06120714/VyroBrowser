@@ -1,7 +1,3 @@
-// ─────────────────────────────────────────────────────────────────────────────
-// window-controls.ts — Minimize / Maximize / Close IPC for Windows custom titlebar.
-// Also pushes window:maximized / window:restored events to renderer.
-// ─────────────────────────────────────────────────────────────────────────────
 import { ipcMain, BrowserWindow } from 'electron';
 import { IPC } from '../../shared/ipc-channels';
 import { WindowManager } from '../window-manager';
@@ -25,7 +21,6 @@ export function registerWindowControlsIpc(wm: WindowManager): void {
     wm.getMain()?.close();
   });
 
-  // Push maximized/restored state changes to the renderer
   function wireEvents(win: BrowserWindow) {
     win.on('maximize', () => {
       win.webContents.send(IPC.WINDOW_MAXIMIZED);
@@ -38,7 +33,6 @@ export function registerWindowControlsIpc(wm: WindowManager): void {
     });
   }
 
-  // Wire to the current main window; re-wire if a new one is ever created.
   const existing = wm.getMain();
   if (existing) wireEvents(existing);
 }

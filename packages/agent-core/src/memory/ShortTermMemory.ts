@@ -7,11 +7,6 @@ export interface MemoryEntry {
   stepNumber?: number;
 }
 
-/**
- * ShortTermMemory stores the working context for a single task execution.
- * It maintains a bounded history of states and actions to keep the AI context
- * window manageable while providing sufficient context for decision-making.
- */
 export class ShortTermMemory {
   private entries: MemoryEntry[] = [];
   private plan: TaskPlan | null = null;
@@ -43,7 +38,7 @@ export class ShortTermMemory {
 
     const stateEntries = this.entries.filter((e) => e.type === 'state');
     if (stateEntries.length >= this.maxStateHistory) {
-      // Remove oldest state entry
+      
       const idx = this.entries.findIndex((e) => e.type === 'state');
       if (idx !== -1) this.entries.splice(idx, 1);
     }
@@ -57,7 +52,7 @@ export class ShortTermMemory {
   }
 
   addAction(description: string, result: string, stepNumber: number): void {
-    // Track action frequency for anti-loop detection
+    
     const key = description.slice(0, 50);
     this.actionCounts.set(key, (this.actionCounts.get(key) ?? 0) + 1);
 
@@ -102,9 +97,6 @@ export class ShortTermMemory {
     return this.logs;
   }
 
-  /**
-   * Returns a concise summary of memory for injecting into the AI context.
-   */
   getSummary(): string {
     const lines: string[] = [];
 
@@ -135,16 +127,11 @@ export class ShortTermMemory {
     return lines.join('\n');
   }
 
-  /**
-   * Detects if the agent is stuck in a loop.
-   * Returns true if the same action was repeated 3+ times.
-   */
   isInLoop(): boolean {
     for (const count of this.actionCounts.values()) {
       if (count >= 3) return true;
     }
 
-    // Check URL loop: same URL seen 4+ times in last 8 navigation entries
     if (this.recentUrls.length >= 4) {
       const recent = this.recentUrls.slice(-8);
       const counts = new Map<string, number>();
@@ -159,9 +146,6 @@ export class ShortTermMemory {
     return false;
   }
 
-  /**
-   * Get the most repeated action for loop reporting.
-   */
   getMostRepeatedAction(): string | null {
     let maxCount = 0;
     let maxAction = '';
@@ -186,7 +170,7 @@ export class ShortTermMemory {
   private addEntry(entry: MemoryEntry): void {
     this.entries.push(entry);
     if (this.entries.length > this.maxEntries) {
-      // Remove oldest non-state entries first, then states
+      
       const oldest = this.entries.findIndex((e) => e.type !== 'state');
       this.entries.splice(oldest !== -1 ? oldest : 0, 1);
     }

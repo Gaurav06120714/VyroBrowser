@@ -1,25 +1,6 @@
-// ─────────────────────────────────────────────────────────────────────────────
-// useKeywords — React hook for keyword resolution and autocomplete suggestions.
-//
-// Exposes:
-//   getSuggestions(input) — debounced (50 ms) IPC call to KEYWORDS_SUGGEST,
-//                           result cached in an in-memory LRU keyed by input.
-//   resolve(input)        — single IPC call to KEYWORDS_RESOLVE; returns the
-//                           best-match URL for navigation.
-//   trackUse(keyword)     — fire-and-forget IPC call to record keyword usage
-//                           (used to boost frequently-used keywords in ranking).
-//   clearSuggestions()    — cancel pending debounce and empty the list.
-//
-// LRU cache strategy: module-level Map capped at CACHE_MAX=200 entries with a
-// CACHE_TTL=10 s expiry.  On overflow the oldest entry (lowest timestamp) is
-// evicted.  Stale IPC responses (user typed faster than the debounce) are
-// silently dropped by comparing lastInputRef to the in-flight input string.
-// ─────────────────────────────────────────────────────────────────────────────
 import { useState, useCallback, useRef } from 'react';
 import { ipc, IPC } from '../lib/ipc';
 import { KeywordSuggestion, KeywordMatch } from '@shared/keyword-engine/types';
-
-// ── LRU suggestion cache ──────────────────────────────────────────────────────
 
 const CACHE_TTL = 10_000;
 const CACHE_MAX = 200;
@@ -42,8 +23,6 @@ function cacheSet(key: string, data: KeywordSuggestion[]): void {
   _cache.set(key, { data, ts: Date.now() });
 }
 
-// ── Hook ──────────────────────────────────────────────────────────────────────
-
 export function useKeywords() {
   const [suggestions, setSuggestions] = useState<KeywordSuggestion[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -58,7 +37,6 @@ export function useKeywords() {
       return;
     }
 
-    // Instant cache hit
     const cached = cacheGet(input);
     if (cached) {
       setSuggestions(cached);
@@ -73,7 +51,7 @@ export function useKeywords() {
           IPC.KEYWORDS_SUGGEST,
           { input, max: 8 },
         );
-        // Drop stale responses (user typed faster)
+        
         if (lastInputRef.current !== input) return;
         setSuggestions(results);
         cacheSet(input, results);
@@ -82,7 +60,7 @@ export function useKeywords() {
       } finally {
         setIsLoading(false);
       }
-    }, 50); // 50 ms debounce — fast enough to feel instant
+    }, 50); 
   }, []);
 
   const resolve = useCallback(async (input: string): Promise<KeywordMatch> => {

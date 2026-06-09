@@ -1,26 +1,6 @@
-/**
- * shortcuts.js — Main-process shortcut engine for Vyro Browser
- *
- * ROOT CAUSE of broken shortcuts in Electron:
- *   When a <webview> has focus, ALL keydown events go to the webview's
- *   renderer process. The parent renderer's document.addEventListener()
- *   never fires. document.addEventListener is USELESS for browser shortcuts.
- *
- * THE FIX:
- *   Use Electron's native Menu accelerators (main process, OS-level).
- *   They fire before any webview sees the event — exactly like Chrome/Brave.
- *   Each accelerator sends an IPC message to the focused renderer window,
- *   which executes the corresponding action.
- */
-
 const { Menu, app, BrowserWindow, ipcMain } = require('electron');
 const isMac = process.platform === 'darwin';
 
-/**
- * Build and set the application Menu.
- * All accelerators here work regardless of webview focus.
- * The menu is hidden (setMenuBarVisibility false) but accelerators still fire.
- */
 function buildMenu(mainWindow) {
   const send = (action, payload) => {
     const win = BrowserWindow.getFocusedWindow() || mainWindow;
@@ -30,7 +10,7 @@ function buildMenu(mainWindow) {
   };
 
   const template = [
-    // ── Application (macOS only) ──────────────────────────────────────────
+    
     ...(isMac ? [{
       label: 'Vyro',
       submenu: [
@@ -53,7 +33,6 @@ function buildMenu(mainWindow) {
       ],
     }] : []),
 
-    // ── File / Tabs ────────────────────────────────────────────────────────
     {
       label: 'File',
       submenu: [
@@ -92,7 +71,6 @@ function buildMenu(mainWindow) {
       ],
     },
 
-    // ── Edit ───────────────────────────────────────────────────────────────
     {
       label: 'Edit',
       submenu: [
@@ -122,7 +100,6 @@ function buildMenu(mainWindow) {
       ],
     },
 
-    // ── View ───────────────────────────────────────────────────────────────
     {
       label: 'View',
       submenu: [
@@ -190,7 +167,6 @@ function buildMenu(mainWindow) {
       ],
     },
 
-    // ── History ────────────────────────────────────────────────────────────
     {
       label: 'History',
       submenu: [
@@ -218,7 +194,6 @@ function buildMenu(mainWindow) {
       ],
     },
 
-    // ── Bookmarks ──────────────────────────────────────────────────────────
     {
       label: 'Bookmarks',
       submenu: [
@@ -235,7 +210,6 @@ function buildMenu(mainWindow) {
       ],
     },
 
-    // ── Tab navigation ─────────────────────────────────────────────────────
     {
       label: 'Tab',
       submenu: [
@@ -269,7 +243,6 @@ function buildMenu(mainWindow) {
       ],
     },
 
-    // ── Developer ──────────────────────────────────────────────────────────
     {
       label: 'Developer',
       submenu: [
@@ -291,7 +264,6 @@ function buildMenu(mainWindow) {
       ],
     },
 
-    // ── Window ─────────────────────────────────────────────────────────────
     {
       label: 'Window',
       submenu: [

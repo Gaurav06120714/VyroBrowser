@@ -2,13 +2,8 @@ import type { FastifyInstance } from 'fastify';
 import type { WebSocket } from '@fastify/websocket';
 import type { WsMessage } from '@vyro/shared-types';
 
-// Registry of active WebSocket connections, keyed by taskId
 const taskConnections = new Map<string, Set<WebSocket>>();
 
-/**
- * Broadcast a WsMessage to all WebSocket clients subscribed to a taskId.
- * Called by SimpleQueue/AgentLoop when events are emitted.
- */
 export function broadcastToTask(taskId: string, message: WsMessage): void {
   const connections = taskConnections.get(taskId);
   if (!connections || connections.size === 0) return;
@@ -20,17 +15,11 @@ export function broadcastToTask(taskId: string, message: WsMessage): void {
         ws.send(serialized);
       }
     } catch {
-      // Ignore send errors for closed sockets
+      
     }
   }
 }
 
-/**
- * Register WebSocket routes.
- * Client connects to: ws://host/ws?taskId=<id>
- *
- * No authentication — this is a local single-user tool.
- */
 export async function agentSocketRoutes(app: FastifyInstance): Promise<void> {
   app.get<{ Querystring: { taskId?: string } }>(
     '/ws',
@@ -46,13 +35,11 @@ export async function agentSocketRoutes(app: FastifyInstance): Promise<void> {
 
       request.log.info({ taskId }, 'WebSocket client connected');
 
-      // Subscribe to task events
       if (!taskConnections.has(taskId)) {
         taskConnections.set(taskId, new Set());
       }
       taskConnections.get(taskId)!.add(socket);
 
-      // Send connected confirmation
       socket.send(
         JSON.stringify({
           type: 'ping',
@@ -62,12 +49,10 @@ export async function agentSocketRoutes(app: FastifyInstance): Promise<void> {
         })
       );
 
-      // Handle incoming messages from client
       socket.on('message', (raw: Buffer) => {
         try {
           const msg = JSON.parse(raw.toString()) as WsMessage;
 
-          // Handle approval responses
           if (msg.type === 'task:approval:response') {
             const payload = msg.payload as { stepId: string; approved: boolean };
             const callbacks = pendingApprovals.get(msg.taskId);
@@ -80,7 +65,6 @@ export async function agentSocketRoutes(app: FastifyInstance): Promise<void> {
             }
           }
 
-          // Pong on ping
           if (msg.type === 'ping') {
             socket.send(
               JSON.stringify({
@@ -92,11 +76,10 @@ export async function agentSocketRoutes(app: FastifyInstance): Promise<void> {
             );
           }
         } catch {
-          // Ignore malformed messages
+          
         }
       });
 
-      // Cleanup on disconnect
       socket.on('close', () => {
         request.log.info({ taskId }, 'WebSocket client disconnected');
         taskConnections.get(taskId)?.delete(socket);
@@ -112,15 +95,9 @@ export async function agentSocketRoutes(app: FastifyInstance): Promise<void> {
   );
 }
 
-// ── Approval handling ─────────────────────────────────────────────────────────
-
 type ApprovalCallback = (approved: boolean) => void;
 const pendingApprovals = new Map<string, Map<string, ApprovalCallback>>();
 
-/**
- * Send an approval request to the WebSocket client and wait for response.
- * Resolves when the user responds or times out (auto-reject after timeout).
- */
 export function requestApproval(
   taskId: string,
   stepId: string,
@@ -144,7 +121,6 @@ export function requestApproval(
 
     pendingApprovals.get(taskId)!.set(stepId, wrappedResolve);
 
-    // Send approval request to all connected clients for this task
     broadcastToTask(taskId, {
       type: 'task:approval:required',
       taskId,
@@ -152,7 +128,6 @@ export function requestApproval(
       timestamp: new Date().toISOString(),
     });
 
-    // Auto-reject after timeout
     const timer = setTimeout(() => {
       const callbacks = pendingApprovals.get(taskId);
       if (callbacks?.has(stepId)) {

@@ -2,21 +2,13 @@ import React from 'react';
 
 interface VyroLogoProps {
   size?: number;
-  /** Render pulsing glow rings — for splash/onboarding use */
+  
   animated?: boolean;
-  /** Override shape: 'auto' detects from platform, 'circle' forces macOS style, 'square' forces Windows style */
+  
   shape?: 'auto' | 'circle' | 'square';
   className?: string;
 }
 
-/**
- * Platform-native Vyro logo mark.
- *
- * - macOS: circular with silver rim, glossy dark background
- * - Windows / Linux: rounded-square with blue-tinted background, neon border
- *
- * Uses the same SVG V-mark and wave design as the app icons.
- */
 export const VyroLogo: React.FC<VyroLogoProps> = ({
   size = 40,
   animated = false,
@@ -38,7 +30,7 @@ export const VyroLogo: React.FC<VyroLogoProps> = ({
       className={`relative flex items-center justify-center flex-shrink-0 ${className}`}
       style={{ width: size, height: size }}
     >
-      {/* Animated glow rings */}
+      {}
       {animated && (
         <>
           <span
@@ -60,7 +52,7 @@ export const VyroLogo: React.FC<VyroLogoProps> = ({
         </>
       )}
 
-      {/* Soft glow backdrop */}
+      {}
       <div
         className="absolute"
         style={{
@@ -73,7 +65,7 @@ export const VyroLogo: React.FC<VyroLogoProps> = ({
         }}
       />
 
-      {/* Icon shell */}
+      {}
       <div
         className="relative flex items-center justify-center overflow-hidden"
         style={{

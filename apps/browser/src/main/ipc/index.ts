@@ -1,11 +1,3 @@
-// ─────────────────────────────────────────────────────────────────────────────
-// ipc/index.ts — IPC registration hub.
-//
-// registerAllIpc() is called once at startup and delegates to per-domain
-// register functions (tabs, navigation, history, bookmarks, downloads, AI,
-// adblock, reader, injections, find, keywords, profiles, settings, permissions).
-// Each domain module calls ipcMain.handle() / ipcMain.on() for its channels.
-// ─────────────────────────────────────────────────────────────────────────────
 import Database from 'better-sqlite3';
 import { WindowManager } from '../window-manager';
 import { registerTabsIpc } from './tabs';

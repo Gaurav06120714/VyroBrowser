@@ -82,7 +82,7 @@ class ProfileService {
                 return content;
         }
         catch {
-            // file doesn't exist yet
+            
         }
         return constants_1.DEFAULT_PROFILE_ID;
     }

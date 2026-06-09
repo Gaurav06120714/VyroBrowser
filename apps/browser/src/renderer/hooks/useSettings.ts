@@ -11,7 +11,7 @@ export function useSettings() {
     ipc.invoke<AppSettings>(IPC.SETTINGS_GET, { profileId: DEFAULT_PROFILE_ID })
       .then(setSettings)
       .catch(console.error);
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []); 
 
   const saveSetting = useCallback(async <K extends keyof AppSettings>(key: K, value: AppSettings[K]) => {
     updateSetting(key, value);

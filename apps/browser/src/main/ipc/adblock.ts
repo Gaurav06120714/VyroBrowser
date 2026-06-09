@@ -14,7 +14,6 @@ import { SettingsService } from '../services/settings-service';
 export function registerAdblockIpc(db: Database.Database): void {
   const settingsService = new SettingsService(db);
 
-  // Load persisted site rules into memory at startup
   loadSiteRulesFromDb(settingsService);
 
   ipcMain.handle(IPC.ADBLOCK_GET_STATS, () => {
@@ -33,10 +32,10 @@ export function registerAdblockIpc(db: Database.Database): void {
   ipcMain.handle(IPC.ADBLOCK_RELOAD_LISTS, async () => {
     const defaultSess = session.defaultSession;
     await reloadBlocklists(defaultSess);
-    // Also reload for all partition sessions
+    
     for (const s of (session as unknown as { getAllSessions?: () => Electron.Session[] }).getAllSessions?.() ?? []) {
       if (s !== defaultSess) {
-        try { await reloadBlocklists(s); } catch { /* ignore */ }
+        try { await reloadBlocklists(s); } catch {  }
       }
     }
     return { ok: true };

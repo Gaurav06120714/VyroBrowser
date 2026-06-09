@@ -29,7 +29,7 @@ export function registerProfilesIpc(db: Database.Database, wm: WindowManager): v
     const parsed = ProfileSwitchSchema.safeParse(args);
     if (!parsed.success) return { error: 'Invalid arguments' };
     profileService.setActive(parsed.data.id);
-    // Reload the main window renderer with the new profile
+    
     const win = wm.getMain();
     if (win) {
       win.reload();

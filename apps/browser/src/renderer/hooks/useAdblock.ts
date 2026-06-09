@@ -8,7 +8,7 @@ export function useAdblock() {
   useEffect(() => {
     ipc.invoke<AdblockStats>(IPC.ADBLOCK_GET_STATS).then(setStats).catch(console.error);
     ipc.invoke<Record<string, boolean>>(IPC.ADBLOCK_GET_SITE_RULES).then(setSiteRules).catch(console.error);
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []); 
 
   const toggleSite = useCallback(async (origin: string, enabled: boolean) => {
     await ipc.invoke(IPC.ADBLOCK_SITE_TOGGLE, { origin, enabled });

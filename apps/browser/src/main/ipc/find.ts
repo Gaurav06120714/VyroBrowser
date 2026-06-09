@@ -10,9 +10,8 @@ export function registerFindIpc(): void {
     const target = webContents.fromId(wcId);
     if (!target || target.isDestroyed()) return { ok: false };
 
-    // Listen for found-in-page result and push to renderer
     target.once('found-in-page', (_e, result) => {
-      // Push result to all renderer windows
+      
       for (const win of BrowserWindow.getAllWindows()) {
         if (!win.isDestroyed()) {
           win.webContents.send(IPC.FIND_RESULT, {

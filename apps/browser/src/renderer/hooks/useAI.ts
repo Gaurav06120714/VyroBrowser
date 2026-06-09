@@ -11,12 +11,11 @@ export function useAI() {
   const activeTab = useTabsStore(s => s.activeTab());
 
   useEffect(() => {
-    // Load conversations
+    
     ipc.invoke<AIConversation[]>(IPC.AI_CONVERSATION_GET_ALL)
       .then(store.setConversations)
       .catch(console.error);
 
-    // Subscribe to AI chunks
     const offChunk = ipc.on(IPC.AI_CHUNK, (...args: unknown[]) => {
       const { conversationId, delta, done } = args[0] as { conversationId: string; delta: string; done: boolean };
       if (done) {
@@ -26,7 +25,6 @@ export function useAI() {
       }
     });
 
-    // Subscribe to AI errors
     const offError = ipc.on(IPC.AI_ERROR, (...args: unknown[]) => {
       const { message } = args[0] as { conversationId: string; message: string };
       store.setStreaming(false);
@@ -37,16 +35,15 @@ export function useAI() {
       offChunk();
       offError();
     };
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []); 
 
-  // Load messages when active conversation changes
   useEffect(() => {
     if (store.activeConversationId) {
       ipc.invoke<AIMessage[]>(IPC.AI_MESSAGES_GET, { conversationId: store.activeConversationId })
         .then(msgs => store.setMessages(store.activeConversationId!, msgs))
         .catch(console.error);
     }
-  }, [store.activeConversationId]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [store.activeConversationId]); 
 
   const createConversation = useCallback(async (): Promise<AIConversation> => {
     const conv = await ipc.invoke<AIConversation>(IPC.AI_CONVERSATION_CREATE, {
@@ -89,7 +86,7 @@ export function useAI() {
       const conv = await createConversation();
       convId = conv.id;
     }
-    // Get page text via webContents would require IPC, use a placeholder here
+    
     const pageText = `Page: ${activeTab.title} — ${activeTab.url}`;
     store.setStreaming(true);
     await ipc.invoke(IPC.AI_SUMMARIZE_PAGE, { conversationId: convId, pageText, model: store.model });

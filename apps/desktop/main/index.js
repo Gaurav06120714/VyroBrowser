@@ -51,7 +51,6 @@ function createWindow() {
     show: false,
   });
 
-  // Build native menu with all accelerators BEFORE loading the page
   buildMenu(mainWindow);
 
   mainWindow.loadFile(path.join(__dirname, '../renderer/index.html'));
@@ -90,7 +89,6 @@ app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') app.quit();
 });
 
-// ── IPC: new window ────────────────────────────────────────────────────────
 ipcMain.on('new-window', () => {
   const win = new BrowserWindow({
     width: 1400, height: 900, minWidth: 900, minHeight: 600,
@@ -106,7 +104,6 @@ ipcMain.on('new-window', () => {
   win.loadFile(path.join(__dirname, '../renderer/index.html'));
 });
 
-// ── IPC: tab state persistence ─────────────────────────────────────────────
 ipcMain.on('save-tabs', (_, data) => {
   try { fs.writeFileSync(path.join(USER_DATA, 'tabs.json'), JSON.stringify(data)); } catch {}
 });

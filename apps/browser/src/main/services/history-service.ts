@@ -47,7 +47,7 @@ export class HistoryService {
          ORDER BY h.last_visited_at DESC LIMIT ? OFFSET ?`
       ).all(profileId, query + '*', limit, offset) as Record<string, unknown>[]).map(this.toEntry);
     } catch {
-      // Fallback to LIKE if FTS not available
+      
       return (this.db.prepare(
         'SELECT * FROM history WHERE profile_id = ? AND (title LIKE ? OR url LIKE ?) ORDER BY last_visited_at DESC LIMIT ? OFFSET ?'
       ).all(profileId, `%${query}%`, `%${query}%`, limit, offset) as Record<string, unknown>[]).map(this.toEntry);

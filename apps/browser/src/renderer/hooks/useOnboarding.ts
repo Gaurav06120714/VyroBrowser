@@ -1,23 +1,3 @@
-// ─────────────────────────────────────────────────────────────────────────────
-// useOnboarding.ts — hook that drives the multi-step onboarding wizard.
-//
-// Persists completion state in localStorage so the wizard only appears once.
-// Exposes:
-//   isComplete         — true if the user has finished onboarding
-//   currentStep        — 0-based step index
-//   totalSteps         — total number of steps
-//   ollamaRunning      — whether Ollama is reachable
-//   models             — list of installed Ollama models
-//   pullStatus         — per-model pull state
-//   checkOllama()      — ping Ollama and update ollamaRunning
-//   pullModel(name)    — stream-pull a model, updates pullStatus
-//   cancelPull(name)   — abort an in-flight pull
-//   listModels()       — fetch installed models
-//   next()             — advance to next step
-//   back()             — go to previous step
-//   complete()         — mark onboarding done and close wizard
-//   skip()             — skip onboarding entirely
-// ─────────────────────────────────────────────────────────────────────────────
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { ipc, IPC } from '../lib/ipc';
 
@@ -69,10 +49,8 @@ export function useOnboarding(): UseOnboardingReturn {
   const [models, setModels] = useState<OllamaModel[]>([]);
   const [pullStatus, setPullStatus] = useState<Record<string, PullStatus>>({});
 
-  // Track cleanup functions for push-event listeners.
   const listenersRef = useRef<Array<() => void>>([]);
 
-  // Subscribe to pull progress / complete / error push events from main.
   useEffect(() => {
     const offProgress = ipc.on(IPC.ONBOARDING_PULL_PROGRESS, (...args: unknown[]) => {
       const { model, status, percent } = args[0] as {
@@ -92,7 +70,7 @@ export function useOnboarding(): UseOnboardingReturn {
         ...prev,
         [model]: { phase: 'complete', percent: 100, statusText: 'Downloaded' },
       }));
-      // Refresh model list after pull completes.
+      
       ipc.invoke<OllamaModel[]>(IPC.ONBOARDING_LIST_MODELS).then(list => {
         setModels(list);
       }).catch(() => undefined);
@@ -163,7 +141,7 @@ export function useOnboarding(): UseOnboardingReturn {
   }, []);
 
   const complete = useCallback(() => {
-    try { localStorage.setItem(STORAGE_KEY, 'true'); } catch { /* ignore */ }
+    try { localStorage.setItem(STORAGE_KEY, 'true'); } catch {  }
     setIsComplete(true);
   }, []);
 

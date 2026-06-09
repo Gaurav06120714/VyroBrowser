@@ -1,12 +1,7 @@
-// ─────────────────────────────────────────────────────────────────────────────
-// Keyword Engine — Core Matcher v3
-// Handles: exact, alias, smart-search, URL, fuzzy, intent-routing, NLP commands
-// ─────────────────────────────────────────────────────────────────────────────
 import { KeywordEntry, KeywordMatch, KeywordSuggestion, IntentType, SuggestionGroup } from './types';
 import { BUILTIN_KEYWORDS, getIndex } from './database';
 import { detectIntent, parseNLPCommand, INTENT_CATEGORIES, VERB_DEFAULT_KEYWORDS } from './intent';
 
-// ── Levenshtein (bounded, fast) ───────────────────────────────────────────────
 function levenshtein(a: string, b: string, cap = 3): number {
   if (Math.abs(a.length - b.length) > cap) return cap + 1;
   const m = a.length, n = b.length;
@@ -23,7 +18,6 @@ function levenshtein(a: string, b: string, cap = 3): number {
   return dp[n];
 }
 
-// ── URL helpers ───────────────────────────────────────────────────────────────
 const URL_RE = /^(https?:\/\/|ftp:\/\/)/i;
 const DOMAIN_RE = /^([a-z0-9-]+\.)+[a-z]{2,}(\/.*)?$/i;
 
@@ -44,9 +38,6 @@ function faviconUrl(domain: string): string {
   return `https://www.google.com/s2/favicons?sz=32&domain=${domain}`;
 }
 
-// ── resolve — turn raw user input into a single best-match URL ───────────────
-// Priority order: URL passthrough → NLP command ("open gmail") → exact keyword
-// match → smart-search ("<keyword> <query>") → Google fallback.
 export function resolve(
   raw: string,
   extras: KeywordEntry[] = [],
@@ -65,7 +56,6 @@ export function resolve(
   const parts = lower.split(/\s+/);
   const firstWord = parts[0];
 
-  // ── NLP command: "open gmail", "search github react", "watch cricket" ───
   const nlp = parseNLPCommand(lower);
   if (nlp.verb !== 'none') {
     if (nlp.target) {
@@ -78,7 +68,7 @@ export function resolve(
         };
       }
     }
-    // Verb without matched target → use default keyword list
+    
     const defaults = VERB_DEFAULT_KEYWORDS[nlp.verb];
     if (defaults && nlp.query) {
       for (const kw of defaults) {
@@ -94,7 +84,6 @@ export function resolve(
     }
   }
 
-  // ── Exact / alias (single word) ──────────────────────────────────────────
   if (parts.length === 1) {
     const entry = idx.get(firstWord);
     if (entry) {
@@ -103,7 +92,6 @@ export function resolve(
     }
   }
 
-  // ── Smart-search: "<keyword> <rest>" ────────────────────────────────────
   if (parts.length >= 2) {
     const entry = idx.get(firstWord);
     if (entry) {
@@ -115,11 +103,6 @@ export function resolve(
   return { type: 'none', entry: null, url: fallbackSearchUrl(input, searchEngine), query: input, triggeredBy: null, score: 0, intent };
 }
 
-// ── suggest — return ranked list of suggestions for the dropdown ─────────────
-// Produces up to maxResults suggestions ordered by score.  Each candidate gets
-// a usage bonus (capped at 25 pts) so frequently used keywords rank higher.
-// Groups: top (exact/smart-search), intent (category routing), suggestions
-// (prefix/fuzzy), search (Google fallback always appended last).
 export function suggest(
   raw: string,
   extras: KeywordEntry[] = [],
@@ -131,10 +114,9 @@ export function suggest(
 
   const lower = input.toLowerCase();
 
-  // URL passthrough
   if (looksLikeUrl(input)) {
     const normalized = normalizeUrl(input);
-    const domain = normalized.replace(/^https?:\/\//, '').split('/')[0];
+    const domain = normalized.replace(/^https?:\/\
     return [{
       type: 'url', label: normalized, sublabel: 'Go to URL',
       url: normalized, favicon: faviconUrl(domain),
@@ -160,7 +142,6 @@ export function suggest(
     suggestions.push(s);
   };
 
-  // ── NLP command suggestions ─────────────────────────────────────────────
   if (nlp.verb !== 'none') {
     if (nlp.target) {
       const entry = idx.get(nlp.target) ?? findByAlias(idx, nlp.target);
@@ -177,7 +158,6 @@ export function suggest(
       }
     }
 
-    // Fallback defaults for verb
     const defaults = VERB_DEFAULT_KEYWORDS[nlp.verb];
     if (defaults && nlp.query) {
       for (const kw of defaults) {
@@ -195,7 +175,6 @@ export function suggest(
     }
   }
 
-  // ── Exact keyword / alias ────────────────────────────────────────────────
   const exactEntry = idx.get(firstWord);
   if (exactEntry) {
     const usage = usageBonus(exactEntry.keyword);
@@ -219,7 +198,6 @@ export function suggest(
     }
   }
 
-  // ── Prefix matches ───────────────────────────────────────────────────────
   if (!rest && nlp.verb === 'none') {
     for (const entry of all) {
       if (entry === exactEntry) continue;
@@ -238,11 +216,10 @@ export function suggest(
     }
   }
 
-  // ── Intent-aware routing (multi-word, no exact match) ────────────────────
   if (intent && nlp.verb === 'none' && suggestions.filter(s => s.group !== 'search').length < 3) {
     const intentCats = INTENT_CATEGORIES[intent] ?? [];
     const searchQuery = lower;
-    const topByCategory = new Map<string, number>(); // cap 2 per category
+    const topByCategory = new Map<string, number>(); 
 
     for (const cat of intentCats) {
       for (const entry of all) {
@@ -264,7 +241,6 @@ export function suggest(
     }
   }
 
-  // ── Fuzzy (single word, fallback) ────────────────────────────────────────
   if (suggestions.filter(s => s.group !== 'search').length < 3 && parts.length === 1) {
     for (const entry of all) {
       if (suggestions.some(s => s.entry === entry)) continue;
@@ -282,7 +258,6 @@ export function suggest(
     }
   }
 
-  // ── Always: search Google ────────────────────────────────────────────────
   push({
     type: 'search',
     label: `Search Google for "${input}"`,
@@ -296,8 +271,6 @@ export function suggest(
     .sort((a, b) => b.score - a.score)
     .slice(0, maxResults);
 }
-
-// ── Helpers ───────────────────────────────────────────────────────────────────
 
 function findByAlias(idx: Map<string, KeywordEntry>, name: string): KeywordEntry | undefined {
   for (const entry of idx.values()) {

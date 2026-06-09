@@ -23,7 +23,6 @@ export async function performScroll(page: Page, options: ScrollOptions): Promise
     );
   }
 
-  // Allow content to render after scroll
   await page.waitForTimeout(200);
 }
 

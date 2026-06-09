@@ -5,7 +5,6 @@ import { FaviconImage } from '../shared/FaviconImage';
 import { Spinner } from '../shared/Spinner';
 import { NEW_TAB_URL } from '@shared/constants';
 
-// Vyro spark icon shown on new-tab tabs
 const VyroTabIcon: React.FC = () => (
   <svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor" className="text-vyro-400/70">
     <path fillRule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" clipRule="evenodd" />
@@ -45,7 +44,7 @@ export const Tab: React.FC<TabProps> = ({ tab, isActive, onDragStart, onDragOver
       ].join(' ')}
       title={tab.title}
     >
-      {/* Favicon or spinner */}
+      {}
       <div className="shrink-0">
         {tab.isLoading ? (
           <Spinner size="xs" />
@@ -56,14 +55,14 @@ export const Tab: React.FC<TabProps> = ({ tab, isActive, onDragStart, onDragOver
         )}
       </div>
 
-      {/* Title — hidden for pinned tabs */}
+      {}
       {!tab.isPinned && (
         <span className="flex-1 text-[12px] truncate leading-none tracking-tight">
           {tab.title || 'New Tab'}
         </span>
       )}
 
-      {/* Close button — hidden for pinned tabs */}
+      {}
       {!tab.isPinned && (
         <button
           onClick={handleClose}
@@ -82,7 +81,7 @@ export const Tab: React.FC<TabProps> = ({ tab, isActive, onDragStart, onDragOver
         </button>
       )}
 
-      {/* Animated active indicator — handled by CSS .tab-indicator */}
+      {}
       <span className="tab-indicator" aria-hidden />
     </div>
   );

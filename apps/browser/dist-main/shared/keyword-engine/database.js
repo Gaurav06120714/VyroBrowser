@@ -5,7 +5,7 @@ exports.getIndex = getIndex;
 exports.invalidateIndex = invalidateIndex;
 const F = (domain) => `https://www.google.com/s2/favicons?sz=32&domain=${domain}`;
 exports.BUILTIN_KEYWORDS = [
-    // ── Search ────────────────────────────────────────────────────────────────
+    
     {
         keyword: 'google', aliases: ['g'],
         url: 'https://www.google.com',
@@ -34,7 +34,7 @@ exports.BUILTIN_KEYWORDS = [
         name: 'Perplexity AI', favicon: F('perplexity.ai'),
         category: 'ai', builtin: true, enabled: true, region: 'global',
     },
-    // ── AI ───────────────────────────────────────────────────────────────────
+    
     {
         keyword: 'chatgpt', aliases: ['gpt', 'openai-chat'],
         url: 'https://chat.openai.com',
@@ -63,7 +63,7 @@ exports.BUILTIN_KEYWORDS = [
         name: 'OpenAI', favicon: F('openai.com'),
         category: 'ai', builtin: true, enabled: true, region: 'global',
     },
-    // ── Video / Streaming ─────────────────────────────────────────────────────
+    
     {
         keyword: 'youtube', aliases: ['yt'],
         url: 'https://www.youtube.com',
@@ -106,7 +106,7 @@ exports.BUILTIN_KEYWORDS = [
         name: 'Spotify', favicon: F('spotify.com'),
         category: 'music', builtin: true, enabled: true, region: 'global',
     },
-    // ── Social ────────────────────────────────────────────────────────────────
+    
     {
         keyword: 'twitter', aliases: ['x', 'tw'],
         url: 'https://x.com',
@@ -156,7 +156,7 @@ exports.BUILTIN_KEYWORDS = [
         name: 'Medium', favicon: F('medium.com'),
         category: 'news', builtin: true, enabled: true, region: 'global',
     },
-    // ── Messaging ─────────────────────────────────────────────────────────────
+    
     {
         keyword: 'discord', aliases: ['dc'],
         url: 'https://discord.com/app',
@@ -178,7 +178,7 @@ exports.BUILTIN_KEYWORDS = [
         name: 'WhatsApp Web', favicon: F('whatsapp.com'),
         category: 'messaging', builtin: true, enabled: true, region: 'global',
     },
-    // ── Dev ───────────────────────────────────────────────────────────────────
+    
     {
         keyword: 'github', aliases: ['gh'],
         url: 'https://github.com',
@@ -228,7 +228,7 @@ exports.BUILTIN_KEYWORDS = [
         name: 'MDN Web Docs', favicon: F('developer.mozilla.org'),
         category: 'dev', builtin: true, enabled: true, region: 'global',
     },
-    // ── Productivity / Google ─────────────────────────────────────────────────
+    
     {
         keyword: 'gmail', aliases: ['mail'],
         url: 'https://mail.google.com',
@@ -278,7 +278,7 @@ exports.BUILTIN_KEYWORDS = [
         name: 'Canva', favicon: F('canva.com'),
         category: 'design', builtin: true, enabled: true, region: 'global',
     },
-    // ── Shopping ─────────────────────────────────────────────────────────────
+    
     {
         keyword: 'amazon', aliases: ['amz'],
         url: 'https://www.amazon.in',
@@ -293,7 +293,7 @@ exports.BUILTIN_KEYWORDS = [
         name: 'Flipkart', favicon: F('flipkart.com'),
         category: 'shopping', builtin: true, enabled: true, region: 'in',
     },
-    // ── Education ─────────────────────────────────────────────────────────────
+    
     {
         keyword: 'coursera', aliases: [],
         url: 'https://www.coursera.org',
@@ -308,7 +308,7 @@ exports.BUILTIN_KEYWORDS = [
         name: 'Udemy', favicon: F('udemy.com'),
         category: 'education', builtin: true, enabled: true, region: 'global',
     },
-    // ── Gaming ───────────────────────────────────────────────────────────────
+    
     {
         keyword: 'steam', aliases: [],
         url: 'https://store.steampowered.com',
@@ -323,7 +323,7 @@ exports.BUILTIN_KEYWORDS = [
         name: 'Epic Games', favicon: F('epicgames.com'),
         category: 'gaming', builtin: true, enabled: true, region: 'global',
     },
-    // ── Deep-link streaming extras ────────────────────────────────────────────
+    
     {
         keyword: 'youtubemusic', aliases: ['ytmusic', 'yt music', 'youtube music'],
         url: 'https://music.youtube.com',
@@ -359,7 +359,7 @@ exports.BUILTIN_KEYWORDS = [
         name: 'Apple Music', favicon: F('music.apple.com'),
         category: 'music', builtin: true, enabled: true, region: 'global',
     },
-    // ── More dev/coding ───────────────────────────────────────────────────────
+    
     {
         keyword: 'mdn', aliases: ['mozilla'],
         url: 'https://developer.mozilla.org',
@@ -388,7 +388,7 @@ exports.BUILTIN_KEYWORDS = [
         name: 'DevDocs', favicon: F('devdocs.io'),
         category: 'dev', builtin: true, enabled: true, region: 'global',
     },
-    // ── More productivity ─────────────────────────────────────────────────────
+    
     {
         keyword: 'meet', aliases: ['googlemeet'],
         url: 'https://meet.google.com',
@@ -425,8 +425,7 @@ exports.BUILTIN_KEYWORDS = [
         category: 'dev', builtin: true, enabled: true, region: 'global',
     },
 ];
-// ── Lookup helpers ────────────────────────────────────────────────────────────
-/** Flat map: every keyword/alias → entry */
+
 let _index = null;
 function buildIndex(extras = []) {
     const all = [...exports.BUILTIN_KEYWORDS, ...extras];

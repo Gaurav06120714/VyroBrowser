@@ -36,10 +36,6 @@ export interface ExecuteOptions {
   onApprovalRequired: ApprovalCallback;
 }
 
-/**
- * BrowserAgent manages the Ollama tool-calling loop that drives browser interactions.
- * It translates Ollama's tool_calls into real Playwright actions via BrowserSession.
- */
 export class BrowserAgent {
   private readonly ollama: Ollama;
   private readonly model: string;
@@ -62,14 +58,12 @@ export class BrowserAgent {
   async execute(options: ExecuteOptions): Promise<{ success: boolean; summary: string; extractedData?: Record<string, unknown> }> {
     const { taskId, instruction, memory, session, onEvent, onApprovalRequired } = options;
 
-    // Conversation history — Ollama uses {role, content} format same as OpenAI
     const messages: Message[] = [];
     let stepNumber = 0;
     let extractedData: Record<string, unknown> | undefined;
     let taskDone = false;
     let finalSummary = '';
 
-    // Build initial user message
     const memorySummary = memory.getSummary();
     const initialPrompt = [
       `Task: ${instruction}`,
@@ -87,7 +81,7 @@ export class BrowserAgent {
     this.emit(onEvent, taskId, 'task:log', this.makeLog('info', 'browser', 'Agent starting execution'));
 
     for (let iteration = 0; iteration < this.maxIterations && !taskDone; iteration++) {
-      // Loop detection
+      
       if (memory.isInLoop()) {
         const loopedAction = memory.getMostRepeatedAction();
         this.logger.warn({ loopedAction }, 'Loop detected — injecting recovery prompt');
@@ -123,18 +117,15 @@ export class BrowserAgent {
         'Ollama response'
       );
 
-      // Add assistant message to history
       messages.push(assistantMessage);
 
-      // Emit reasoning text if present
       if (assistantMessage.content?.trim()) {
         this.emit(onEvent, taskId, 'agent:reasoning', { text: assistantMessage.content });
         this.emit(onEvent, taskId, 'task:log', this.makeLog('info', 'browser', assistantMessage.content.slice(0, 200)));
       }
 
-      // If no tool calls, model is done reasoning without acting — prompt it to act
       if (!assistantMessage.tool_calls || assistantMessage.tool_calls.length === 0) {
-        // Check if the text content indicates completion
+        
         const text = assistantMessage.content ?? '';
         if (
           text.toLowerCase().includes('task complete') ||
@@ -145,7 +136,6 @@ export class BrowserAgent {
           return { success: true, summary: text, extractedData };
         }
 
-        // Prompt the model to use a tool
         if (iteration < this.maxIterations - 1) {
           messages.push({
             role: 'user',
@@ -162,7 +152,6 @@ export class BrowserAgent {
         };
       }
 
-      // Process each tool call
       const toolResults: string[] = [];
 
       for (const toolCall of assistantMessage.tool_calls) {
@@ -170,7 +159,6 @@ export class BrowserAgent {
         const toolName = toolCall.function.name;
         const rawArgs = toolCall.function.arguments;
 
-        // Ollama may return arguments as string or object
         let input: Record<string, unknown>;
         if (typeof rawArgs === 'string') {
           try {
@@ -194,7 +182,6 @@ export class BrowserAgent {
           `Step ${stepNumber}: ${toolName} — ${String(input['description'] ?? '')}`
         ));
 
-        // Handle done tool specially
         if (toolName === 'done') {
           taskDone = true;
           const success = String(input['success'] ?? 'true') !== 'false';
@@ -208,7 +195,7 @@ export class BrowserAgent {
                   : (input['extractedData'] as Record<string, unknown>);
               extractedData = { ...extractedData, ...parsed };
             } catch {
-              // ignore parse errors on extracted data
+              
             }
           }
 
@@ -236,7 +223,6 @@ export class BrowserAgent {
           memory
         );
 
-        // Capture extracted data
         if (toolName === 'extract_data' && result.success && result.data) {
           const resultData = result.data as Record<string, unknown>;
           if (resultData['extracted']) {
@@ -260,8 +246,6 @@ export class BrowserAgent {
         toolResults.push(JSON.stringify({ toolName, result }));
       }
 
-      // Feed all tool results back to the model as a single user message
-      // Ollama doesn't have a separate tool_result role in all versions — use user role
       messages.push({
         role: 'tool',
         content: toolResults.join('\n---\n'),
@@ -363,7 +347,7 @@ export class BrowserAgent {
         }
 
         case 'extract_data': {
-          // schema may come as JSON string or object
+          
           let schema: Record<string, unknown>;
           if (typeof input['schema'] === 'string') {
             try {

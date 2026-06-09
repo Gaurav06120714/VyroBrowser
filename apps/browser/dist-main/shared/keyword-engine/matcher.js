@@ -6,7 +6,7 @@ exports.resolve = resolve;
 exports.suggest = suggest;
 const database_1 = require("./database");
 const intent_1 = require("./intent");
-// ── Levenshtein (bounded, fast) ───────────────────────────────────────────────
+
 function levenshtein(a, b, cap = 3) {
     if (Math.abs(a.length - b.length) > cap)
         return cap + 1;
@@ -25,7 +25,7 @@ function levenshtein(a, b, cap = 3) {
     }
     return dp[n];
 }
-// ── URL helpers ───────────────────────────────────────────────────────────────
+
 const URL_RE = /^(https?:\/\/|ftp:\/\/)/i;
 const DOMAIN_RE = /^([a-z0-9-]+\.)+[a-z]{2,}(\/.*)?$/i;
 function looksLikeUrl(input) {
@@ -45,9 +45,7 @@ function buildUrl(entry, query) {
 function faviconUrl(domain) {
     return `https://www.google.com/s2/favicons?sz=32&domain=${domain}`;
 }
-// ── resolve — turn raw user input into a single best-match URL ───────────────
-// Priority order: URL passthrough → NLP command ("open gmail") → exact keyword
-// match → smart-search ("<keyword> <query>") → Google fallback.
+
 function resolve(raw, extras = [], searchEngine = 'https://www.google.com/search?q=') {
     const input = raw.trim();
     if (!input)
@@ -60,7 +58,7 @@ function resolve(raw, extras = [], searchEngine = 'https://www.google.com/search
     const intent = (0, intent_1.detectIntent)(lower);
     const parts = lower.split(/\s+/);
     const firstWord = parts[0];
-    // ── NLP command: "open gmail", "search github react", "watch cricket" ───
+    
     const nlp = (0, intent_1.parseNLPCommand)(lower);
     if (nlp.verb !== 'none') {
         if (nlp.target) {
@@ -73,7 +71,7 @@ function resolve(raw, extras = [], searchEngine = 'https://www.google.com/search
                 };
             }
         }
-        // Verb without matched target → use default keyword list
+        
         const defaults = intent_1.VERB_DEFAULT_KEYWORDS[nlp.verb];
         if (defaults && nlp.query) {
             for (const kw of defaults) {
@@ -88,7 +86,7 @@ function resolve(raw, extras = [], searchEngine = 'https://www.google.com/search
             }
         }
     }
-    // ── Exact / alias (single word) ──────────────────────────────────────────
+    
     if (parts.length === 1) {
         const entry = idx.get(firstWord);
         if (entry) {
@@ -96,7 +94,7 @@ function resolve(raw, extras = [], searchEngine = 'https://www.google.com/search
             return { type: isAlias ? 'alias' : 'exact', entry, url: entry.url, query: null, triggeredBy: firstWord, score: 100, intent };
         }
     }
-    // ── Smart-search: "<keyword> <rest>" ────────────────────────────────────
+    
     if (parts.length >= 2) {
         const entry = idx.get(firstWord);
         if (entry) {
@@ -106,20 +104,16 @@ function resolve(raw, extras = [], searchEngine = 'https://www.google.com/search
     }
     return { type: 'none', entry: null, url: fallbackSearchUrl(input, searchEngine), query: input, triggeredBy: null, score: 0, intent };
 }
-// ── suggest — return ranked list of suggestions for the dropdown ─────────────
-// Produces up to maxResults suggestions ordered by score.  Each candidate gets
-// a usage bonus (capped at 25 pts) so frequently used keywords rank higher.
-// Groups: top (exact/smart-search), intent (category routing), suggestions
-// (prefix/fuzzy), search (Google fallback always appended last).
+
 function suggest(raw, extras = [], maxResults = 8, usageCounts = new Map()) {
     const input = raw.trim();
     if (!input)
         return [];
     const lower = input.toLowerCase();
-    // URL passthrough
+    
     if (looksLikeUrl(input)) {
         const normalized = normalizeUrl(input);
-        const domain = normalized.replace(/^https?:\/\//, '').split('/')[0];
+        const domain = normalized.replace(/^https?:\/\
         return [{
                 type: 'url', label: normalized, sublabel: 'Go to URL',
                 url: normalized, favicon: faviconUrl(domain),
@@ -142,7 +136,7 @@ function suggest(raw, extras = [], maxResults = 8, usageCounts = new Map()) {
         seenUrls.add(s.url);
         suggestions.push(s);
     };
-    // ── NLP command suggestions ─────────────────────────────────────────────
+    
     if (nlp.verb !== 'none') {
         if (nlp.target) {
             const entry = idx.get(nlp.target) ?? findByAlias(idx, nlp.target);
@@ -158,7 +152,7 @@ function suggest(raw, extras = [], maxResults = 8, usageCounts = new Map()) {
                 });
             }
         }
-        // Fallback defaults for verb
+        
         const defaults = intent_1.VERB_DEFAULT_KEYWORDS[nlp.verb];
         if (defaults && nlp.query) {
             for (const kw of defaults) {
@@ -176,7 +170,7 @@ function suggest(raw, extras = [], maxResults = 8, usageCounts = new Map()) {
             }
         }
     }
-    // ── Exact keyword / alias ────────────────────────────────────────────────
+    
     const exactEntry = idx.get(firstWord);
     if (exactEntry) {
         const usage = usageBonus(exactEntry.keyword);
@@ -200,7 +194,7 @@ function suggest(raw, extras = [], maxResults = 8, usageCounts = new Map()) {
             });
         }
     }
-    // ── Prefix matches ───────────────────────────────────────────────────────
+    
     if (!rest && nlp.verb === 'none') {
         for (const entry of all) {
             if (entry === exactEntry)
@@ -220,11 +214,11 @@ function suggest(raw, extras = [], maxResults = 8, usageCounts = new Map()) {
             });
         }
     }
-    // ── Intent-aware routing (multi-word, no exact match) ────────────────────
+    
     if (intent && nlp.verb === 'none' && suggestions.filter(s => s.group !== 'search').length < 3) {
         const intentCats = intent_1.INTENT_CATEGORIES[intent] ?? [];
         const searchQuery = lower;
-        const topByCategory = new Map(); // cap 2 per category
+        const topByCategory = new Map(); 
         for (const cat of intentCats) {
             for (const entry of all) {
                 if (entry.category !== cat)
@@ -247,7 +241,7 @@ function suggest(raw, extras = [], maxResults = 8, usageCounts = new Map()) {
             }
         }
     }
-    // ── Fuzzy (single word, fallback) ────────────────────────────────────────
+    
     if (suggestions.filter(s => s.group !== 'search').length < 3 && parts.length === 1) {
         for (const entry of all) {
             if (suggestions.some(s => s.entry === entry))
@@ -266,7 +260,7 @@ function suggest(raw, extras = [], maxResults = 8, usageCounts = new Map()) {
             });
         }
     }
-    // ── Always: search Google ────────────────────────────────────────────────
+    
     push({
         type: 'search',
         label: `Search Google for "${input}"`,
@@ -279,7 +273,7 @@ function suggest(raw, extras = [], maxResults = 8, usageCounts = new Map()) {
         .sort((a, b) => b.score - a.score)
         .slice(0, maxResults);
 }
-// ── Helpers ───────────────────────────────────────────────────────────────────
+
 function findByAlias(idx, name) {
     for (const entry of idx.values()) {
         if (entry.aliases.includes(name))

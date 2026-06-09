@@ -49,7 +49,6 @@ export const ContextMenu: React.FC<Props> = ({ x, y, type, context, onClose }) =
   const createTab = useTabsStore(s => s.createTab);
   const activeTab = useTabsStore(s => s.activeTab());
 
-  // Clamp to viewport
   const clampedX = Math.min(x, window.innerWidth - 200);
   const clampedY = Math.min(y, window.innerHeight - 300);
 
@@ -110,7 +109,6 @@ export const ContextMenu: React.FC<Props> = ({ x, y, type, context, onClose }) =
     : type === 'selection' ? selectionItems
     : pageItems;
 
-  // Suppress unused variable warning
   void nav;
 
   return createPortal(

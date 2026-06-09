@@ -7,14 +7,10 @@ import { WindowManager } from '../window-manager';
 import { DEFAULT_PROFILE_ID, NEW_TAB_URL } from '../../shared/constants';
 import { CrashRecoveryService } from '../services/crash-recovery';
 
-// tabId → webContentsId mapping (populated when renderer registers a webview)
-// This is required by navigation.ts and find.ts to route commands to the
-// correct webContents. It does NOT store tab metadata — renderer is the
-// source of truth for tab state.
 export const tabWebContentsMap = new Map<string, number>();
 
 export function registerTabsIpc(db: Database.Database, wm: WindowManager, crashRecovery: CrashRecoveryService): void {
-  // Internal: renderer registers webview webContentsId once dom-ready fires
+  
   ipcMain.handle('webview:register', (_event, { tabId, webContentsId }: { tabId: string; webContentsId: number }) => {
     tabWebContentsMap.set(tabId, webContentsId);
     return { ok: true };
@@ -77,8 +73,6 @@ export function registerTabsIpc(db: Database.Database, wm: WindowManager, crashR
     return { ok: true, tabId };
   });
 
-  // Renderer sends its current tab snapshot list for crash recovery persistence.
-  // This replaces the old in-memory tabRegistry — renderer is source of truth.
   ipcMain.handle(IPC.TABS_SAVE_SESSION, (
     _event,
     { profileId, tabs, activeTabId }: { profileId: string; tabs: TabSnapshot[]; activeTabId: string }
@@ -89,8 +83,6 @@ export function registerTabsIpc(db: Database.Database, wm: WindowManager, crashR
     return { ok: true };
   });
 
-  // TABS_GET_ALL: renderer is the authoritative tab store.
-  // Returns empty array — callers should use the renderer Zustand store instead.
   ipcMain.handle(IPC.TABS_GET_ALL, () => {
     return [];
   });

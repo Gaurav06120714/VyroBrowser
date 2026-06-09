@@ -25,11 +25,6 @@ interface QueueJob {
   addedAt: Date;
 }
 
-/**
- * SimpleQueue — an in-process async job queue that replaces BullMQ + Redis.
- * Supports configurable concurrency. All state is in-memory; it does not
- * survive process restarts, which is acceptable for a local single-user tool.
- */
 export class SimpleQueue<T extends AgentJobPayload> {
   private readonly queue: QueueJob[] = [];
   private running = 0;
@@ -41,7 +36,6 @@ export class SimpleQueue<T extends AgentJobPayload> {
     this.config = config;
   }
 
-  /** Add a job to the queue and start processing if capacity allows. */
   async add(payload: T): Promise<string> {
     const id = payload.taskId;
     this.queue.push({ id, payload, addedAt: new Date() });
@@ -50,7 +44,6 @@ export class SimpleQueue<T extends AgentJobPayload> {
     return id;
   }
 
-  /** Remove a pending job by id. Returns true if found and removed. */
   remove(jobId: string): boolean {
     const index = this.queue.findIndex((j) => j.id === jobId);
     if (index !== -1) {
@@ -60,17 +53,14 @@ export class SimpleQueue<T extends AgentJobPayload> {
     return false;
   }
 
-  /** Current number of actively running jobs. */
   get activeCount(): number {
     return this.running;
   }
 
-  /** Current number of pending jobs. */
   get pendingCount(): number {
     return this.queue.length;
   }
 
-  /** Drain pending jobs up to the concurrency limit. */
   private drain(): void {
     while (!this.shuttingDown && this.running < this.config.concurrency && this.queue.length > 0) {
       const job = this.queue.shift();
@@ -78,7 +68,7 @@ export class SimpleQueue<T extends AgentJobPayload> {
       this.running++;
       this.processJob(job).finally(() => {
         this.running--;
-        this.drain(); // Check for more work
+        this.drain(); 
       });
     }
   }
@@ -141,12 +131,10 @@ export class SimpleQueue<T extends AgentJobPayload> {
     }
   }
 
-  /** Wait for all running jobs to finish, then shut down the browser. */
   async shutdown(): Promise<void> {
     this.shuttingDown = true;
     this.config.logger.info('Queue shutting down — waiting for active jobs...');
 
-    // Poll until no running jobs remain
     await new Promise<void>((resolve) => {
       const check = () => {
         if (this.running === 0) resolve();

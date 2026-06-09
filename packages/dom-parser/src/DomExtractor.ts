@@ -1,11 +1,6 @@
 import type { Page } from 'playwright';
 import type { DomSummary, InteractiveElement, FormInfo, LinkInfo } from '@vyro/shared-types';
 
-/**
- * DomExtractor uses Playwright's evaluate API to perform in-browser DOM analysis.
- * It extracts interactive elements, forms, links, and detects special page states
- * (captchas, modals, errors) to give the AI a rich understanding of the current page.
- */
 export class DomExtractor {
   async extractState(page: Page, scopeSelector?: string): Promise<DomSummary> {
     const [interactiveElements, forms, links, metadata] = await Promise.all([
@@ -58,7 +53,6 @@ export class DomExtractor {
       root.querySelectorAll(INTERACTIVE_SELECTORS).forEach((el) => {
         const htmlEl = el as HTMLElement;
 
-        // Skip invisible or very small elements
         const rect = htmlEl.getBoundingClientRect();
         if (rect.width === 0 && rect.height === 0) return;
 
@@ -66,7 +60,6 @@ export class DomExtractor {
         const visible = style.display !== 'none' && style.visibility !== 'hidden' && style.opacity !== '0';
         if (!visible) return;
 
-        // Generate stable selector
         let selector = '';
         const id = htmlEl.id;
         const testId = htmlEl.getAttribute('data-testid');
@@ -94,7 +87,6 @@ export class DomExtractor {
           if (text) selector += `:has-text("${text.slice(0, 30)}")`;
         }
 
-        // Deduplicate
         const key = `${selector}|${type}|${text}`;
         if (seen.has(key)) return;
         seen.add(key);
@@ -118,7 +110,7 @@ export class DomExtractor {
         });
       });
 
-      return elements.slice(0, 100); // Cap to avoid token overflow
+      return elements.slice(0, 100); 
     }, scope);
   }
 
@@ -137,7 +129,6 @@ export class DomExtractor {
           const inputEl = field as HTMLInputElement;
           if (inputEl.type === 'hidden') return;
 
-          // Find label
           let label = '';
           if (inputEl.id) {
             label = document.querySelector(`label[for="${inputEl.id}"]`)?.textContent?.trim() ?? '';
@@ -235,7 +226,6 @@ export class DomExtractor {
       const bodyText = document.body.innerText.toLowerCase();
       const bodyHtml = document.body.innerHTML.toLowerCase();
 
-      // Detect captcha
       const captchaDetected =
         bodyHtml.includes('g-recaptcha') ||
         bodyHtml.includes('h-captcha') ||
@@ -245,20 +235,17 @@ export class DomExtractor {
         bodyText.includes('prove you are human') ||
         bodyText.includes('verify you are human');
 
-      // Detect modal/dialog
       const modalDetected =
         document.querySelector('[role="dialog"]') !== null ||
         document.querySelector('.modal.show') !== null ||
         document.querySelector('[aria-modal="true"]') !== null;
 
-      // Detect visible errors
       const errors: string[] = [];
       document.querySelectorAll('[role="alert"], .error, .alert-danger, .error-message').forEach((el) => {
         const text = el.textContent?.trim();
         if (text && text.length < 200) errors.push(text);
       });
 
-      // Detect page type
       let pageType: 'standard' | 'spa' | 'iframe' | 'pdf' | 'unknown' = 'standard';
       if (document.querySelector('iframe[src*="pdf"]') || window.location.pathname.endsWith('.pdf')) {
         pageType = 'pdf';

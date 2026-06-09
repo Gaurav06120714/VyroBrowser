@@ -27,13 +27,13 @@ export const Modal: React.FC<ModalProps> = ({ open, onClose, title, children, wi
       role="dialog"
       aria-modal="true"
     >
-      {/* Backdrop */}
+      {}
       <div
         className="absolute inset-0 bg-black/60 backdrop-blur-sm"
         style={{ animation: 'backdropIn 150ms ease-out forwards' }}
         onClick={onClose}
       />
-      {/* Panel */}
+      {}
       <div
         className={[
           'relative z-10 w-full rounded-2xl glass shadow-2xl',

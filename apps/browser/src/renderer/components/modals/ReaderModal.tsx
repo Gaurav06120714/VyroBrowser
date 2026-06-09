@@ -78,12 +78,12 @@ export const ReaderModal: React.FC<Props> = ({ url, onClose }) => {
 
   return (
     <div className="fixed inset-0 z-50 overflow-hidden">
-      {/* Backdrop */}
+      {}
       <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={onClose} />
 
-      {/* Modal */}
+      {}
       <div className="relative z-10 flex flex-col h-full">
-        {/* Toolbar */}
+        {}
         <div
           className="flex items-center justify-between px-6 py-3 border-b border-white/10"
           style={{ backgroundColor: themeStyle.bg }}
@@ -99,7 +99,7 @@ export const ReaderModal: React.FC<Props> = ({ url, onClose }) => {
           </button>
 
           <div className="flex items-center gap-2">
-            {/* Font size */}
+            {}
             <button
               onClick={() => setFontSize(s => Math.max(12, s - 2))}
               className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-black/10 transition-colors text-sm font-bold"
@@ -111,7 +111,7 @@ export const ReaderModal: React.FC<Props> = ({ url, onClose }) => {
               style={{ color: themeStyle.secondary }}
             >A+</button>
 
-            {/* Width */}
+            {}
             {(['narrow', 'medium', 'wide'] as ReaderWidth[]).map(w => (
               <button
                 key={w}
@@ -123,7 +123,7 @@ export const ReaderModal: React.FC<Props> = ({ url, onClose }) => {
               </button>
             ))}
 
-            {/* Theme */}
+            {}
             {(['light', 'dark', 'sepia'] as ReaderTheme[]).map(t => (
               <button
                 key={t}
@@ -135,7 +135,7 @@ export const ReaderModal: React.FC<Props> = ({ url, onClose }) => {
               </button>
             ))}
 
-            {/* TTS — hidden if platform confirmed unsupported */}
+            {}
             {ttsSupported !== false && (
               <button
                 onClick={handleTts}
@@ -151,7 +151,7 @@ export const ReaderModal: React.FC<Props> = ({ url, onClose }) => {
           </div>
         </div>
 
-        {/* Content */}
+        {}
         <div
           className="flex-1 overflow-y-auto"
           style={{ backgroundColor: themeStyle.bg, color: themeStyle.text }}

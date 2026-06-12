@@ -21,7 +21,7 @@
     "package:win:dir": "npm run build && electron-builder --win --dir",
     "install-app": "npm run package:dir && cp -r dist/mac-arm64/Vyro.app /Applications/Vyro.app && echo 'Installed to /Applications/Vyro.app'",
     "install-app:win": "npm run package:win:dir && node scripts/install-windows.mjs",
-    "postinstall": "electron-builder install-app-deps"
+    "postinstall": "electron-rebuild -f -w better-sqlite3"
   },
   "dependencies": {
     "@cliqz/adblocker-electron": "^1.31.0",

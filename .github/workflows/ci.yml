@@ -37,11 +37,10 @@ jobs:
       - uses: actions/setup-node@v4
         with: { node-version: '20', cache: 'pnpm' }
 
-      # Windows: Visual Studio Build Tools (for better-sqlite3)
-      - name: Install Windows build tools
-        if: runner.os == 'Windows'
-        run: npm install -g windows-build-tools --vs2019 || true
-        shell: powershell
+      # Windows: the windows-latest runner already ships the Visual Studio C++
+      # build tools that better-sqlite3 / node-gyp need, so no extra install is
+      # required. (The old `windows-build-tools` package is deprecated and the
+      # `|| true` fallback isn't valid PowerShell syntax.)
 
       - run: pnpm install --frozen-lockfile
       - run: pnpm --filter @vyro/browser build

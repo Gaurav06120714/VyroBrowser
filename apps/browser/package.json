@@ -57,6 +57,7 @@
   "build": {
     "appId": "com.vyro.browser",
     "productName": "Vyro",
+    "npmRebuild": false,
     "copyright": "Copyright © 2025 Vyro Browser",
     "asar": true,
     "asarUnpack": [

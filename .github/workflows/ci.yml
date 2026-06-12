@@ -59,7 +59,7 @@ jobs:
       - name: Package (Windows)
         if: runner.os == 'Windows'
         working-directory: apps/browser
-        run: pnpm package:dir
+        run: pnpm package:win:dir   # package:dir targets --mac, which can't build on Windows
         env:
           CSC_IDENTITY_AUTO_DISCOVERY: 'false'
 

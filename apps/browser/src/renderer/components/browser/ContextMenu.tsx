@@ -1,6 +1,8 @@
 import React, { useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { useTabsStore } from '../../store/tabs.store';
+import { useUiStore } from '../../store/ui.store';
+import { useAIStore } from '../../store/ai.store';
 import { ipc, IPC } from '../../lib/ipc';
 
 type MenuType = 'page' | 'link' | 'image' | 'selection';
@@ -48,6 +50,14 @@ export const ContextMenu: React.FC<Props> = ({ x, y, type, context, onClose }) =
   const menuRef = useRef<HTMLDivElement>(null);
   const createTab = useTabsStore(s => s.createTab);
   const activeTab = useTabsStore(s => s.activeTab());
+  const setSidebarPanel = useUiStore(s => s.setSidebarPanel);
+  const setPendingPrompt = useAIStore(s => s.setPendingPrompt);
+
+  const askAI = (prompt: string) => {
+    setPendingPrompt(prompt);
+    setSidebarPanel('ai');
+    onClose();
+  };
 
   const clampedX = Math.min(x, window.innerWidth - 200);
   const clampedY = Math.min(y, window.innerHeight - 300);
@@ -102,6 +112,10 @@ export const ContextMenu: React.FC<Props> = ({ x, y, type, context, onClose }) =
     'separator',
     { label: `Search Google for "${truncated}"`, action: () => { createTab({ url: `https://www.google.com/search?q=${encodeURIComponent(selText)}` }); onClose(); } },
     { label: `Define "${truncated}"`, action: () => { createTab({ url: `https://www.google.com/search?q=define+${encodeURIComponent(selText)}` }); onClose(); } },
+    'separator',
+    { label: 'Explain with AI', action: () => askAI(`Explain the following in simple terms:\n\n"${selText}"`) },
+    { label: 'Summarize with AI', action: () => askAI(`Summarize the following concisely:\n\n"${selText}"`) },
+    { label: 'Translate to English with AI', action: () => askAI(`Translate the following to English. If it is already English, just say so:\n\n"${selText}"`) },
   ];
 
   const items = type === 'link' ? linkItems

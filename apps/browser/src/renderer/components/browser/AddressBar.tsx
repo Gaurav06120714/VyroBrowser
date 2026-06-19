@@ -1,5 +1,7 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useTabsStore } from '../../store/tabs.store';
+import { useUiStore } from '../../store/ui.store';
+import { useAIStore } from '../../store/ai.store';
 import { ipc, IPC } from '../../lib/ipc';
 import { useKeywords } from '../../hooks/useKeywords';
 import { KeywordSuggestion } from '@shared/keyword-engine/types';
@@ -23,6 +25,8 @@ function isSecure(url: string): boolean | null {
 
 export const AddressBar: React.FC = () => {
   const activeTab = useTabsStore(s => s.activeTab());
+  const setSidebarPanel = useUiStore(s => s.setSidebarPanel);
+  const setPendingPrompt = useAIStore(s => s.setPendingPrompt);
   const url = activeTab?.url ?? '';
   const isLoading = activeTab?.isLoading ?? false;
   const tabId = activeTab?.id;
@@ -115,10 +119,25 @@ export const AddressBar: React.FC = () => {
       const current = input.trim();
       if (!current) { navigatingRef.current = false; return; }
 
+      // AI omnibox: "? question" routes the query to the AI sidebar instead of navigating.
+      if (current.startsWith('?')) {
+        const query = current.slice(1).trim();
+        if (query) {
+          setPendingPrompt(query);
+          setSidebarPanel('ai');
+        }
+        clearSuggestions();
+        setSelectedIdx(-1);
+        setInput(url);
+        inputRef.current?.blur();
+        navigatingRef.current = false;
+        return;
+      }
+
       const match = await resolve(current);
       navigate(match.url, match.entry?.keyword ?? undefined);
     }
-  }, [suggestions, selectedIdx, input, url, resolve, navigate, clearSuggestions]);
+  }, [suggestions, selectedIdx, input, url, resolve, navigate, clearSuggestions, setSidebarPanel, setPendingPrompt]);
 
   const secure = isSecure(url);
   const displayValue = focused ? input : displayUrl(url);

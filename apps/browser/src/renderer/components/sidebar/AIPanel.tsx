@@ -13,6 +13,8 @@ export const AIPanel: React.FC = () => {
     isStreaming,
     model,
     setModel,
+    pendingPrompt,
+    consumePendingPrompt,
     createConversation,
     sendMessage,
     summarizePage,
@@ -76,6 +78,14 @@ export const AIPanel: React.FC = () => {
       handleSend();
     }
   };
+
+  // AI omnibox ("? query") and context-menu actions stash a prompt in the store;
+  // the panel runs it once it is mounted and not already streaming.
+  useEffect(() => {
+    if (isStreaming) return;
+    const prompt = consumePendingPrompt();
+    if (prompt) sendMessage(prompt);
+  }, [pendingPrompt, isStreaming, consumePendingPrompt, sendMessage]);
 
   const handleNewChat = useCallback(async () => {
     await createConversation();

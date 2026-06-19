@@ -111,6 +111,8 @@ export function useAI() {
     isStreaming: store.isStreaming,
     model: store.model,
     setModel: store.setModel,
+    pendingPrompt: store.pendingPrompt,
+    consumePendingPrompt: store.consumePendingPrompt,
     createConversation,
     selectConversation,
     deleteConversation,

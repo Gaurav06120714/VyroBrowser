@@ -8,6 +8,9 @@ interface AIStore {
   streamingContent: Record<string, string>;
   isStreaming: boolean;
   model: string;
+  pendingPrompt: string | null;
+  setPendingPrompt: (prompt: string | null) => void;
+  consumePendingPrompt: () => string | null;
   setConversations: (c: AIConversation[]) => void;
   setActiveConversation: (id: string | null) => void;
   setMessages: (conversationId: string, msgs: AIMessage[]) => void;
@@ -18,13 +21,21 @@ interface AIStore {
   setModel: (m: string) => void;
 }
 
-export const useAIStore = create<AIStore>((set) => ({
+export const useAIStore = create<AIStore>((set, get) => ({
   conversations: [],
   activeConversationId: null,
   messages: {},
   streamingContent: {},
   isStreaming: false,
   model: 'qwen2.5-coder:7b',
+  pendingPrompt: null,
+
+  setPendingPrompt: (pendingPrompt) => set({ pendingPrompt }),
+  consumePendingPrompt: () => {
+    const { pendingPrompt } = get();
+    if (pendingPrompt) set({ pendingPrompt: null });
+    return pendingPrompt;
+  },
 
   setConversations: (conversations) => set({ conversations }),
   setActiveConversation: (activeConversationId) => set({ activeConversationId }),

@@ -23,7 +23,6 @@ function saveBounds(win) {
         fs_1.default.writeFileSync(STATE_FILE(), JSON.stringify(bounds), 'utf8');
     }
     catch {
-        
     }
 }
 function ensureVisible(bounds) {
@@ -52,7 +51,6 @@ function getPlatformWindowOptions() {
         return {
             titleBarStyle: 'hiddenInset',
             trafficLightPosition: { x: 16, y: 14 },
-            
             vibrancy: 'under-window',
             visualEffectState: 'followWindow',
             backgroundColor: '#00000000',
@@ -61,13 +59,11 @@ function getPlatformWindowOptions() {
     }
     if (platform === 'win32') {
         return {
-            
             titleBarStyle: 'hidden',
             backgroundColor: '#1a1a2e',
             transparent: false,
         };
     }
-    
     return {
         frame: true,
         backgroundColor: '#1a1a2e',
@@ -106,7 +102,6 @@ class WindowManager {
         win.on('closed', () => {
             this.mainWindow = null;
         });
-        
         const isDev = process.env.NODE_ENV === 'development' || process.env.ELECTRON_IS_DEV === '1';
         const devCsp = "default-src 'self' 'unsafe-inline' 'unsafe-eval' http://localhost:* blob: data:; " +
             "connect-src 'self' http://localhost:* ws://localhost:*; " +
@@ -129,7 +124,6 @@ class WindowManager {
             });
         });
         win.webContents.setWindowOpenHandler(({ url }) => {
-            
             win.webContents.send('webview:new-window', { url });
             return { action: 'deny' };
         });

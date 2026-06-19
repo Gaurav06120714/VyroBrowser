@@ -116,7 +116,7 @@ export function suggest(
 
   if (looksLikeUrl(input)) {
     const normalized = normalizeUrl(input);
-    const domain = normalized.replace(/^https?:\/\
+    const domain = normalized.replace(/^https?:\/\//, '').split('/')[0];
     return [{
       type: 'url', label: normalized, sublabel: 'Go to URL',
       url: normalized, favicon: faviconUrl(domain),

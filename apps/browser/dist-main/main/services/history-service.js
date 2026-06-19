@@ -39,7 +39,6 @@ class HistoryService {
          ORDER BY h.last_visited_at DESC LIMIT ? OFFSET ?`).all(profileId, query + '*', limit, offset).map(this.toEntry);
         }
         catch {
-            
             return this.db.prepare('SELECT * FROM history WHERE profile_id = ? AND (title LIKE ? OR url LIKE ?) ORDER BY last_visited_at DESC LIMIT ? OFFSET ?').all(profileId, `%${query}%`, `%${query}%`, limit, offset).map(this.toEntry);
         }
     }

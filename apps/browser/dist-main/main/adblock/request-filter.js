@@ -44,12 +44,10 @@ exports.loadSiteRulesFromDb = loadSiteRulesFromDb;
 const engine_1 = require("./engine");
 const SITE_RULE_PREFIX = 'adblock:site:';
 const stats = { totalBlocked: 0, trackersBlocked: 0, sessionBlocked: 0, totalAllowed: 0 };
-
-const siteOverridesCache = new Map(); 
+const siteOverridesCache = new Map();
 let statsListenerAttached = false;
 async function setupAdblocking(sess) {
     const blocker = await (0, engine_1.initBlocker)();
-    
     if (!statsListenerAttached) {
         statsListenerAttached = true;
         blocker.on('request-blocked', () => {
@@ -69,9 +67,8 @@ async function reloadBlocklists(sess) {
         currentBlocker.disableBlockingInSession(sess);
     }
     (0, engine_1.resetBlocker)();
-    statsListenerAttached = false; 
+    statsListenerAttached = false;
     const newBlocker = await (0, engine_1.initBlocker)();
-    
     statsListenerAttached = true;
     newBlocker.on('request-blocked', () => {
         stats.totalBlocked++;
@@ -99,9 +96,7 @@ function getStats() {
 function setSiteOverride(origin, enabled, settingsService) {
     siteOverridesCache.set(origin, enabled);
     if (settingsService) {
-        
         const key = `${SITE_RULE_PREFIX}${origin}`;
-        
         settingsService.setRaw('default', key, enabled);
     }
 }
@@ -113,7 +108,6 @@ function getAllSiteOverrides() {
     siteOverridesCache.forEach((val, key) => { result[key] = val; });
     return result;
 }
-
 function loadSiteRulesFromDb(settingsService) {
     const rules = settingsService.getAllByPrefix('default', SITE_RULE_PREFIX);
     for (const [key, value] of Object.entries(rules)) {

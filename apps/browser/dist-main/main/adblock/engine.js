@@ -22,7 +22,6 @@ function fetchText(url) {
         }).on('error', reject);
     });
 }
-
 const MINIMAL_FILTERS = `
 ! Vyro minimal blocklist
 ||ads.google.com^
@@ -36,7 +35,6 @@ async function initBlocker() {
     if (blocker)
         return blocker;
     const cachePath = path_1.default.join(electron_1.app.getPath('userData'), 'adblocker.cache');
-    
     try {
         if (fs_1.default.existsSync(cachePath)) {
             const serialized = fs_1.default.readFileSync(cachePath);
@@ -45,9 +43,7 @@ async function initBlocker() {
         }
     }
     catch {
-        
     }
-    
     try {
         const fetchFn = async (url) => ({
             text: () => fetchText(url),
@@ -57,7 +53,6 @@ async function initBlocker() {
         return blocker;
     }
     catch {
-        
     }
     blocker = adblocker_electron_1.ElectronBlocker.parse(MINIMAL_FILTERS);
     return blocker;

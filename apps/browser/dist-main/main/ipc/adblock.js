@@ -7,7 +7,6 @@ const request_filter_1 = require("../adblock/request-filter");
 const settings_service_1 = require("../services/settings-service");
 function registerAdblockIpc(db) {
     const settingsService = new settings_service_1.SettingsService(db);
-    
     (0, request_filter_1.loadSiteRulesFromDb)(settingsService);
     electron_1.ipcMain.handle(ipc_channels_1.IPC.ADBLOCK_GET_STATS, () => {
         return (0, request_filter_1.getStats)();
@@ -22,13 +21,12 @@ function registerAdblockIpc(db) {
     electron_1.ipcMain.handle(ipc_channels_1.IPC.ADBLOCK_RELOAD_LISTS, async () => {
         const defaultSess = electron_1.session.defaultSession;
         await (0, request_filter_1.reloadBlocklists)(defaultSess);
-        
         for (const s of electron_1.session.getAllSessions?.() ?? []) {
             if (s !== defaultSess) {
                 try {
                     await (0, request_filter_1.reloadBlocklists)(s);
                 }
-                catch {  }
+                catch { }
             }
         }
         return { ok: true };

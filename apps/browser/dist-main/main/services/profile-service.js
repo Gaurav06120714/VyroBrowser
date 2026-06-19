@@ -82,7 +82,6 @@ class ProfileService {
                 return content;
         }
         catch {
-            
         }
         return constants_1.DEFAULT_PROFILE_ID;
     }

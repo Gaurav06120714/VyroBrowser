@@ -6,10 +6,8 @@ const electron_1 = require("electron");
 const uuid_1 = require("uuid");
 const ipc_channels_1 = require("../../shared/ipc-channels");
 const constants_1 = require("../../shared/constants");
-
 exports.tabWebContentsMap = new Map();
 function registerTabsIpc(db, wm, crashRecovery) {
-    
     electron_1.ipcMain.handle('webview:register', (_event, { tabId, webContentsId }) => {
         exports.tabWebContentsMap.set(tabId, webContentsId);
         return { ok: true };
@@ -61,14 +59,12 @@ function registerTabsIpc(db, wm, crashRecovery) {
     electron_1.ipcMain.handle(ipc_channels_1.IPC.TABS_SPLIT_TOGGLE, (_event, { tabId }) => {
         return { ok: true, tabId };
     });
-    
     electron_1.ipcMain.handle(ipc_channels_1.IPC.TABS_SAVE_SESSION, (_event, { profileId, tabs, activeTabId }) => {
         if (Array.isArray(tabs) && tabs.length > 0) {
             crashRecovery.save(db, profileId, tabs, activeTabId ?? '');
         }
         return { ok: true };
     });
-    
     electron_1.ipcMain.handle(ipc_channels_1.IPC.TABS_GET_ALL, () => {
         return [];
     });

@@ -25,7 +25,6 @@ function registerProfilesIpc(db, wm) {
         if (!parsed.success)
             return { error: 'Invalid arguments' };
         profileService.setActive(parsed.data.id);
-        
         const win = wm.getMain();
         if (win) {
             win.reload();

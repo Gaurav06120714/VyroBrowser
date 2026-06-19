@@ -19,7 +19,7 @@ function isTTSSupported() {
     if (process_1.platform === 'darwin')
         return true;
     if (process_1.platform === 'win32')
-        return true; 
+        return true;
     if (process_1.platform === 'linux')
         return commandExists('espeak') || commandExists('festival');
     return false;
@@ -35,7 +35,6 @@ function startTTS(text, voice) {
         return { ok: true };
     }
     if (process_1.platform === 'win32') {
-        
         const escaped = safeText.replace(/'/g, "''");
         const ps = `Add-Type -AssemblyName System.Speech; $s = New-Object System.Speech.Synthesis.SpeechSynthesizer; ${voice ? `$s.SelectVoice('${voice}');` : ''} $s.Speak('${escaped}')`;
         ttsProcess = (0, child_process_1.spawn)('powershell.exe', ['-NoProfile', '-Command', ps]);

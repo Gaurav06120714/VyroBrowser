@@ -3,7 +3,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.VERB_DEFAULT_KEYWORDS = exports.INTENT_CATEGORIES = void 0;
 exports.detectIntent = detectIntent;
 exports.parseNLPCommand = parseNLPCommand;
-
 const STREAMING_TRIGGERS = [
     'watch', 'stream', 'episode', 'season', 'anime', 'movie', 'film',
     'series', 'documentary', 'show', 'trailer', 'cricket', 'ipl', 'sports',
@@ -54,23 +53,14 @@ function detectIntent(input) {
         return 'social';
     return null;
 }
-
 const NLP_PATTERNS = [
-    
     { re: /^search\s+(\w+)\s+(?:for\s+)?(.+)$/i, verb: 'search-on', targetGroup: 1, queryGroup: 2 },
-    
     { re: /^search\s+(.+?)\s+on\s+(\w+)$/i, verb: 'search-on', targetGroup: 2, queryGroup: 1 },
-    
     { re: /^watch\s+(.+)$/i, verb: 'watch', targetGroup: -1, queryGroup: 1 },
-    
     { re: /^play\s+(.+)$/i, verb: 'play', targetGroup: -1, queryGroup: 1 },
-    
     { re: /^buy\s+(.+)$/i, verb: 'buy', targetGroup: -1, queryGroup: 1 },
-    
     { re: /^find\s+(.+)$/i, verb: 'find', targetGroup: -1, queryGroup: 1 },
-    
     { re: /^go\s*to\s+(.+)$/i, verb: 'go-to', targetGroup: 1, queryGroup: null },
-    
     { re: /^open\s+(?:my\s+)?(\w+)(?:\s+(.+))?$/i, verb: 'open', targetGroup: 1, queryGroup: 2 },
 ];
 function parseNLPCommand(input) {
@@ -85,7 +75,6 @@ function parseNLPCommand(input) {
     }
     return { verb: 'none', target: null, query: null };
 }
-
 exports.INTENT_CATEGORIES = {
     streaming: ['streaming', 'video'],
     video: ['video', 'streaming'],
@@ -94,7 +83,6 @@ exports.INTENT_CATEGORIES = {
     music: ['music', 'streaming'],
     social: ['social', 'messaging'],
 };
-
 exports.VERB_DEFAULT_KEYWORDS = {
     watch: ['jiohotstar', 'netflix', 'primevideo', 'youtube'],
     play: ['spotify', 'youtube', 'jiohotstar'],

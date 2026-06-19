@@ -2,7 +2,6 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ReaderService = void 0;
 const electron_1 = require("electron");
-
 let hiddenWin = null;
 let extractionBusy = false;
 const extractionQueue = [];
@@ -56,12 +55,9 @@ class ReaderService {
                     const html = await win.webContents.executeJavaScript('document.documentElement.outerHTML');
                     clearTimeout(timeout);
                     releaseWin();
-                    
                     let article;
                     try {
-                        
                         const { JSDOM } = require('jsdom');
-                        
                         const { Readability } = require('@mozilla/readability');
                         const dom = new JSDOM(html, { url });
                         const parsed = new Readability(dom.window.document).parse();
@@ -80,7 +76,6 @@ class ReaderService {
                         }
                     }
                     catch {
-                        
                         article = await win.webContents.executeJavaScript(`
               (function() {
                 const title = document.title || '';

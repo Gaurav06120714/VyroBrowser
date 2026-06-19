@@ -107,7 +107,7 @@
       ],
       "darkModeSupport": true,
       "minimumSystemVersion": "12.0",
-      "artifactName": "Vyro-macOS-${arch === 'arm64' ? 'AppleSilicon' : 'Intel'}-${version}.${ext}",
+      "artifactName": "Vyro-macOS-${arch}-${version}.${ext}",
       "extendInfo": {
         "NSHighResolutionCapable": true,
         "CFBundleIconFile": "icon"
@@ -179,7 +179,7 @@
     "dmg": {
       "title": "Install Vyro Browser",
       "icon": "assets/icon.icns",
-      "background": "#1a1a2e",
+      "backgroundColor": "#1a1a2e",
       "iconSize": 160,
       "iconTextSize": 13,
       "window": {

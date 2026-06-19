@@ -6,7 +6,6 @@ const uuid_1 = require("uuid");
 const ipc_channels_1 = require("../../shared/ipc-channels");
 const pendingCallbacks = new Map();
 function registerPermissionsIpc(wm) {
-    
     const defaultSession = electron_1.session.defaultSession;
     defaultSession.setPermissionRequestHandler((_webContents, permission, callback, details) => {
         const requestId = (0, uuid_1.v4)();
@@ -20,7 +19,6 @@ function registerPermissionsIpc(wm) {
             });
         }
         else {
-            
             pendingCallbacks.delete(requestId);
             callback(false);
         }

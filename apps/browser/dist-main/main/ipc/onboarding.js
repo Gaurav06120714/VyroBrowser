@@ -4,7 +4,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.registerOnboardingIpc = registerOnboardingIpc;
-
 const electron_1 = require("electron");
 const http_1 = __importDefault(require("http"));
 const https_1 = __importDefault(require("https"));
@@ -13,7 +12,6 @@ const validators_1 = require("./validators");
 function getOllamaBase() {
     return process.env.OLLAMA_BASE_URL ?? 'http://localhost:11434';
 }
-
 function fetchJson(url) {
     return new Promise((resolve, reject) => {
         const client = url.startsWith('https://') ? https_1.default : http_1.default;
@@ -33,9 +31,7 @@ function fetchJson(url) {
         req.on('timeout', () => { req.destroy(); reject(new Error('Request timed out')); });
     });
 }
-
 const activePulls = new Map();
-
 function streamPull(base, model, signal, onLine) {
     return new Promise((resolve, reject) => {
         const url = new URL(`${base}/api/pull`);
@@ -85,14 +81,12 @@ function streamPull(base, model, signal, onLine) {
     });
 }
 function registerOnboardingIpc(wm) {
-    
     electron_1.ipcMain.handle('shell:open-external', (_event, { url }) => {
         if (typeof url === 'string' && (url.startsWith('https://') || url.startsWith('http://'))) {
             electron_1.shell.openExternal(url).catch(console.error);
         }
         return { ok: true };
     });
-    
     electron_1.ipcMain.handle(ipc_channels_1.IPC.ONBOARDING_CHECK_OLLAMA, async () => {
         const base = getOllamaBase();
         try {
@@ -103,7 +97,6 @@ function registerOnboardingIpc(wm) {
             return { running: false, url: base };
         }
     });
-    
     electron_1.ipcMain.handle(ipc_channels_1.IPC.ONBOARDING_LIST_MODELS, async () => {
         const base = getOllamaBase();
         try {
@@ -118,7 +111,6 @@ function registerOnboardingIpc(wm) {
             return [];
         }
     });
-    
     electron_1.ipcMain.handle(ipc_channels_1.IPC.ONBOARDING_PULL_MODEL, async (_event, args) => {
         const parsed = validators_1.OnboardingPullModelSchema.safeParse(args);
         if (!parsed.success)
@@ -158,7 +150,6 @@ function registerOnboardingIpc(wm) {
                     }
                 }
                 catch {
-                    
                 }
             });
             if (!controller.signal.aborted) {
@@ -174,7 +165,6 @@ function registerOnboardingIpc(wm) {
             activePulls.delete(model);
         }
     });
-    
     electron_1.ipcMain.handle(ipc_channels_1.IPC.ONBOARDING_CANCEL_PULL, (_event, args) => {
         const parsed = validators_1.OnboardingCancelPullSchema.safeParse(args);
         if (!parsed.success)

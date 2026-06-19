@@ -6,7 +6,6 @@ exports.resolve = resolve;
 exports.suggest = suggest;
 const database_1 = require("./database");
 const intent_1 = require("./intent");
-
 function levenshtein(a, b, cap = 3) {
     if (Math.abs(a.length - b.length) > cap)
         return cap + 1;
@@ -25,7 +24,6 @@ function levenshtein(a, b, cap = 3) {
     }
     return dp[n];
 }
-
 const URL_RE = /^(https?:\/\/|ftp:\/\/)/i;
 const DOMAIN_RE = /^([a-z0-9-]+\.)+[a-z]{2,}(\/.*)?$/i;
 function looksLikeUrl(input) {
@@ -45,7 +43,6 @@ function buildUrl(entry, query) {
 function faviconUrl(domain) {
     return `https://www.google.com/s2/favicons?sz=32&domain=${domain}`;
 }
-
 function resolve(raw, extras = [], searchEngine = 'https://www.google.com/search?q=') {
     const input = raw.trim();
     if (!input)
@@ -58,7 +55,6 @@ function resolve(raw, extras = [], searchEngine = 'https://www.google.com/search
     const intent = (0, intent_1.detectIntent)(lower);
     const parts = lower.split(/\s+/);
     const firstWord = parts[0];
-    
     const nlp = (0, intent_1.parseNLPCommand)(lower);
     if (nlp.verb !== 'none') {
         if (nlp.target) {
@@ -71,7 +67,6 @@ function resolve(raw, extras = [], searchEngine = 'https://www.google.com/search
                 };
             }
         }
-        
         const defaults = intent_1.VERB_DEFAULT_KEYWORDS[nlp.verb];
         if (defaults && nlp.query) {
             for (const kw of defaults) {
@@ -86,7 +81,6 @@ function resolve(raw, extras = [], searchEngine = 'https://www.google.com/search
             }
         }
     }
-    
     if (parts.length === 1) {
         const entry = idx.get(firstWord);
         if (entry) {
@@ -94,7 +88,6 @@ function resolve(raw, extras = [], searchEngine = 'https://www.google.com/search
             return { type: isAlias ? 'alias' : 'exact', entry, url: entry.url, query: null, triggeredBy: firstWord, score: 100, intent };
         }
     }
-    
     if (parts.length >= 2) {
         const entry = idx.get(firstWord);
         if (entry) {
@@ -104,16 +97,14 @@ function resolve(raw, extras = [], searchEngine = 'https://www.google.com/search
     }
     return { type: 'none', entry: null, url: fallbackSearchUrl(input, searchEngine), query: input, triggeredBy: null, score: 0, intent };
 }
-
 function suggest(raw, extras = [], maxResults = 8, usageCounts = new Map()) {
     const input = raw.trim();
     if (!input)
         return [];
     const lower = input.toLowerCase();
-    
     if (looksLikeUrl(input)) {
         const normalized = normalizeUrl(input);
-        const domain = normalized.replace(/^https?:\/\
+        const domain = normalized.replace(/^https?:\/\//, '').split('/')[0];
         return [{
                 type: 'url', label: normalized, sublabel: 'Go to URL',
                 url: normalized, favicon: faviconUrl(domain),
@@ -136,7 +127,6 @@ function suggest(raw, extras = [], maxResults = 8, usageCounts = new Map()) {
         seenUrls.add(s.url);
         suggestions.push(s);
     };
-    
     if (nlp.verb !== 'none') {
         if (nlp.target) {
             const entry = idx.get(nlp.target) ?? findByAlias(idx, nlp.target);
@@ -152,7 +142,6 @@ function suggest(raw, extras = [], maxResults = 8, usageCounts = new Map()) {
                 });
             }
         }
-        
         const defaults = intent_1.VERB_DEFAULT_KEYWORDS[nlp.verb];
         if (defaults && nlp.query) {
             for (const kw of defaults) {
@@ -170,7 +159,6 @@ function suggest(raw, extras = [], maxResults = 8, usageCounts = new Map()) {
             }
         }
     }
-    
     const exactEntry = idx.get(firstWord);
     if (exactEntry) {
         const usage = usageBonus(exactEntry.keyword);
@@ -194,7 +182,6 @@ function suggest(raw, extras = [], maxResults = 8, usageCounts = new Map()) {
             });
         }
     }
-    
     if (!rest && nlp.verb === 'none') {
         for (const entry of all) {
             if (entry === exactEntry)
@@ -214,11 +201,10 @@ function suggest(raw, extras = [], maxResults = 8, usageCounts = new Map()) {
             });
         }
     }
-    
     if (intent && nlp.verb === 'none' && suggestions.filter(s => s.group !== 'search').length < 3) {
         const intentCats = intent_1.INTENT_CATEGORIES[intent] ?? [];
         const searchQuery = lower;
-        const topByCategory = new Map(); 
+        const topByCategory = new Map();
         for (const cat of intentCats) {
             for (const entry of all) {
                 if (entry.category !== cat)
@@ -241,7 +227,6 @@ function suggest(raw, extras = [], maxResults = 8, usageCounts = new Map()) {
             }
         }
     }
-    
     if (suggestions.filter(s => s.group !== 'search').length < 3 && parts.length === 1) {
         for (const entry of all) {
             if (suggestions.some(s => s.entry === entry))
@@ -260,7 +245,6 @@ function suggest(raw, extras = [], maxResults = 8, usageCounts = new Map()) {
             });
         }
     }
-    
     push({
         type: 'search',
         label: `Search Google for "${input}"`,
@@ -273,7 +257,6 @@ function suggest(raw, extras = [], maxResults = 8, usageCounts = new Map()) {
         .sort((a, b) => b.score - a.score)
         .slice(0, maxResults);
 }
-
 function findByAlias(idx, name) {
     for (const entry of idx.values()) {
         if (entry.aliases.includes(name))

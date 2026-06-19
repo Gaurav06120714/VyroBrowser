@@ -9,11 +9,9 @@ const electron_1 = require("electron");
 const path_1 = __importDefault(require("path"));
 const fs_1 = __importDefault(require("fs"));
 let tray = null;
-
 function getTrayIcon() {
     const base = path_1.default.join(__dirname, '../../assets');
     if (process.platform === 'win32') {
-        
         try {
             const ico = path_1.default.join(base, 'icon.ico');
             if (fs_1.default.existsSync(ico)) {
@@ -23,11 +21,9 @@ function getTrayIcon() {
             }
         }
         catch {
-            
         }
     }
     if (process.platform === 'linux') {
-        
         for (const size of [256, 48, 32, 16]) {
             try {
                 const p = path_1.default.join(base, 'icons', `${size}x${size}.png`);
@@ -38,13 +34,10 @@ function getTrayIcon() {
                 }
             }
             catch {
-                
             }
         }
-        
         return electron_1.nativeImage.createEmpty();
     }
-    
     try {
         const png32 = path_1.default.join(base, 'icons', '32x32.png');
         if (fs_1.default.existsSync(png32)) {
@@ -54,9 +47,7 @@ function getTrayIcon() {
         }
     }
     catch {
-        
     }
-    
     try {
         const iconPng = path_1.default.join(base, 'icon.png');
         if (fs_1.default.existsSync(iconPng)) {
@@ -64,7 +55,6 @@ function getTrayIcon() {
         }
     }
     catch {
-        
     }
     return electron_1.nativeImage.createEmpty();
 }
@@ -84,7 +74,6 @@ function createTray(getWindow) {
         tray = new electron_1.Tray(icon);
     }
     catch (err) {
-        
         console.warn('Failed to create system tray:', err);
         return;
     }

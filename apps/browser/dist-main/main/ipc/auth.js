@@ -1,13 +1,11 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.registerAuthIpc = registerAuthIpc;
-
 const electron_1 = require("electron");
 const ipc_channels_1 = require("../../shared/ipc-channels");
 const supabase_client_1 = require("../services/supabase-client");
 function registerAuthIpc(wm) {
     const client = (0, supabase_client_1.getSupabaseClient)();
-    
     if (client) {
         client.auth.onAuthStateChange((event, session) => {
             const win = wm.getMain();
@@ -20,7 +18,6 @@ function registerAuthIpc(wm) {
             }
         });
     }
-    
     electron_1.ipcMain.handle(ipc_channels_1.IPC.AUTH_SIGN_IN, async (_e, email, password) => {
         if (!client)
             return { ok: false, error: 'Supabase not configured' };
@@ -34,7 +31,6 @@ function registerAuthIpc(wm) {
             return { ok: false, error: err?.message ?? 'Sign in failed' };
         }
     });
-    
     electron_1.ipcMain.handle(ipc_channels_1.IPC.AUTH_SIGN_UP, async (_e, email, password) => {
         if (!client)
             return { ok: false, error: 'Supabase not configured' };
@@ -48,7 +44,6 @@ function registerAuthIpc(wm) {
             return { ok: false, error: err?.message ?? 'Sign up failed' };
         }
     });
-    
     electron_1.ipcMain.handle(ipc_channels_1.IPC.AUTH_SIGN_OUT, async () => {
         if (!client)
             return { ok: false, error: 'Supabase not configured' };
@@ -62,7 +57,6 @@ function registerAuthIpc(wm) {
             return { ok: false, error: err?.message ?? 'Sign out failed' };
         }
     });
-    
     electron_1.ipcMain.handle(ipc_channels_1.IPC.AUTH_GET_SESSION, async () => {
         if (!client)
             return { ok: true, user: null, configured: false };

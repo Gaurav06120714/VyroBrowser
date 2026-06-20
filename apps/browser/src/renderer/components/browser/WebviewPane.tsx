@@ -1,9 +1,11 @@
 import React, { useRef, useEffect, useCallback, useState } from 'react';
 import { Tab } from '@shared/types/tab';
 import { useTabsStore } from '../../store/tabs.store';
+import { useUiStore } from '../../store/ui.store';
 import { WEBVIEW_PARTITION_PREFIX, NEW_TAB_URL } from '@shared/constants';
 import { NewTab } from '../../pages/NewTab';
 import { IPC } from '../../lib/ipc';
+import { getSiteZoom, originOf } from '../../lib/site-zoom';
 
 interface WebviewElement extends HTMLElement {
   src: string;
@@ -98,6 +100,17 @@ export const WebviewPane: React.FC<WebviewPaneProps> = ({ tab, active }) => {
   const handleDidFinishLoad = useCallback(async () => {
     const wv = webviewRef.current;
     if (!wv) return;
+
+    // Restore the persisted per-origin zoom for this page.
+    try {
+      const loadedUrl = (wv as unknown as { getURL(): string }).getURL?.() ?? tab.url;
+      const siteZoom = getSiteZoom(originOf(loadedUrl));
+      window.vyro.invoke(IPC.NAV_ZOOM as never, { tabId: tab.id, factor: siteZoom });
+      if (active) useUiStore.getState().setZoomLevel(siteZoom);
+    } catch {
+      /* ignore */
+    }
+
     try {
       const currentUrl = (wv as unknown as { getURL(): string }).getURL?.() ?? tab.url;
       if (!currentUrl || isNewTab(currentUrl)) return;
@@ -116,9 +129,9 @@ export const WebviewPane: React.FC<WebviewPaneProps> = ({ tab, active }) => {
         );
       }
     } catch {
-      
+
     }
-  }, [tab.url]);
+  }, [tab.url, tab.id, active]);
 
   useEffect(() => {
     const wv = webviewRef.current;

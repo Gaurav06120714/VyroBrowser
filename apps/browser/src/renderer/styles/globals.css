@@ -2,8 +2,9 @@
 @tailwind components;
 @tailwind utilities;
 :root {
-  --vyro-accent: #818cf8;
-  --vyro-accent-glow: rgba(129, 140, 248, 0.35);
+  /* Single source of truth for the accent — matches Tailwind `vyro-500`. */
+  --vyro-accent: #6366f1;
+  --vyro-accent-glow: rgba(99, 102, 241, 0.35);
   --vyro-ink: #e8e8f0;
   --vyro-ink-dim: #a8a8b8;
   --vyro-ink-faint: #6b6b80;
@@ -16,7 +17,7 @@
 html, body {
   background: transparent;
   color: var(--vyro-ink);
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
   font-size: 16px;
   line-height: 1.6;
   font-feature-settings: "cv11", "ss01";
@@ -44,16 +45,28 @@ webview {
   background: #ffffff;
 }
 .glass {
-  background: #0f0f11;
+  background: rgba(20, 20, 26, 0.72);
+  backdrop-filter: blur(18px) saturate(160%);
+  -webkit-backdrop-filter: blur(18px) saturate(160%);
   border: 1px solid var(--vyro-hairline);
 }
 .glass-floor {
-  background: #0f0f11;
+  background: rgba(15, 15, 17, 0.72);
+  backdrop-filter: blur(18px) saturate(160%);
+  -webkit-backdrop-filter: blur(18px) saturate(160%);
   border-bottom: 1px solid var(--vyro-hairline);
 }
 .glass-surface {
-  background: #121216;
+  background: rgba(18, 18, 22, 0.72);
+  backdrop-filter: blur(18px) saturate(160%);
+  -webkit-backdrop-filter: blur(18px) saturate(160%);
   border-right: 1px solid var(--vyro-hairline);
+}
+/* Solid fallback where backdrop-filter is unavailable (some Linux compositors). */
+@supports not (backdrop-filter: blur(1px)) {
+  .glass { background: #14141a; }
+  .glass-floor { background: #0f0f11; }
+  .glass-surface { background: #121216; }
 }
 .glass-lifted {
   background: #1a1a1e;
@@ -139,17 +152,6 @@ webview {
   transform: translateY(-0.5px);
 }
 .btn-accent:active { transform: scale(0.98); }
-.address-bar {
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid var(--vyro-hairline);
-  transition: background 200ms, border-color 200ms, box-shadow 220ms;
-}
-.address-bar:hover { background: rgba(255, 255, 255, 0.06); }
-.address-bar:focus-within {
-  background: rgba(255, 255, 255, 0.07);
-  border-color: rgba(129, 140, 248, 0.4);
-  box-shadow: 0 0 0 3px rgba(129, 140, 248, 0.12);
-}
 .panel-row {
   position: relative;
   transition: background-color 140ms var(--ease-out-quart),

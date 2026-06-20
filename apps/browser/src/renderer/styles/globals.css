@@ -75,6 +75,17 @@ html[data-theme='light'] .bg-white\/12 { background-color: rgba(0, 0, 0, 0.1); }
 html[data-theme='light'] .bg-white\/15 { background-color: rgba(0, 0, 0, 0.12); }
 html[data-theme='light'] .bg-white\/20 { background-color: rgba(0, 0, 0, 0.14); }
 
+/* Component classes that use hardcoded white overlays (toolbar, tabs, dials) */
+html[data-theme='light'] .btn-toolbar { color: rgba(0, 0, 0, 0.55); }
+html[data-theme='light'] .btn-toolbar:hover { background: rgba(0, 0, 0, 0.06); color: rgba(0, 0, 0, 0.9); }
+html[data-theme='light'] .tab-pill[data-active='true'] {
+  background: rgba(0, 0, 0, 0.06);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.05), 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+html[data-theme='light'] .panel-row:hover { background: rgba(0, 0, 0, 0.04); }
+html[data-theme='light'] .dial-card { background: rgba(0, 0, 0, 0.03); border-color: var(--vyro-hairline); }
+html[data-theme='light'] .dial-card:hover { background: rgba(0, 0, 0, 0.06); border-color: var(--vyro-hairline-strong); }
+
 /* White borders → black borders */
 html[data-theme='light'] .border-white\/5 { border-color: rgba(0, 0, 0, 0.06); }
 html[data-theme='light'] .border-white\/8 { border-color: rgba(0, 0, 0, 0.09); }

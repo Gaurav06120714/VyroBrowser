@@ -20,4 +20,5 @@ exports.DEFAULT_SETTINGS = {
     sidebarWidth: 380,
     hardwareAcceleration: true,
     autoUpdate: false,
+    httpsOnly: false,
 };

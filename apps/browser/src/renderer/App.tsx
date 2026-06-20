@@ -1,15 +1,3 @@
-// ─────────────────────────────────────────────────────────────────────────────
-// App.tsx — root layout and modal/overlay orchestration.
-//
-// Split into two components:
-//   NavBar — toolbar row: navigation buttons, address bar, action icons.
-//   App    — full-screen shell: tab bar, NavBar, WebviewContainer, sidebar,
-//            modals (settings / bookmark / reader / injection / profiles),
-//            context menu, command palette, and toast notifications.
-//
-// App also owns global keyboard shortcut handling (both renderer-side keydown
-// and shortcuts pushed from the main process via IPC).
-// ─────────────────────────────────────────────────────────────────────────────
 import React, { useEffect, useState } from 'react';
 import { TabBar } from './components/browser/TabBar';
 import { NavigationButtons } from './components/browser/NavigationButtons';
@@ -46,11 +34,12 @@ import { ErrorBoundary } from './components/shared/ErrorBoundary';
 
 const ONBOARDING_KEY = 'vyro:onboarding:complete';
 
-// ── NavBar — toolbar row below the tab strip ───────────────────────────────
 const NavBar: React.FC = () => {
   const openModal = useUiStore(s => s.openModal);
   const toggleSidebar = useUiStore(s => s.toggleSidebar);
   const sidebarOpen = useUiStore(s => s.sidebarOpen);
+  const splitViewEnabled = useUiStore(s => s.splitViewEnabled);
+  const setSplitViewEnabled = useUiStore(s => s.setSplitViewEnabled);
   const activeTab = useTabsStore(s => s.activeTab());
   const syncUser = useAuthStore(s => s.user);
 
@@ -60,7 +49,7 @@ const NavBar: React.FC = () => {
 
       <AddressBar />
 
-      {/* Action buttons — premium magnetic toolbar */}
+      {}
       <div className="flex items-center gap-0.5">
         <button
           onClick={() => openModal('bookmark')}
@@ -72,7 +61,7 @@ const NavBar: React.FC = () => {
           </svg>
         </button>
 
-        {/* Sync button — green dot when signed in */}
+        {}
         <button
           onClick={() => openModal('auth')}
           className="btn-toolbar relative"
@@ -94,6 +83,19 @@ const NavBar: React.FC = () => {
         >
           <svg className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
             <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
+          </svg>
+        </button>
+
+        <button
+          onClick={() => setSplitViewEnabled(!splitViewEnabled)}
+          className="btn-toolbar"
+          style={splitViewEnabled ? { background: 'rgba(129,140,248,0.14)', color: 'var(--vyro-accent)' } : undefined}
+          aria-label="Toggle split view"
+          title="Split view"
+        >
+          <svg className="w-4 h-4" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5">
+            <rect x="3" y="4" width="14" height="12" rx="1.5" />
+            <path strokeLinecap="round" d="M10 4v12" />
           </svg>
         </button>
 
@@ -122,7 +124,6 @@ const NavBar: React.FC = () => {
   );
 };
 
-// ── App — root shell: tab bar, content area, all modals and overlays ────────
 const App: React.FC = () => {
   const [onboardingDone, setOnboardingDone] = useState<boolean>(() => {
     try { return localStorage.getItem(ONBOARDING_KEY) === 'true'; } catch { return false; }
@@ -140,11 +141,9 @@ const App: React.FC = () => {
   const activeTab = useTabsStore(s => s.activeTab());
   const { menu: ctxMenu, show: showCtxMenu, hide: hideCtxMenu } = useContextMenu();
 
-  // Initialize global data at app level
   useSettings();
   useProfiles();
 
-  // Restore session from crash recovery, or open a default tab
   useEffect(() => {
     if (tabs.length > 0) return;
     ipc.invoke<SessionState | null>(IPC.TABS_RESTORE_SESSION, { profileId: DEFAULT_PROFILE_ID })
@@ -160,9 +159,9 @@ const App: React.FC = () => {
               profileId: snapshot.profileId,
             });
           }
-          // Activate the saved active tab if it was restored
+          
           const restoredTabs = useTabsStore.getState().tabs;
-          // Match by URL since IDs will differ
+          
           const activeSnapshot = session.tabs.find(t => t.id === session.activeTabId);
           if (activeSnapshot) {
             const match = restoredTabs.find(t => t.url === activeSnapshot.url);
@@ -175,12 +174,11 @@ const App: React.FC = () => {
       .catch(() => {
         createTab({ url: NEW_TAB_URL });
       });
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []); 
 
-  // Global keyboard shortcuts
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
-      // Cmd+K → command palette
+      
       if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
         e.preventDefault();
         openCommandPalette();
@@ -196,7 +194,6 @@ const App: React.FC = () => {
     return () => document.removeEventListener('keydown', handler, true);
   }, [openCommandPalette]);
 
-  // Listen for Dock "New Tab" action pushed from main process
   useEffect(() => {
     const off = ipc.on(IPC.APP_NEW_TAB, () => {
       createTab({ url: NEW_TAB_URL });
@@ -204,10 +201,25 @@ const App: React.FC = () => {
     return off;
   }, [createTab]);
 
-  // Persist session state to main process for crash recovery
-  // Debounced to avoid hammering IPC on every keystroke/navigation
+  useEffect(() => {
+    const off = ipc.on(IPC.WEBVIEW_NEW_WINDOW, (...args: unknown[]) => {
+      const payload = args[0] as { url?: string };
+      if (payload?.url) createTab({ url: payload.url });
+    });
+    return off;
+  }, [createTab]);
+
   useEffect(() => {
     let timer: ReturnType<typeof setTimeout> | null = null;
+    let lastSig = '';
+    const signature = () => {
+      const { tabs, activeTabId } = useTabsStore.getState();
+      // Only persist when the durable shape changes — not on transient
+      // isLoading/favicon churn — to avoid constant disk writes while browsing.
+      return tabs
+        .map(t => `${t.id}|${t.url}|${t.title}|${t.isPinned ? 1 : 0}|${t.groupId ?? ''}`)
+        .join('~') + `#${activeTabId ?? ''}`;
+    };
     const saveSession = () => {
       const { tabs, activeTabId } = useTabsStore.getState();
       if (tabs.length === 0) return;
@@ -223,9 +235,12 @@ const App: React.FC = () => {
         profileId: DEFAULT_PROFILE_ID,
         tabs: snapshots,
         activeTabId: activeTabId ?? '',
-      }).catch(() => {/* silent */});
+      }).catch(() => {});
     };
     const unsubscribe = useTabsStore.subscribe(() => {
+      const sig = signature();
+      if (sig === lastSig) return;
+      lastSig = sig;
       if (timer) clearTimeout(timer);
       timer = setTimeout(saveSession, 1500);
     });
@@ -233,9 +248,24 @@ const App: React.FC = () => {
       unsubscribe();
       if (timer) clearTimeout(timer);
     };
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []);
 
-  // Listen for auto-update events pushed from main
+  useEffect(() => {
+    // Memory saver: put non-active, non-pinned tabs to sleep after 30 minutes
+    // of inactivity so their renderer processes can be reclaimed.
+    const SLEEP_AFTER_MS = 30 * 60 * 1000;
+    const sweep = () => {
+      const { tabs, activeTabId, sleepTab } = useTabsStore.getState();
+      const now = Date.now();
+      for (const t of tabs) {
+        if (t.id === activeTabId || t.isPinned || t.asleep) continue;
+        if (now - t.lastActiveAt > SLEEP_AFTER_MS) sleepTab(t.id);
+      }
+    };
+    const interval = setInterval(sweep, 60 * 1000);
+    return () => clearInterval(interval);
+  }, []);
+
   useEffect(() => {
     const offAvailable = ipc.on(IPC.UPDATE_AVAILABLE, (...args: unknown[]) => {
       const payload = args[0] as { version?: string };
@@ -247,7 +277,6 @@ const App: React.FC = () => {
     return () => { offAvailable(); offReady(); };
   }, [setUpdateAvailable, setUpdateReady]);
 
-  // Listen for shortcut actions pushed from main
   useEffect(() => {
     const off = ipc.on(IPC.SHORTCUT_ACTION, (...args: unknown[]) => {
       const action = args[0] as string;
@@ -256,7 +285,6 @@ const App: React.FC = () => {
     return off;
   }, []);
 
-  // Initialize Supabase auth session on startup
   useEffect(() => {
     ipc.invoke(IPC.AUTH_GET_SESSION).then((r: any) => {
       setConfigured(r?.configured ?? false);
@@ -264,7 +292,6 @@ const App: React.FC = () => {
       setLoading(false);
     }).catch(() => setLoading(false));
 
-    // Listen for auth state changes pushed from main
     const off = ipc.on(IPC.AUTH_STATE_CHANGED, (...args: unknown[]) => {
       const payload = args[0] as { user: any };
       if (payload?.user) {
@@ -276,7 +303,6 @@ const App: React.FC = () => {
     return off;
   }, [setUser, setConfigured, setLoading]);
 
-  // Show onboarding if first launch
   if (!onboardingDone) {
     return (
       <ErrorBoundary label="Onboarding">
@@ -288,10 +314,10 @@ const App: React.FC = () => {
   return (
     <ErrorBoundary label="App">
       <div className="flex flex-col h-screen overflow-hidden bg-[#0f0f10] text-white">
-        {/* Windows custom title bar — renders only on win32 */}
+        {}
         <WindowsTitleBar />
 
-        {/* Auto-update notification banner */}
+        {}
         <UpdateBanner />
 
         <ErrorBoundary label="TabBar">
@@ -324,7 +350,7 @@ const App: React.FC = () => {
 
         <FindBar />
 
-        {/* Modals */}
+        {}
         {activeModal === 'settings' && <SettingsModal />}
         {activeModal === 'bookmark' && <BookmarkDialog />}
         {activeModal === 'reader' && activeTab && (
@@ -341,7 +367,7 @@ const App: React.FC = () => {
         {activeModal === 'auth' && <AuthModal />}
         <PermissionDialog />
 
-        {/* Context menu */}
+        {}
         {ctxMenu.visible && (
           <ContextMenu
             x={ctxMenu.x}

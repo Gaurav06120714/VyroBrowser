@@ -1,4 +1,5 @@
-import { ipcMain, webContents } from 'electron';
+import { ipcMain, webContents, dialog, app } from 'electron';
+import path from 'path';
 import { IPC } from '../../shared/ipc-channels';
 import { tabWebContentsMap } from './tabs';
 import { WindowManager } from '../window-manager';
@@ -17,7 +18,7 @@ export function registerNavigationIpc(wm: WindowManager): void {
     const { tabId, url } = parsed.data;
     const wc = getWc(tabId);
     if (wc && !wc.isDestroyed()) {
-      wc.loadURL(url).catch(() => {/* ignore */});
+      wc.loadURL(url).catch(() => {});
     }
     return { ok: true };
   });
@@ -67,6 +68,41 @@ export function registerNavigationIpc(wm: WindowManager): void {
         wc.openDevTools({ mode: 'detach' });
       }
     }
+    return { ok: true };
+  });
+
+  ipcMain.handle(IPC.PAGE_PRINT, (_event, { tabId }: { tabId: string }) => {
+    const wc = getWc(tabId);
+    if (wc && !wc.isDestroyed()) wc.print();
+    return { ok: true };
+  });
+
+  ipcMain.handle(IPC.PAGE_SAVE, async (_event, { tabId }: { tabId: string }) => {
+    const wc = getWc(tabId);
+    if (!wc || wc.isDestroyed()) return { ok: false };
+    const main = wm.getMain();
+    const suggested = (() => {
+      try { return new URL(wc.getURL()).hostname || 'page'; } catch { return 'page'; }
+    })();
+    const result = main
+      ? await dialog.showSaveDialog(main, {
+          defaultPath: path.join(app.getPath('downloads'), `${suggested}.html`),
+        })
+      : await dialog.showSaveDialog({
+          defaultPath: path.join(app.getPath('downloads'), `${suggested}.html`),
+        });
+    if (result.canceled || !result.filePath) return { ok: false };
+    try {
+      await wc.savePage(result.filePath, 'HTMLComplete');
+      return { ok: true };
+    } catch {
+      return { ok: false };
+    }
+  });
+
+  ipcMain.handle(IPC.PAGE_DOWNLOAD_URL, (_event, { tabId, url }: { tabId: string; url: string }) => {
+    const wc = getWc(tabId);
+    if (wc && !wc.isDestroyed() && url) wc.downloadURL(url);
     return { ok: true };
   });
 }

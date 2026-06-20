@@ -20,6 +20,7 @@ export interface AppSettings {
   sidebarWidth: number;
   hardwareAcceleration: boolean;
   autoUpdate: boolean;
+  httpsOnly: boolean;
 }
 
 export const DEFAULT_SETTINGS: AppSettings = {
@@ -41,4 +42,5 @@ export const DEFAULT_SETTINGS: AppSettings = {
   sidebarWidth: 380,
   hardwareAcceleration: true,
   autoUpdate: false,
+  httpsOnly: false,
 };

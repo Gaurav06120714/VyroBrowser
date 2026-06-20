@@ -1,15 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.OnboardingCancelPullSchema = exports.OnboardingPullModelSchema = exports.FindStopSchema = exports.FindStartSchema = exports.ProfileUpdateSchema = exports.ProfileDeleteSchema = exports.ProfileCreateSchema = exports.ProfileSwitchSchema = exports.SettingsSetSchema = exports.SettingsGetSchema = exports.AiSummarizePageSchema = exports.AiAbortSchema = exports.AiMessagesGetSchema = exports.AiConversationDeleteSchema = exports.AiConversationCreateSchema = exports.AiSendSchema = exports.BookmarkUpdateSchema = exports.BookmarkAddSchema = exports.HistoryClearRangeSchema = exports.HistoryDeleteSchema = exports.HistoryAddSchema = exports.HistorySearchSchema = exports.NavDevtoolsSchema = exports.NavZoomSchema = exports.NavStopSchema = exports.NavReloadSchema = exports.NavGoForwardSchema = exports.NavGoBackSchema = exports.NavLoadUrlSchema = exports.TabActivateSchema = exports.TabCloseSchema = exports.TabCreateSchema = void 0;
-// ─────────────────────────────────────────────────────────────────────────────
-// ipc/validators.ts — Zod schemas for all high-risk IPC handler payloads.
-//
-// Usage: call schema.safeParse(args) in the ipcMain.handle callback.
-// If validation fails, return { error: 'Invalid arguments' } — do NOT throw,
-// as throwing in ipcMain.handle sends an unhandled error to the renderer.
-// ─────────────────────────────────────────────────────────────────────────────
 const zod_1 = require("zod");
-// ── Tabs ──────────────────────────────────────────────────────────────────────
 exports.TabCreateSchema = zod_1.z.object({
     url: zod_1.z.string().optional(),
     title: zod_1.z.string().optional(),
@@ -20,7 +12,6 @@ exports.TabCreateSchema = zod_1.z.object({
 }).strict();
 exports.TabCloseSchema = zod_1.z.object({ tabId: zod_1.z.string().uuid() }).strict();
 exports.TabActivateSchema = zod_1.z.object({ tabId: zod_1.z.string().uuid() }).strict();
-// ── Navigation ────────────────────────────────────────────────────────────────
 exports.NavLoadUrlSchema = zod_1.z.object({
     tabId: zod_1.z.string().uuid(),
     url: zod_1.z.string().min(1).max(8192),
@@ -37,7 +28,6 @@ exports.NavZoomSchema = zod_1.z.object({
     factor: zod_1.z.number().min(0.1).max(5),
 }).strict();
 exports.NavDevtoolsSchema = zod_1.z.object({ tabId: zod_1.z.string().uuid() }).strict();
-// ── History ───────────────────────────────────────────────────────────────────
 exports.HistorySearchSchema = zod_1.z.object({
     query: zod_1.z.string().max(512),
     limit: zod_1.z.number().int().min(1).max(500).optional(),
@@ -53,7 +43,6 @@ exports.HistoryClearRangeSchema = zod_1.z.object({
     from: zod_1.z.number().int(),
     to: zod_1.z.number().int(),
 }).strict();
-// ── Bookmarks ────────────────────────────────────────────────────────────────
 exports.BookmarkAddSchema = zod_1.z.object({
     url: zod_1.z.string().url().max(8192),
     title: zod_1.z.string().max(2048),
@@ -66,7 +55,6 @@ exports.BookmarkUpdateSchema = zod_1.z.object({
     url: zod_1.z.string().url().max(8192).optional(),
     folderId: zod_1.z.number().int().nullable().optional(),
 }).strict();
-// ── AI ────────────────────────────────────────────────────────────────────────
 exports.AiSendSchema = zod_1.z.object({
     conversationId: zod_1.z.string().uuid(),
     content: zod_1.z.string().min(1).max(100_000),
@@ -90,7 +78,6 @@ exports.AiSummarizePageSchema = zod_1.z.object({
     pageText: zod_1.z.string().max(200_000),
     model: zod_1.z.string().min(1).max(256),
 }).strict();
-// ── Settings ─────────────────────────────────────────────────────────────────
 exports.SettingsGetSchema = zod_1.z.object({
     profileId: zod_1.z.string().min(1).max(256),
 }).strict();
@@ -98,7 +85,6 @@ exports.SettingsSetSchema = zod_1.z.object({
     profileId: zod_1.z.string().min(1).max(256),
     settings: zod_1.z.record(zod_1.z.string(), zod_1.z.unknown()),
 }).strict();
-// ── Profiles ─────────────────────────────────────────────────────────────────
 exports.ProfileSwitchSchema = zod_1.z.object({
     id: zod_1.z.string().min(1).max(256),
 }).strict();
@@ -114,7 +100,6 @@ exports.ProfileUpdateSchema = zod_1.z.object({
     name: zod_1.z.string().min(1).max(128).optional(),
     avatar: zod_1.z.string().optional(),
 }).strict();
-// ── Find ─────────────────────────────────────────────────────────────────────
 exports.FindStartSchema = zod_1.z.object({
     tabId: zod_1.z.string().uuid(),
     text: zod_1.z.string().min(1).max(1024),
@@ -123,12 +108,9 @@ exports.FindStartSchema = zod_1.z.object({
 exports.FindStopSchema = zod_1.z.object({
     tabId: zod_1.z.string().uuid(),
 }).strict();
-// ── Onboarding ────────────────────────────────────────────────────────────────
 exports.OnboardingPullModelSchema = zod_1.z.object({
     model: zod_1.z.string().min(1).max(256),
 }).strict();
 exports.OnboardingCancelPullSchema = zod_1.z.object({
     model: zod_1.z.string().min(1).max(256),
 }).strict();
-// ── Update ───────────────────────────────────────────────────────────────────
-// (no args for UPDATE_INSTALL)

@@ -1,16 +1,3 @@
-// ─────────────────────────────────────────────────────────────────────────────
-// ipc/onboarding.ts — IPC handlers for the first-launch onboarding wizard.
-//
-// Exposes three invoke channels:
-//   ONBOARDING_CHECK_OLLAMA  — ping Ollama health endpoint, return { running }
-//   ONBOARDING_LIST_MODELS   — return [{ name, size }] from Ollama tags API
-//   ONBOARDING_PULL_MODEL    — stream pull progress events to renderer
-//   ONBOARDING_CANCEL_PULL   — abort an in-flight pull
-//
-// Pull progress is pushed as ONBOARDING_PULL_PROGRESS  { model, status, percent }
-//                              ONBOARDING_PULL_COMPLETE { model }
-//                              ONBOARDING_PULL_ERROR    { model, message }
-// ─────────────────────────────────────────────────────────────────────────────
 import { ipcMain, shell } from 'electron';
 import http from 'http';
 import https from 'https';
@@ -32,7 +19,6 @@ function getOllamaBase(): string {
   return process.env.OLLAMA_BASE_URL ?? 'http://localhost:11434';
 }
 
-// Utility: perform a simple GET and return the parsed JSON body.
 function fetchJson<T>(url: string): Promise<T> {
   return new Promise((resolve, reject) => {
     const client = url.startsWith('https://') ? https : http;
@@ -52,10 +38,8 @@ function fetchJson<T>(url: string): Promise<T> {
   });
 }
 
-// Active pull abort controllers keyed by model name.
 const activePulls = new Map<string, AbortController>();
 
-// Stream Ollama pull — calls onLine for each NDJSON line until done/error.
 function streamPull(
   base: string,
   model: string,
@@ -107,7 +91,7 @@ function streamPull(
 }
 
 export function registerOnboardingIpc(wm: WindowManager): void {
-  // ── Open external URL in system browser (e.g. Ollama download page) ───────
+  
   ipcMain.handle('shell:open-external', (_event, { url }: { url: string }) => {
     if (typeof url === 'string' && (url.startsWith('https://') || url.startsWith('http://'))) {
       shell.openExternal(url).catch(console.error);
@@ -115,7 +99,6 @@ export function registerOnboardingIpc(wm: WindowManager): void {
     return { ok: true };
   });
 
-  // ── Check if Ollama is reachable ──────────────────────────────────────────
   ipcMain.handle(IPC.ONBOARDING_CHECK_OLLAMA, async () => {
     const base = getOllamaBase();
     try {
@@ -126,7 +109,6 @@ export function registerOnboardingIpc(wm: WindowManager): void {
     }
   });
 
-  // ── List installed models ─────────────────────────────────────────────────
   ipcMain.handle(IPC.ONBOARDING_LIST_MODELS, async () => {
     const base = getOllamaBase();
     try {
@@ -141,7 +123,6 @@ export function registerOnboardingIpc(wm: WindowManager): void {
     }
   });
 
-  // ── Pull a model ──────────────────────────────────────────────────────────
   ipcMain.handle(IPC.ONBOARDING_PULL_MODEL, async (_event, args: unknown) => {
     const parsed = OnboardingPullModelSchema.safeParse(args);
     if (!parsed.success) return { ok: false, error: 'Invalid arguments' };
@@ -190,7 +171,7 @@ export function registerOnboardingIpc(wm: WindowManager): void {
             push(IPC.ONBOARDING_PULL_COMPLETE, { model });
           }
         } catch {
-          // Unparseable line — skip
+          
         }
       });
 
@@ -206,7 +187,6 @@ export function registerOnboardingIpc(wm: WindowManager): void {
     }
   });
 
-  // ── Cancel an active pull ─────────────────────────────────────────────────
   ipcMain.handle(IPC.ONBOARDING_CANCEL_PULL, (_event, args: unknown) => {
     const parsed = OnboardingCancelPullSchema.safeParse(args);
     if (!parsed.success) return { ok: false, error: 'Invalid arguments' };

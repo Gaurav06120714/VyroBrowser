@@ -19,7 +19,7 @@ export const AIToolbar: React.FC<Props> = ({
 }) => {
   return (
     <div className="flex items-center gap-2 px-3 py-2 border-b border-white/[0.08] shrink-0">
-      {/* New Chat */}
+      {}
       <button
         onClick={onNewChat}
         disabled={isStreaming}
@@ -32,7 +32,7 @@ export const AIToolbar: React.FC<Props> = ({
         New Chat
       </button>
 
-      {/* Model selector */}
+      {}
       <div className="flex-1">
         <select
           value={model}
@@ -50,7 +50,7 @@ export const AIToolbar: React.FC<Props> = ({
         </select>
       </div>
 
-      {/* Summarize Page */}
+      {}
       <button
         onClick={onSummarizePage}
         disabled={isStreaming}

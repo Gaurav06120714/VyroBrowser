@@ -1,10 +1,3 @@
-// ─────────────────────────────────────────────────────────────────────────────
-// shortcuts.ts — Global keyboard shortcut registration.
-//
-// Uses Cmd on macOS and Ctrl on Windows/Linux for all shortcuts.
-// Pushes shortcut:action events to the renderer so the existing
-// handleShortcutAction() logic in App.tsx processes them.
-// ─────────────────────────────────────────────────────────────────────────────
 import { globalShortcut, BrowserWindow } from 'electron';
 import { IPC } from '../shared/ipc-channels';
 
@@ -28,7 +21,7 @@ const SHORTCUTS: ShortcutDef[] = [
   { accelerator: `${mod}+K`,           action: 'command-palette' },
   { accelerator: `${mod}+Shift+Left`,  action: 'go-back' },
   { accelerator: `${mod}+Shift+Right`, action: 'go-forward' },
-  // Tab switching
+  
   { accelerator: `${mod}+Tab`,         action: 'next-tab' },
   { accelerator: `${mod}+Shift+Tab`,   action: 'prev-tab' },
 ];
@@ -47,7 +40,7 @@ export function registerShortcuts(window: BrowserWindow): void {
         }
       });
     } catch {
-      // Some accelerators may conflict with OS-level shortcuts — skip silently
+      
       console.warn(`[shortcuts] Could not register: ${accelerator}`);
     }
   }

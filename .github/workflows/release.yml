@@ -32,6 +32,11 @@ jobs:
         working-directory: ${{ env.APP_DIR }}
         run: npm ci
 
+      # NOTE: To enable signing + notarization, add the secrets MAC_CSC_LINK,
+      # MAC_CSC_KEY_PASSWORD, APPLE_ID, APPLE_APP_SPECIFIC_PASSWORD, APPLE_TEAM_ID
+      # and set CSC_IDENTITY_AUTO_DISCOVERY: true with CSC_LINK/CSC_KEY_PASSWORD.
+      # They are intentionally NOT wired here because empty cert env vars break
+      # electron-builder; unsigned builds are produced until certs are available.
       - name: Build & package (macOS)
         working-directory: ${{ env.APP_DIR }}
         env:
@@ -74,9 +79,13 @@ jobs:
         working-directory: ${{ env.APP_DIR }}
         run: npm ci
 
+      # NOTE: To enable Authenticode signing, add secrets WIN_CSC_LINK and
+      # WIN_CSC_KEY_PASSWORD and pass them as CSC_LINK/CSC_KEY_PASSWORD here.
+      # Left unset because empty cert env vars break electron-builder.
       - name: Build & package (Windows)
         working-directory: ${{ env.APP_DIR }}
         env:
+          CSC_IDENTITY_AUTO_DISCOVERY: false
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: npm run package:win
 

@@ -1,17 +1,11 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.registerAuthIpc = registerAuthIpc;
-// ─────────────────────────────────────────────────────────────────────────────
-// auth.ts — Supabase auth IPC handlers.
-// Handles sign-in, sign-up, sign-out, session retrieval.
-// Pushes AUTH_STATE_CHANGED to renderer when session changes.
-// ─────────────────────────────────────────────────────────────────────────────
 const electron_1 = require("electron");
 const ipc_channels_1 = require("../../shared/ipc-channels");
 const supabase_client_1 = require("../services/supabase-client");
 function registerAuthIpc(wm) {
     const client = (0, supabase_client_1.getSupabaseClient)();
-    // Push auth state changes to renderer
     if (client) {
         client.auth.onAuthStateChange((event, session) => {
             const win = wm.getMain();
@@ -24,7 +18,6 @@ function registerAuthIpc(wm) {
             }
         });
     }
-    // Sign in with email + password
     electron_1.ipcMain.handle(ipc_channels_1.IPC.AUTH_SIGN_IN, async (_e, email, password) => {
         if (!client)
             return { ok: false, error: 'Supabase not configured' };
@@ -38,7 +31,6 @@ function registerAuthIpc(wm) {
             return { ok: false, error: err?.message ?? 'Sign in failed' };
         }
     });
-    // Sign up with email + password
     electron_1.ipcMain.handle(ipc_channels_1.IPC.AUTH_SIGN_UP, async (_e, email, password) => {
         if (!client)
             return { ok: false, error: 'Supabase not configured' };
@@ -52,7 +44,6 @@ function registerAuthIpc(wm) {
             return { ok: false, error: err?.message ?? 'Sign up failed' };
         }
     });
-    // Sign out
     electron_1.ipcMain.handle(ipc_channels_1.IPC.AUTH_SIGN_OUT, async () => {
         if (!client)
             return { ok: false, error: 'Supabase not configured' };
@@ -66,7 +57,6 @@ function registerAuthIpc(wm) {
             return { ok: false, error: err?.message ?? 'Sign out failed' };
         }
     });
-    // Get current session
     electron_1.ipcMain.handle(ipc_channels_1.IPC.AUTH_GET_SESSION, async () => {
         if (!client)
             return { ok: true, user: null, configured: false };

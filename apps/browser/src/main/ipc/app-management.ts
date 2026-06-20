@@ -1,12 +1,7 @@
-// ─────────────────────────────────────────────────────────────────────────────
-// app-management.ts — Cache cleanup, reset, version info, and migration IPC.
-// ─────────────────────────────────────────────────────────────────────────────
 import { ipcMain, app, session, BrowserWindow } from 'electron';
 import path from 'path';
 import fs from 'fs';
 import { IPC } from '../../shared/ipc-channels';
-
-// ── Helpers ───────────────────────────────────────────────────────────────────
 
 function getDirSizeSync(dirPath: string): number {
   if (!fs.existsSync(dirPath)) return 0;
@@ -17,21 +12,18 @@ function getDirSizeSync(dirPath: string): number {
       if (entry.isDirectory()) {
         total += getDirSizeSync(full);
       } else {
-        try { total += fs.statSync(full).size; } catch { /* skip */ }
+        try { total += fs.statSync(full).size; } catch {  }
       }
     }
-  } catch { /* skip unreadable dirs */ }
+  } catch {  }
   return total;
 }
 
 function rmSafe(dirPath: string): void {
   if (!fs.existsSync(dirPath)) return;
-  try { fs.rmSync(dirPath, { recursive: true, force: true }); } catch { /* ignore */ }
+  try { fs.rmSync(dirPath, { recursive: true, force: true }); } catch {  }
 }
 
-// ── Migration: clean up old app identity remnants ─────────────────────────────
-// Called once on startup. Removes old "Electron", "vyro-desktop", "vyro-browser"
-// userData folders that earlier builds may have created.
 export function runStartupMigration(): void {
   const platform = process.platform;
   const oldNames = ['Electron', 'vyro-desktop', 'vyro-browser', 'VyroBrowser'];
@@ -42,7 +34,7 @@ export function runStartupMigration(): void {
       for (const name of oldNames) {
         const old = path.join(base, name);
         if (fs.existsSync(old)) {
-          const vyroData = app.getPath('userData'); // ~/Library/Application Support/Vyro
+          const vyroData = app.getPath('userData'); 
           _migrateUserData(old, vyroData);
           rmSafe(old);
         }
@@ -61,11 +53,10 @@ export function runStartupMigration(): void {
       }
     }
   } catch {
-    // Migration errors are non-fatal
+    
   }
 }
 
-// Only migrate SQLite DB and window-state — never migrate GPU/code cache
 function _migrateUserData(oldDir: string, newDir: string): void {
   const filesToMigrate = ['vyro.db', 'window-state.json', 'active-profile.txt'];
   for (const file of filesToMigrate) {
@@ -75,16 +66,13 @@ function _migrateUserData(oldDir: string, newDir: string): void {
       try {
         fs.mkdirSync(path.dirname(dst), { recursive: true });
         fs.copyFileSync(src, dst);
-      } catch { /* skip */ }
+      } catch {  }
     }
   }
 }
 
-// ── IPC Handlers ──────────────────────────────────────────────────────────────
-
 export function registerAppManagementIpc(): void {
 
-  // Get app version info
   ipcMain.handle(IPC.APP_GET_VERSION, () => ({
     version: app.getVersion(),
     name: app.getName(),
@@ -97,7 +85,6 @@ export function registerAppManagementIpc(): void {
     userData: app.getPath('userData'),
   }));
 
-  // Get cache size (userData total, useful for "Clear Cache" UI)
   ipcMain.handle(IPC.APP_GET_CACHE_SIZE, () => {
     const userData = app.getPath('userData');
     const cacheDirs = ['Cache', 'Code Cache', 'GPUCache', 'DawnGraphiteCache',
@@ -109,7 +96,6 @@ export function registerAppManagementIpc(): void {
     return { bytes: totalBytes, mb: (totalBytes / 1024 / 1024).toFixed(1) };
   });
 
-  // Clear browser cache (Cache, Code Cache, Service Worker) — keeps user data
   ipcMain.handle(IPC.APP_CLEAR_CACHE, async () => {
     try {
       const ses = session.defaultSession;
@@ -117,7 +103,7 @@ export function registerAppManagementIpc(): void {
       await ses.clearStorageData({
         storages: ['serviceworkers', 'shadercache'],
       });
-      // Also wipe disk cache dirs for Electron's internal caches
+      
       const userData = app.getPath('userData');
       const wipeDirs = ['Cache', 'Code Cache', 'blob_storage'];
       for (const d of wipeDirs) rmSafe(path.join(userData, d));
@@ -127,7 +113,6 @@ export function registerAppManagementIpc(): void {
     }
   });
 
-  // Clear GPU cache only (fixes rendering glitches on driver updates)
   ipcMain.handle(IPC.APP_CLEAR_GPU_CACHE, async () => {
     try {
       const userData = app.getPath('userData');
@@ -139,8 +124,6 @@ export function registerAppManagementIpc(): void {
     }
   });
 
-  // Full reset — clears ALL session data + cache, keeps only vyro.db
-  // The app restarts automatically after reset.
   ipcMain.handle(IPC.APP_RESET, async () => {
     try {
       const ses = session.defaultSession;
@@ -155,7 +138,7 @@ export function registerAppManagementIpc(): void {
           rmSafe(path.join(userData, entry));
         }
       }
-      // Restart the app
+      
       app.relaunch();
       app.exit(0);
       return { ok: true };

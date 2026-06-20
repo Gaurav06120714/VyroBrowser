@@ -92,7 +92,7 @@ export class ProfileService {
       const content = fs.readFileSync(this.activeFile, 'utf8').trim();
       if (content && this.getById(content)) return content;
     } catch {
-      // file doesn't exist yet
+      
     }
     return DEFAULT_PROFILE_ID;
   }

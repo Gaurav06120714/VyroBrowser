@@ -1,7 +1,3 @@
-// ─────────────────────────────────────────────────────────────────────────────
-// UpdateBanner — slim banner shown above the tab bar when an update is available
-// or ready to install. Reads from the ui store (no props).
-// ─────────────────────────────────────────────────────────────────────────────
 import React, { useEffect, useRef } from 'react';
 import { useUiStore } from '../../store/ui.store';
 import { ipc, IPC } from '../../lib/ipc';
@@ -14,7 +10,6 @@ export const UpdateBanner: React.FC = () => {
 
   const bannerRef = useRef<HTMLDivElement>(null);
 
-  // Animate slide-in when the banner becomes visible
   useEffect(() => {
     const el = bannerRef.current;
     if (!el) return;
@@ -32,7 +27,7 @@ export const UpdateBanner: React.FC = () => {
   if (!updateStatus || updateDismissed) return null;
 
   const handleInstall = () => {
-    ipc.invoke(IPC.UPDATE_INSTALL as never).catch(() => {/* silent */});
+    ipc.invoke(IPC.UPDATE_INSTALL as never).catch(() => {});
   };
 
   return (

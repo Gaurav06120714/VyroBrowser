@@ -1,12 +1,9 @@
-// ─────────────────────────────────────────────────────────────────────────────
-// Keyword Engine — Built-in Database (50+ entries)
-// ─────────────────────────────────────────────────────────────────────────────
 import { KeywordEntry } from './types';
 
 const F = (domain: string) => `https://www.google.com/s2/favicons?sz=32&domain=${domain}`;
 
 export const BUILTIN_KEYWORDS: KeywordEntry[] = [
-  // ── Search ────────────────────────────────────────────────────────────────
+  
   {
     keyword: 'google', aliases: ['g'],
     url: 'https://www.google.com',
@@ -36,7 +33,6 @@ export const BUILTIN_KEYWORDS: KeywordEntry[] = [
     category: 'ai', builtin: true, enabled: true, region: 'global',
   },
 
-  // ── AI ───────────────────────────────────────────────────────────────────
   {
     keyword: 'chatgpt', aliases: ['gpt', 'openai-chat'],
     url: 'https://chat.openai.com',
@@ -66,7 +62,6 @@ export const BUILTIN_KEYWORDS: KeywordEntry[] = [
     category: 'ai', builtin: true, enabled: true, region: 'global',
   },
 
-  // ── Video / Streaming ─────────────────────────────────────────────────────
   {
     keyword: 'youtube', aliases: ['yt'],
     url: 'https://www.youtube.com',
@@ -110,7 +105,6 @@ export const BUILTIN_KEYWORDS: KeywordEntry[] = [
     category: 'music', builtin: true, enabled: true, region: 'global',
   },
 
-  // ── Social ────────────────────────────────────────────────────────────────
   {
     keyword: 'twitter', aliases: ['x', 'tw'],
     url: 'https://x.com',
@@ -161,7 +155,6 @@ export const BUILTIN_KEYWORDS: KeywordEntry[] = [
     category: 'news', builtin: true, enabled: true, region: 'global',
   },
 
-  // ── Messaging ─────────────────────────────────────────────────────────────
   {
     keyword: 'discord', aliases: ['dc'],
     url: 'https://discord.com/app',
@@ -184,7 +177,6 @@ export const BUILTIN_KEYWORDS: KeywordEntry[] = [
     category: 'messaging', builtin: true, enabled: true, region: 'global',
   },
 
-  // ── Dev ───────────────────────────────────────────────────────────────────
   {
     keyword: 'github', aliases: ['gh'],
     url: 'https://github.com',
@@ -235,7 +227,6 @@ export const BUILTIN_KEYWORDS: KeywordEntry[] = [
     category: 'dev', builtin: true, enabled: true, region: 'global',
   },
 
-  // ── Productivity / Google ─────────────────────────────────────────────────
   {
     keyword: 'gmail', aliases: ['mail'],
     url: 'https://mail.google.com',
@@ -286,7 +277,6 @@ export const BUILTIN_KEYWORDS: KeywordEntry[] = [
     category: 'design', builtin: true, enabled: true, region: 'global',
   },
 
-  // ── Shopping ─────────────────────────────────────────────────────────────
   {
     keyword: 'amazon', aliases: ['amz'],
     url: 'https://www.amazon.in',
@@ -302,7 +292,6 @@ export const BUILTIN_KEYWORDS: KeywordEntry[] = [
     category: 'shopping', builtin: true, enabled: true, region: 'in',
   },
 
-  // ── Education ─────────────────────────────────────────────────────────────
   {
     keyword: 'coursera', aliases: [],
     url: 'https://www.coursera.org',
@@ -318,7 +307,6 @@ export const BUILTIN_KEYWORDS: KeywordEntry[] = [
     category: 'education', builtin: true, enabled: true, region: 'global',
   },
 
-  // ── Gaming ───────────────────────────────────────────────────────────────
   {
     keyword: 'steam', aliases: [],
     url: 'https://store.steampowered.com',
@@ -334,7 +322,6 @@ export const BUILTIN_KEYWORDS: KeywordEntry[] = [
     category: 'gaming', builtin: true, enabled: true, region: 'global',
   },
 
-  // ── Deep-link streaming extras ────────────────────────────────────────────
   {
     keyword: 'youtubemusic', aliases: ['ytmusic', 'yt music', 'youtube music'],
     url: 'https://music.youtube.com',
@@ -371,7 +358,6 @@ export const BUILTIN_KEYWORDS: KeywordEntry[] = [
     category: 'music', builtin: true, enabled: true, region: 'global',
   },
 
-  // ── More dev/coding ───────────────────────────────────────────────────────
   {
     keyword: 'mdn', aliases: ['mozilla'],
     url: 'https://developer.mozilla.org',
@@ -401,7 +387,6 @@ export const BUILTIN_KEYWORDS: KeywordEntry[] = [
     category: 'dev', builtin: true, enabled: true, region: 'global',
   },
 
-  // ── More productivity ─────────────────────────────────────────────────────
   {
     keyword: 'meet', aliases: ['googlemeet'],
     url: 'https://meet.google.com',
@@ -439,9 +424,6 @@ export const BUILTIN_KEYWORDS: KeywordEntry[] = [
   },
 ];
 
-// ── Lookup helpers ────────────────────────────────────────────────────────────
-
-/** Flat map: every keyword/alias → entry */
 let _index: Map<string, KeywordEntry> | null = null;
 
 function buildIndex(extras: KeywordEntry[] = []): Map<string, KeywordEntry> {

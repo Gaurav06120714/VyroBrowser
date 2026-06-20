@@ -42,7 +42,7 @@ export const TabBar: React.FC = () => {
   const handleNewTab = () => createTab({ url: NEW_TAB_URL });
 
   const handleDoubleClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    // Only trigger on the bar itself, not on tabs
+    
     if ((e.target as HTMLElement).closest('[draggable]')) return;
     handleNewTab();
   };
@@ -52,10 +52,10 @@ export const TabBar: React.FC = () => {
       className="flex items-center h-10 bg-[#0f0f10] drag border-b border-white/5 overflow-hidden"
       onDoubleClick={handleDoubleClick}
     >
-      {/* Space for macOS traffic lights */}
+      {}
       <div className="w-20 shrink-0 drag" />
 
-      {/* Tab strip */}
+      {}
       <div className="flex items-center gap-0.5 flex-1 overflow-x-auto overflow-y-hidden h-full px-1 scrollbar-hide no-drag">
         {tabs.map(tab => (
           <Tab
@@ -69,7 +69,7 @@ export const TabBar: React.FC = () => {
         ))}
       </div>
 
-      {/* New tab button */}
+      {}
       <button
         onClick={handleNewTab}
         className="no-drag shrink-0 w-8 h-8 mr-2 flex items-center justify-center rounded-lg text-white/40 hover:text-white hover:bg-white/8 transition-all duration-150 focus:outline-none"

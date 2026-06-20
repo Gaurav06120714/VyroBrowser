@@ -1,8 +1,3 @@
-// ─────────────────────────────────────────────────────────────────────────────
-// auth.ts — Supabase auth IPC handlers.
-// Handles sign-in, sign-up, sign-out, session retrieval.
-// Pushes AUTH_STATE_CHANGED to renderer when session changes.
-// ─────────────────────────────────────────────────────────────────────────────
 import { ipcMain, BrowserWindow } from 'electron';
 import { IPC } from '../../shared/ipc-channels';
 import { getSupabaseClient } from '../services/supabase-client';
@@ -11,7 +6,6 @@ import { WindowManager } from '../window-manager';
 export function registerAuthIpc(wm: WindowManager): void {
   const client = getSupabaseClient();
 
-  // Push auth state changes to renderer
   if (client) {
     client.auth.onAuthStateChange((event, session) => {
       const win = wm.getMain();
@@ -25,7 +19,6 @@ export function registerAuthIpc(wm: WindowManager): void {
     });
   }
 
-  // Sign in with email + password
   ipcMain.handle(IPC.AUTH_SIGN_IN, async (_e, email: string, password: string) => {
     if (!client) return { ok: false, error: 'Supabase not configured' };
     try {
@@ -37,7 +30,6 @@ export function registerAuthIpc(wm: WindowManager): void {
     }
   });
 
-  // Sign up with email + password
   ipcMain.handle(IPC.AUTH_SIGN_UP, async (_e, email: string, password: string) => {
     if (!client) return { ok: false, error: 'Supabase not configured' };
     try {
@@ -49,7 +41,6 @@ export function registerAuthIpc(wm: WindowManager): void {
     }
   });
 
-  // Sign out
   ipcMain.handle(IPC.AUTH_SIGN_OUT, async () => {
     if (!client) return { ok: false, error: 'Supabase not configured' };
     try {
@@ -61,7 +52,6 @@ export function registerAuthIpc(wm: WindowManager): void {
     }
   });
 
-  // Get current session
   ipcMain.handle(IPC.AUTH_GET_SESSION, async () => {
     if (!client) return { ok: true, user: null, configured: false };
     try {

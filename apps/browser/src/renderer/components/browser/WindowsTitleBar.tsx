@@ -1,20 +1,7 @@
-// ─────────────────────────────────────────────────────────────────────────────
-// WindowsTitleBar.tsx — Custom title bar for Windows (and Linux with
-// frame: false).  Rendered in the renderer process but styled to look native.
-//
-// Renders only when window.vyro.platform === 'win32'.  Provides draggable
-// region (-webkit-app-region: drag) at the top and Minimize / Maximize /
-// Close controls on the right.
-//
-// Window control actions are issued through the existing IPC bridge.
-// The main process exposes window:minimize / window:maximize / window:close
-// via registerWindowControlsIpc (wired in ipc/index.ts).
-// ─────────────────────────────────────────────────────────────────────────────
 import React, { useCallback } from 'react';
 
 const platform = typeof window !== 'undefined' && window.vyro ? window.vyro.platform : 'darwin';
 
-// SVG icon components — 10×10 viewBox to match Windows 11 Segoe Fluent icons.
 const IconMinimize: React.FC = () => (
   <svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor">
     <path d="M0 5h10v1H0z" />
@@ -41,7 +28,6 @@ const IconClose: React.FC = () => (
 export const WindowsTitleBar: React.FC = () => {
   const [isMaximized, setIsMaximized] = React.useState(false);
 
-  // Sync maximized state via IPC push events if available.
   React.useEffect(() => {
     if (!window.vyro) return;
     const unsubMax = window.vyro.on('window:maximized' as never, () => setIsMaximized(true));
@@ -61,7 +47,6 @@ export const WindowsTitleBar: React.FC = () => {
     window.vyro?.invoke('window:close' as never);
   }, []);
 
-  // Only render on Windows — macOS has native traffic lights, Linux uses frame.
   if (platform !== 'win32') return null;
 
   return (
@@ -69,7 +54,7 @@ export const WindowsTitleBar: React.FC = () => {
       className="flex items-center justify-between h-8 select-none shrink-0"
       style={{ WebkitAppRegion: 'drag' } as React.CSSProperties}
     >
-      {/* App name / logo — left side */}
+      {}
       <div className="flex items-center gap-2 px-3">
         <svg
           className="w-4 h-4 text-violet-400 shrink-0"
@@ -81,7 +66,7 @@ export const WindowsTitleBar: React.FC = () => {
         <span className="text-xs font-medium text-white/60 tracking-wide">Vyro</span>
       </div>
 
-      {/* Window controls — right side, no drag region */}
+      {}
       <div
         className="flex items-center h-full ml-auto"
         style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}

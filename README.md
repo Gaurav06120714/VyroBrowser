@@ -27,16 +27,18 @@
 
 ## 📥 Download
 
-Latest release: **v2.0.0**
+Latest release: **v2.2.0**
 
 | Platform | Installer | Notes |
 |---|---|---|
-| **macOS** (Apple Silicon M1/M2/M3) | [Vyro-2.0.0-arm64.dmg](https://github.com/Gaurav06120714/VyroBrowser/releases/download/v2.0.0/Vyro-2.0.0-arm64.dmg) | Drag to Applications |
-| **macOS** (Intel) | [Vyro-2.0.0-x64.dmg](https://github.com/Gaurav06120714/VyroBrowser/releases/download/v2.0.0/Vyro-2.0.0-x64.dmg) | Drag to Applications |
-| **Windows** x64 | [Vyro-2.0.0-Setup.exe](https://github.com/Gaurav06120714/VyroBrowser/releases/download/v2.0.0/Vyro-2.0.0-Setup.exe) | Run installer |
-| **Linux** x64 | [Vyro-2.0.0-x86_64.AppImage](https://github.com/Gaurav06120714/VyroBrowser/releases/download/v2.0.0/Vyro-2.0.0-x86_64.AppImage) | `chmod +x` then run |
+| **macOS** (Apple Silicon M1/M2/M3/M4) | [Vyro-macOS-AppleSilicon-v2.2.0.dmg](https://github.com/Gaurav06120714/VyroBrowser/releases/download/v2.2.0/Vyro-macOS-AppleSilicon-v2.2.0.dmg) | Drag to Applications |
+| **macOS** (Intel) | [Vyro-macOS-Intel-v2.2.0.dmg](https://github.com/Gaurav06120714/VyroBrowser/releases/download/v2.2.0/Vyro-macOS-Intel-v2.2.0.dmg) | Drag to Applications |
+| **Windows** x64 | [Vyro-Setup-Windows-x64-v2.2.0.exe](https://github.com/Gaurav06120714/VyroBrowser/releases/download/v2.2.0/Vyro-Setup-Windows-x64-v2.2.0.exe) | Run installer |
+| **Linux** x64 | [Vyro-Linux-v2.2.0-x86_64.AppImage](https://github.com/Gaurav06120714/VyroBrowser/releases/download/v2.2.0/Vyro-Linux-v2.2.0-x86_64.AppImage) | `chmod +x` then run |
 
-> **Unsigned builds:** macOS → Right-click → Open. Windows → "More info" → "Run anyway".
+> **Unsigned builds** are not yet code-signed, so the OS shows a one-time warning:
+> - **macOS** → Right-click the app → **Open**, then confirm (or System Settings → Privacy & Security → "Open Anyway").
+> - **Windows** → SmartScreen shows *"Windows protected your PC"*. Click **More info** → **Run anyway**. This is expected for unsigned installers and is removed once the build is signed with a code-signing certificate.
 
 ---
 
@@ -237,8 +239,9 @@ location.reload();
 - **Context isolation** — renderer fully sandboxed from Node.js
 - **IPC allowlist** — only whitelisted channels pass through the preload bridge
 - **Content Security Policy** — applied to renderer shell
-- **Zero telemetry** — nothing sent to any external server
+- **Zero telemetry** — no analytics or tracking; nothing is sent automatically
 - **Local AI only** — prompts never leave your machine
+- **Opt-in sync only** — account sync is **off by default**; bookmarks/history are uploaded **only** after you explicitly sign in
 - **Webview isolation** — each tab has its own session partition
 
 ---
@@ -357,6 +360,24 @@ window.vyro.on()      ◄────────  PUSH_ALLOWLIST   ◄───
 
 ## 🗺 Roadmap
 
+### ✅ Completed (v2.2.0)
+
+- [x] Light theme + Dark/Light/System switcher (follows the OS)
+- [x] Tab sleeping / memory saver — idle background tabs are suspended
+- [x] HTTPS-Only mode (Settings toggle)
+- [x] Per-site zoom persistence
+- [x] Error / offline page with retry on failed loads
+- [x] Webview security hardening + fixed new-tab-from-link navigation
+- [x] Permission requests routed through the in-app dialog (no silent grants)
+- [x] Functional context menu (Print, Save Page/Link/Image, View Source)
+- [x] Accessibility: keyboard-navigable context menu, AI live region
+
+### ✅ Completed (v2.1.0)
+
+- [x] Split view (active tab + neighbour side by side, toolbar toggle)
+- [x] AI omnibox — `?` prefix in the address bar queries the AI sidebar
+- [x] AI context-menu actions — Explain / Summarize / Translate selected text
+
 ### ✅ Completed (v2.0.0)
 
 - [x] Cross-platform packaging — macOS (dmg), Windows (NSIS), Linux (AppImage/deb)
@@ -375,9 +396,6 @@ window.vyro.on()      ◄────────  PUSH_ALLOWLIST   ◄───
 ### 🚧 Planned
 
 - [ ] Vertical tabs sidebar
-- [ ] Split view (side-by-side tabs)
-- [ ] AI omnibox — `?` prefix to query AI from address bar
-- [ ] Explain / rewrite / translate via context menu
 - [ ] Privacy dashboard — per-page tracker breakdown
 - [ ] Tab sleeping / memory saver
 - [ ] Auto-update (electron-updater)

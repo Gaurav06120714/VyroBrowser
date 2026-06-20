@@ -1,6 +1,8 @@
 import { useTabsStore } from '../store/tabs.store';
 import { useUiStore } from '../store/ui.store';
 import { NEW_TAB_URL } from '@shared/constants';
+import { ipc, IPC } from './ipc';
+import { originOf, clampZoom, setSiteZoom } from './site-zoom';
 
 export type ShortcutAction =
   | 'new-tab'
@@ -101,7 +103,29 @@ export function handleShortcutAction(action: ShortcutAction): void {
     case 'toggle-find':
       uiStore.setFindBarOpen(!uiStore.findBarOpen);
       break;
+    case 'zoom-in':
+      applyZoom(uiStore.zoomLevel + 0.1);
+      break;
+    case 'zoom-out':
+      applyZoom(uiStore.zoomLevel - 0.1);
+      break;
+    case 'zoom-reset':
+      applyZoom(1);
+      break;
     default:
       break;
   }
+}
+
+// Apply a zoom level to the active tab, reflect it in the UI, and persist it
+// per origin so the same site keeps its zoom on future visits.
+function applyZoom(level: number): void {
+  const tabsStore = useTabsStore.getState();
+  const uiStore = useUiStore.getState();
+  const tab = tabsStore.activeTab();
+  if (!tab) return;
+  const next = clampZoom(level);
+  ipc.invoke(IPC.NAV_ZOOM, { tabId: tab.id, factor: next });
+  uiStore.setZoomLevel(next);
+  setSiteZoom(originOf(tab.url), next);
 }

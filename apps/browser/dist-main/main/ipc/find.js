@@ -12,9 +12,7 @@ function registerFindIpc() {
         const target = electron_1.webContents.fromId(wcId);
         if (!target || target.isDestroyed())
             return { ok: false };
-        // Listen for found-in-page result and push to renderer
         target.once('found-in-page', (_e, result) => {
-            // Push result to all renderer windows
             for (const win of electron_1.BrowserWindow.getAllWindows()) {
                 if (!win.isDestroyed()) {
                     win.webContents.send(ipc_channels_1.IPC.FIND_RESULT, {

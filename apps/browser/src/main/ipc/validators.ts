@@ -1,13 +1,5 @@
-// ─────────────────────────────────────────────────────────────────────────────
-// ipc/validators.ts — Zod schemas for all high-risk IPC handler payloads.
-//
-// Usage: call schema.safeParse(args) in the ipcMain.handle callback.
-// If validation fails, return { error: 'Invalid arguments' } — do NOT throw,
-// as throwing in ipcMain.handle sends an unhandled error to the renderer.
-// ─────────────────────────────────────────────────────────────────────────────
 import { z } from 'zod';
 
-// ── Tabs ──────────────────────────────────────────────────────────────────────
 export const TabCreateSchema = z.object({
   url: z.string().optional(),
   title: z.string().optional(),
@@ -20,7 +12,6 @@ export const TabCreateSchema = z.object({
 export const TabCloseSchema = z.object({ tabId: z.string().uuid() }).strict();
 export const TabActivateSchema = z.object({ tabId: z.string().uuid() }).strict();
 
-// ── Navigation ────────────────────────────────────────────────────────────────
 export const NavLoadUrlSchema = z.object({
   tabId: z.string().uuid(),
   url: z.string().min(1).max(8192),
@@ -39,7 +30,6 @@ export const NavZoomSchema = z.object({
 }).strict();
 export const NavDevtoolsSchema = z.object({ tabId: z.string().uuid() }).strict();
 
-// ── History ───────────────────────────────────────────────────────────────────
 export const HistorySearchSchema = z.object({
   query: z.string().max(512),
   limit: z.number().int().min(1).max(500).optional(),
@@ -59,7 +49,6 @@ export const HistoryClearRangeSchema = z.object({
   to: z.number().int(),
 }).strict();
 
-// ── Bookmarks ────────────────────────────────────────────────────────────────
 export const BookmarkAddSchema = z.object({
   url: z.string().url().max(8192),
   title: z.string().max(2048),
@@ -74,7 +63,6 @@ export const BookmarkUpdateSchema = z.object({
   folderId: z.number().int().nullable().optional(),
 }).strict();
 
-// ── AI ────────────────────────────────────────────────────────────────────────
 export const AiSendSchema = z.object({
   conversationId: z.string().uuid(),
   content: z.string().min(1).max(100_000),
@@ -104,7 +92,6 @@ export const AiSummarizePageSchema = z.object({
   model: z.string().min(1).max(256),
 }).strict();
 
-// ── Settings ─────────────────────────────────────────────────────────────────
 export const SettingsGetSchema = z.object({
   profileId: z.string().min(1).max(256),
 }).strict();
@@ -114,7 +101,6 @@ export const SettingsSetSchema = z.object({
   settings: z.record(z.string(), z.unknown()),
 }).strict();
 
-// ── Profiles ─────────────────────────────────────────────────────────────────
 export const ProfileSwitchSchema = z.object({
   id: z.string().min(1).max(256),
 }).strict();
@@ -134,7 +120,6 @@ export const ProfileUpdateSchema = z.object({
   avatar: z.string().optional(),
 }).strict();
 
-// ── Find ─────────────────────────────────────────────────────────────────────
 export const FindStartSchema = z.object({
   tabId: z.string().uuid(),
   text: z.string().min(1).max(1024),
@@ -145,7 +130,6 @@ export const FindStopSchema = z.object({
   tabId: z.string().uuid(),
 }).strict();
 
-// ── Onboarding ────────────────────────────────────────────────────────────────
 export const OnboardingPullModelSchema = z.object({
   model: z.string().min(1).max(256),
 }).strict();
@@ -153,6 +137,3 @@ export const OnboardingPullModelSchema = z.object({
 export const OnboardingCancelPullSchema = z.object({
   model: z.string().min(1).max(256),
 }).strict();
-
-// ── Update ───────────────────────────────────────────────────────────────────
-// (no args for UPDATE_INSTALL)

@@ -8,10 +8,6 @@ export interface SessionEntry {
   summary: string;
 }
 
-/**
- * SessionMemory persists cross-task context within a user session.
- * It enables the agent to reference previous tasks and avoid repeating work.
- */
 export class SessionMemory {
   private sessions: Map<string, SessionEntry[]> = new Map();
   private readonly maxPerUser = 20;

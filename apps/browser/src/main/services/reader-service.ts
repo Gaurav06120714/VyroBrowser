@@ -9,7 +9,6 @@ export interface ReaderArticle {
   textContent?: string;
 }
 
-// Reusable hidden BrowserWindow for extraction (one at a time, mutex via queue)
 let hiddenWin: BrowserWindow | null = null;
 let extractionBusy = false;
 const extractionQueue: Array<() => void> = [];
@@ -72,12 +71,11 @@ export class ReaderService {
           clearTimeout(timeout);
           releaseWin();
 
-          // Use @mozilla/readability + jsdom for clean article extraction
           let article: ReaderArticle;
           try {
-            // eslint-disable-next-line @typescript-eslint/no-require-imports
+            
             const { JSDOM } = require('jsdom') as { JSDOM: new (html: string, opts?: { url?: string }) => { window: { document: Document } } };
-            // eslint-disable-next-line @typescript-eslint/no-require-imports
+            
             const { Readability } = require('@mozilla/readability') as {
               Readability: new (doc: Document) => {
                 parse(): {
@@ -103,7 +101,7 @@ export class ReaderService {
               throw new Error('Readability returned null');
             }
           } catch {
-            // Fallback: basic DOM scrape if readability not available
+            
             article = await win.webContents.executeJavaScript(`
               (function() {
                 const title = document.title || '';

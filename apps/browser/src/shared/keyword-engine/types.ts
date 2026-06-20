@@ -1,17 +1,11 @@
-// ─────────────────────────────────────────────────────────────────────────────
-// Keyword Engine — Shared Types
-// ─────────────────────────────────────────────────────────────────────────────
-
 export type KeywordCategory =
   | 'search' | 'social' | 'video' | 'dev' | 'productivity'
   | 'shopping' | 'ai' | 'gaming' | 'music' | 'education'
   | 'news' | 'finance' | 'messaging' | 'storage' | 'maps'
   | 'streaming' | 'design' | 'other';
 
-/** Detected user intent from natural language input */
 export type IntentType = 'video' | 'shopping' | 'coding' | 'streaming' | 'music' | 'social' | null;
 
-/** Visual grouping in the suggestion dropdown */
 export type SuggestionGroup = 'top' | 'intent' | 'suggestions' | 'search';
 
 export interface KeywordEntry {

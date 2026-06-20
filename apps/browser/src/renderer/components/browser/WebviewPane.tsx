@@ -1,25 +1,12 @@
-// ─────────────────────────────────────────────────────────────────────────────
-// WebviewPane — renders a single Electron <webview> for a live browser tab.
-//
-// Navigation architecture (no refresh loops):
-//   • New tab → real page: WebviewContainer mounts this component with src=url
-//     (the webview's src attribute triggers the initial load).
-//   • Address bar nav on existing page: main process calls wc.loadURL() via IPC.
-//   • In-page navigation (SPAs, Google search): webview handles it internally;
-//     did-navigate / did-navigate-in-page only sync the address bar display.
-//
-// There is intentionally NO useEffect watching tab.url — that was the source
-// of infinite reload loops (Google fires did-navigate-in-page → tab.url updates
-// → effect calls loadURL → Google fires again → ...).
-// ─────────────────────────────────────────────────────────────────────────────
 import React, { useRef, useEffect, useCallback, useState } from 'react';
 import { Tab } from '@shared/types/tab';
 import { useTabsStore } from '../../store/tabs.store';
+import { useUiStore } from '../../store/ui.store';
 import { WEBVIEW_PARTITION_PREFIX, NEW_TAB_URL } from '@shared/constants';
 import { NewTab } from '../../pages/NewTab';
 import { IPC } from '../../lib/ipc';
+import { getSiteZoom, originOf } from '../../lib/site-zoom';
 
-// Electron webview element types
 interface WebviewElement extends HTMLElement {
   src: string;
   partition: string;
@@ -43,20 +30,18 @@ interface WebviewPaneProps {
   active: boolean;
 }
 
-// Render the <webview> element via createElement to avoid TSX type errors
-// (webview is Electron-specific and not in the standard DOM type declarations)
 function renderWebview(
   tab: Tab,
   ref: React.RefObject<HTMLElement>,
-  userAgent: string
 ): React.ReactElement {
   return React.createElement('webview', {
     ref,
     src: tab.url,
     partition: `${WEBVIEW_PARTITION_PREFIX}${tab.profileId}`,
     allowpopups: 'true',
-    useragent: userAgent,
-    webpreferences: 'contextIsolation=yes',
+    // UA comes from app.userAgentFallback (main); node integration disabled and
+    // context isolation enforced in main via will-attach-webview.
+    webpreferences: 'contextIsolation=yes,nodeIntegration=no',
     style: { flex: 1, width: '100%', height: '100%', border: 'none' },
   });
 }
@@ -65,16 +50,12 @@ function isNewTab(url: string): boolean {
   return !url || url === NEW_TAB_URL || url === 'about:blank';
 }
 
-const CHROME_UA =
-  'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) ' +
-  'AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36';
 
-// Skeleton overlay shown while the webview is loading
 const WebviewSkeleton: React.FC = () => (
   <div className="absolute inset-0 z-10 bg-[#0f0f10] flex flex-col gap-3 p-5 pointer-events-none animate-pulse">
-    {/* URL bar shape */}
+    {}
     <div className="h-7 rounded-lg bg-white/8 w-3/4 mx-auto" />
-    {/* Content blocks */}
+    {}
     <div className="flex flex-col gap-3 mt-4 flex-1">
       <div className="h-5 rounded-md bg-white/6 w-full" />
       <div className="h-5 rounded-md bg-white/6 w-5/6" />
@@ -91,11 +72,9 @@ const WebviewSkeleton: React.FC = () => (
 export const WebviewPane: React.FC<WebviewPaneProps> = ({ tab, active }) => {
   const webviewRef = useRef<WebviewElement | null>(null);
   const updateTab = useTabsStore(s => s.updateTab);
-  const createTab = useTabsStore(s => s.createTab);
   const registeredRef = useRef(false);
   const [localLoading, setLocalLoading] = useState(false);
-
-  // ── Event handlers — sync webview state back to the tab store ──────────────
+  const [loadError, setLoadError] = useState<{ code: number; description: string; url: string } | null>(null);
 
   const handleDomReady = useCallback(() => {
     const wv = webviewRef.current;
@@ -104,7 +83,7 @@ export const WebviewPane: React.FC<WebviewPaneProps> = ({ tab, active }) => {
 
     try {
       const wcId = wv.getWebContentsId();
-      // Register with main process for nav command routing
+      
       if (window.vyro) {
         window.vyro.invoke('webview:register' as never, { tabId: tab.id, webContentsId: wcId });
       }
@@ -114,14 +93,24 @@ export const WebviewPane: React.FC<WebviewPaneProps> = ({ tab, active }) => {
         canGoForward: wv.canGoForward(),
       });
     } catch {
-      // webview not ready
+      
     }
   }, [tab.id, updateTab]);
 
-  // FIX 3: Apply CSS/JS injections after page finishes loading
   const handleDidFinishLoad = useCallback(async () => {
     const wv = webviewRef.current;
     if (!wv) return;
+
+    // Restore the persisted per-origin zoom for this page.
+    try {
+      const loadedUrl = (wv as unknown as { getURL(): string }).getURL?.() ?? tab.url;
+      const siteZoom = getSiteZoom(originOf(loadedUrl));
+      window.vyro.invoke(IPC.NAV_ZOOM as never, { tabId: tab.id, factor: siteZoom });
+      if (active) useUiStore.getState().setZoomLevel(siteZoom);
+    } catch {
+      /* ignore */
+    }
+
     try {
       const currentUrl = (wv as unknown as { getURL(): string }).getURL?.() ?? tab.url;
       if (!currentUrl || isNewTab(currentUrl)) return;
@@ -140,9 +129,9 @@ export const WebviewPane: React.FC<WebviewPaneProps> = ({ tab, active }) => {
         );
       }
     } catch {
-      // injection failed — ignore silently
+
     }
-  }, [tab.url]);
+  }, [tab.url, tab.id, active]);
 
   useEffect(() => {
     const wv = webviewRef.current;
@@ -150,7 +139,17 @@ export const WebviewPane: React.FC<WebviewPaneProps> = ({ tab, active }) => {
 
     const onStartLoading = () => {
       setLocalLoading(true);
+      setLoadError(null);
       updateTab(tab.id, { isLoading: true });
+    };
+
+    const onDidFailLoad = (e: Event) => {
+      const ev = e as unknown as { errorCode: number; errorDescription: string; validatedURL: string; isMainFrame: boolean };
+      // Ignore subframe failures and user-aborted loads (-3 = ERR_ABORTED).
+      if (ev.isMainFrame === false || ev.errorCode === -3) return;
+      setLocalLoading(false);
+      setLoadError({ code: ev.errorCode, description: ev.errorDescription, url: ev.validatedURL || tab.url });
+      updateTab(tab.id, { isLoading: false });
     };
 
     const onStopLoading = () => {
@@ -183,11 +182,6 @@ export const WebviewPane: React.FC<WebviewPaneProps> = ({ tab, active }) => {
       });
     };
 
-    const onNewWindow = (e: Event) => {
-      const ev = e as unknown as { url: string };
-      createTab({ url: ev.url });
-    };
-
     const onCrashed = () => {
       updateTab(tab.id, { isLoading: false, title: 'Tab Crashed' });
     };
@@ -195,29 +189,27 @@ export const WebviewPane: React.FC<WebviewPaneProps> = ({ tab, active }) => {
     wv.addEventListener('dom-ready', handleDomReady);
     wv.addEventListener('did-finish-load', handleDidFinishLoad);
     wv.addEventListener('did-start-loading', onStartLoading);
+    wv.addEventListener('did-fail-load', onDidFailLoad);
     wv.addEventListener('did-stop-loading', onStopLoading);
     wv.addEventListener('page-title-updated', onTitleUpdated);
     wv.addEventListener('page-favicon-updated', onFaviconUpdated);
     wv.addEventListener('did-navigate', onDidNavigate);
     wv.addEventListener('did-navigate-in-page', onDidNavigate);
-    wv.addEventListener('new-window', onNewWindow);
     wv.addEventListener('crashed', onCrashed);
 
     return () => {
       wv.removeEventListener('dom-ready', handleDomReady);
       wv.removeEventListener('did-finish-load', handleDidFinishLoad);
       wv.removeEventListener('did-start-loading', onStartLoading);
+      wv.removeEventListener('did-fail-load', onDidFailLoad);
       wv.removeEventListener('did-stop-loading', onStopLoading);
       wv.removeEventListener('page-title-updated', onTitleUpdated);
       wv.removeEventListener('page-favicon-updated', onFaviconUpdated);
       wv.removeEventListener('did-navigate', onDidNavigate);
       wv.removeEventListener('did-navigate-in-page', onDidNavigate);
-      wv.removeEventListener('new-window', onNewWindow);
       wv.removeEventListener('crashed', onCrashed);
     };
-  }, [tab.id, handleDomReady, handleDidFinishLoad, updateTab, createTab]);
-
-  // ── Render — show NewTab, crash UI, or the live webview ──────────────────────
+  }, [tab.id, handleDomReady, handleDidFinishLoad, updateTab]);
 
   const isCrashed = tab.title === 'Tab Crashed';
   const showNewTab = isNewTab(tab.url);
@@ -249,6 +241,32 @@ export const WebviewPane: React.FC<WebviewPaneProps> = ({ tab, active }) => {
       ) : (
         <div className="relative flex flex-col flex-1 overflow-hidden">
           {localLoading && <WebviewSkeleton />}
+          {loadError && (
+            <div className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-4 bg-[#0f0f10] text-white/60 px-6 text-center">
+              <svg className="w-12 h-12 text-white/25" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M18.364 5.636a9 9 0 010 12.728M5.636 18.364a9 9 0 010-12.728M12 12h.01" />
+              </svg>
+              <div>
+                <p className="text-sm font-medium text-white/80">This page can't be reached</p>
+                <p className="text-xs text-white/40 mt-1 break-all max-w-md">{loadError.url}</p>
+                <p className="text-xs text-white/30 mt-2 font-mono">
+                  {loadError.description} ({loadError.code})
+                </p>
+              </div>
+              <button
+                onClick={() => {
+                  const wv = webviewRef.current;
+                  setLoadError(null);
+                  if (wv) {
+                    try { wv.loadURL(loadError.url); } catch { wv.reload(); }
+                  }
+                }}
+                className="px-4 py-1.5 text-sm bg-white/8 hover:bg-white/12 rounded-lg border border-white/10 transition-colors"
+              >
+                Try again
+              </button>
+            </div>
+          )}
           <div
             className="flex flex-col flex-1"
             style={{
@@ -256,7 +274,7 @@ export const WebviewPane: React.FC<WebviewPaneProps> = ({ tab, active }) => {
               transition: 'opacity 200ms ease-out',
             }}
           >
-            {renderWebview(tab, webviewRef as React.RefObject<HTMLElement>, CHROME_UA)}
+            {renderWebview(tab, webviewRef as React.RefObject<HTMLElement>)}
           </div>
         </div>
       )}

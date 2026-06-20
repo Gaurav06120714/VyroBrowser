@@ -79,7 +79,7 @@ export const HistoryPanel: React.FC = () => {
   const setLoading = useHistoryStore(s => s.setLoading);
 
   const handleOpen = useCallback((url: string) => {
-    // Open in the active tab via tabs store
+    
     window.dispatchEvent(new CustomEvent('vyro:navigate', { detail: { url } }));
   }, []);
 
@@ -100,7 +100,7 @@ export const HistoryPanel: React.FC = () => {
 
   return (
     <div className="flex flex-col h-full">
-      {/* Search bar */}
+      {}
       <div className="p-3 border-b border-white/8">
         <div className="flex items-center gap-2 bg-white/6 rounded-lg px-3 py-1.5 border border-white/8 focus-within:border-white/20">
           <svg className="w-3.5 h-3.5 text-white/30 shrink-0" viewBox="0 0 20 20" fill="currentColor">
@@ -122,7 +122,7 @@ export const HistoryPanel: React.FC = () => {
         </div>
       </div>
 
-      {/* Content */}
+      {}
       <div className="flex-1 overflow-y-auto p-2">
         {error && (
           <div className="flex flex-col items-center justify-center h-full gap-3 text-white/40 px-4">
@@ -177,7 +177,7 @@ export const HistoryPanel: React.FC = () => {
         ))}
       </div>
 
-      {/* Footer */}
+      {}
       {entries.length > 0 && (
         <div className="p-3 border-t border-white/8">
           <button

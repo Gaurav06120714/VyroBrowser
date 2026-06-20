@@ -43,9 +43,8 @@ export class TaskService {
 
     const tasks = baseQuery.orderBy(desc(schema.tasks.createdAt)).limit(pageSize).offset(offset).all();
 
-    // Count total
     let countQuery = db.$count(schema.tasks);
-    // Note: drizzle-orm SQLite $count with where is limited; use raw approach
+    
     const allRows = db.select().from(schema.tasks).all();
     const total = query.status
       ? allRows.filter((t) => t.status === query.status).length

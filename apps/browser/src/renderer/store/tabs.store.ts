@@ -1,16 +1,3 @@
-// ─────────────────────────────────────────────────────────────────────────────
-// tabs.store — Zustand store for all open browser tabs.
-//
-// Key actions:
-//   createTab    — adds a new tab (defaults to NEW_TAB_URL) and activates it.
-//   closeTab     — removes the tab, saves a snapshot to closedTabsHistory,
-//                  and activates the nearest remaining tab.
-//   updateTab    — patch any fields on a tab (url, title, isLoading, etc.).
-//                  This is the primary way navigation state flows back from
-//                  WebviewPane event handlers into the UI.
-//   activateTab  — switches the visible tab without unmounting any webview.
-//   activeTab()  — selector helper: returns the current Tab object or null.
-// ─────────────────────────────────────────────────────────────────────────────
 import { create } from 'zustand';
 import { v4 as uuidv4 } from 'uuid';
 import { Tab, TabGroup, TabSnapshot } from '@shared/types/tab';
@@ -27,6 +14,7 @@ interface TabsActions {
   createTab: (opts?: Partial<Tab>) => Tab;
   closeTab: (tabId: string) => void;
   activateTab: (tabId: string) => void;
+  sleepTab: (tabId: string) => void;
   updateTab: (tabId: string, fields: Partial<Tab>) => void;
   reorderTabs: (tabIds: string[]) => void;
   pinTab: (tabId: string) => void;
@@ -60,6 +48,8 @@ export const useTabsStore = create<TabsState & TabsActions>((set, get) => ({
       profileId: opts?.profileId ?? DEFAULT_PROFILE_ID,
       scrollY: 0,
       createdAt: Date.now(),
+      lastActiveAt: Date.now(),
+      asleep: false,
     };
     set(state => ({
       tabs: [...state.tabs, tab],
@@ -88,7 +78,7 @@ export const useTabsStore = create<TabsState & TabsActions>((set, get) => ({
 
       if (state.activeTabId === tabId) {
         if (newTabs.length > 0) {
-          // Prefer next tab, then previous
+          
           newActiveId = (newTabs[idx] ?? newTabs[idx - 1])?.id ?? null;
         } else {
           newActiveId = null;
@@ -104,7 +94,19 @@ export const useTabsStore = create<TabsState & TabsActions>((set, get) => ({
   },
 
   activateTab: (tabId) => {
-    set({ activeTabId: tabId });
+    set(state => ({
+      activeTabId: tabId,
+      // Activating a tab wakes it and stamps its activity time.
+      tabs: state.tabs.map(t =>
+        t.id === tabId ? { ...t, asleep: false, lastActiveAt: Date.now() } : t,
+      ),
+    }));
+  },
+
+  sleepTab: (tabId) => {
+    set(state => ({
+      tabs: state.tabs.map(t => (t.id === tabId ? { ...t, asleep: true } : t)),
+    }));
   },
 
   updateTab: (tabId, fields) => {

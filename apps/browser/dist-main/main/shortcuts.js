@@ -2,13 +2,6 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.registerShortcuts = registerShortcuts;
 exports.unregisterShortcuts = unregisterShortcuts;
-// ─────────────────────────────────────────────────────────────────────────────
-// shortcuts.ts — Global keyboard shortcut registration.
-//
-// Uses Cmd on macOS and Ctrl on Windows/Linux for all shortcuts.
-// Pushes shortcut:action events to the renderer so the existing
-// handleShortcutAction() logic in App.tsx processes them.
-// ─────────────────────────────────────────────────────────────────────────────
 const electron_1 = require("electron");
 const ipc_channels_1 = require("../shared/ipc-channels");
 const mod = process.platform === 'darwin' ? 'Cmd' : 'Ctrl';
@@ -25,7 +18,6 @@ const SHORTCUTS = [
     { accelerator: `${mod}+K`, action: 'command-palette' },
     { accelerator: `${mod}+Shift+Left`, action: 'go-back' },
     { accelerator: `${mod}+Shift+Right`, action: 'go-forward' },
-    // Tab switching
     { accelerator: `${mod}+Tab`, action: 'next-tab' },
     { accelerator: `${mod}+Shift+Tab`, action: 'prev-tab' },
 ];
@@ -43,7 +35,6 @@ function registerShortcuts(window) {
             });
         }
         catch {
-            // Some accelerators may conflict with OS-level shortcuts — skip silently
             console.warn(`[shortcuts] Could not register: ${accelerator}`);
         }
     }

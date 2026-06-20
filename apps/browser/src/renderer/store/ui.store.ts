@@ -20,7 +20,7 @@ interface UiState {
   zoomLevel: number;
   toasts: Toast[];
   commandPaletteOpen: boolean;
-  // Auto-update state
+  
   updateStatus: null | 'available' | 'ready';
   updateVersion: string | null;
   updateDismissed: boolean;
@@ -41,7 +41,7 @@ interface UiActions {
   removeToast: (id: string) => void;
   openCommandPalette: () => void;
   closeCommandPalette: () => void;
-  // Auto-update actions
+  
   setUpdateAvailable: (version: string) => void;
   setUpdateReady: () => void;
   dismissUpdate: () => void;
@@ -60,7 +60,7 @@ export const useUiStore = create<UiState & UiActions>((set, get) => ({
   zoomLevel: 1,
   toasts: [],
   commandPaletteOpen: false,
-  // Auto-update
+  
   updateStatus: null,
   updateVersion: null,
   updateDismissed: false,

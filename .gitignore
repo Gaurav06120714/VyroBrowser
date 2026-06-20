@@ -9,10 +9,17 @@ out/
 build/
 *.tsbuildinfo
 
-# Environment
+# Environment files (NEVER commit — contain secrets)
 .env
 .env.local
 .env.*.local
+apps/**/.env
+apps/**/.env.local
+apps/**/.env.production.local
+!.env.example
+!**/.env.example
+# apps/browser/.env.development and .env.production are intentionally tracked
+# (they contain ONLY non-secret build-time config — no API keys or passwords)
 
 # Logs
 *.log

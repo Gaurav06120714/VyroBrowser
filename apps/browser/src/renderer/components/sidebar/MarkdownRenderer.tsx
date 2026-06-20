@@ -6,7 +6,7 @@ interface Props {
 
 function parseInline(text: string): React.ReactNode[] {
   const parts: React.ReactNode[] = [];
-  // Process inline patterns: code, bold, italic, links
+  
   const pattern = /(`[^`]+`|\*\*[^*]+\*\*|\*[^*]+\*|\[[^\]]+\]\([^)]+\))/g;
   let last = 0;
   let match: RegExpExecArray | null;

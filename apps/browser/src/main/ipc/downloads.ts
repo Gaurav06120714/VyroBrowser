@@ -15,7 +15,6 @@ export function registerDownloadsIpc(db: Database.Database, wm: WindowManager): 
   const profileService = new ProfileService(db);
   downloadService = new DownloadService(db);
 
-  // Wire progress/complete callbacks to push events to renderer
   downloadService.setProgressCallback((id, received, total, state, speed) => {
     const win = wm.getMain();
     if (win && !win.isDestroyed()) {

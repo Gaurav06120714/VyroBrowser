@@ -1,5 +1,5 @@
 const DEFAULT_SHORTCUTS = [
-  // ── Tabs & Windows ──────────────────────────────────────────────────────────
+  
   {
     id: 'new-tab',
     category: 'Tabs & Windows',
@@ -145,7 +145,6 @@ const DEFAULT_SHORTCUTS = [
     win: { key: 'F4', alt: true },
   },
 
-  // ── Navigation ──────────────────────────────────────────────────────────────
   {
     id: 'back',
     category: 'Navigation',
@@ -195,7 +194,6 @@ const DEFAULT_SHORTCUTS = [
     win: { key: 'home', alt: true },
   },
 
-  // ── Address Bar ─────────────────────────────────────────────────────────────
   {
     id: 'focus-address',
     category: 'Address Bar',
@@ -215,7 +213,6 @@ const DEFAULT_SHORTCUTS = [
     allowInInput: true,
   },
 
-  // ── Page Controls ───────────────────────────────────────────────────────────
   {
     id: 'zoom-in',
     category: 'Page Controls',
@@ -257,7 +254,6 @@ const DEFAULT_SHORTCUTS = [
     win: { key: 'p', ctrl: true },
   },
 
-  // ── Developer Tools ─────────────────────────────────────────────────────────
   {
     id: 'devtools',
     category: 'Developer Tools',
@@ -283,7 +279,6 @@ const DEFAULT_SHORTCUTS = [
     win: { key: 'u', ctrl: true },
   },
 
-  // ── Browser Features ────────────────────────────────────────────────────────
   {
     id: 'history',
     category: 'Browser Features',
@@ -325,7 +320,6 @@ const DEFAULT_SHORTCUTS = [
     win: { key: ',', ctrl: true },
   },
 
-  // ── Advanced ─────────────────────────────────────────────────────────────────
   {
     id: 'command-palette',
     category: 'Advanced',

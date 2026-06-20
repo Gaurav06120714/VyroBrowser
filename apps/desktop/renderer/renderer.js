@@ -1,4 +1,3 @@
-// ── State ──────────────────────────────────────────────────────────────────
 let tabs = [];
 let activeTabId = null;
 let tabCounter = 0;
@@ -6,7 +5,6 @@ let tabCounter = 0;
 const HOME_URL = 'https://www.youtube.com';
 const SEARCH_ENGINE = 'https://www.google.com/search?q=';
 
-// ── DOM refs ───────────────────────────────────────────────────────────────
 const tabsList       = document.getElementById('tabs-list');
 const browserContent = document.getElementById('browser-content');
 const newTabPage     = document.getElementById('new-tab-page');
@@ -23,23 +21,20 @@ const ntSearchInput  = document.getElementById('nt-search-input');
 const REFRESH_ICON = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>`;
 const STOP_ICON    = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`;
 
-// ── URL helper ─────────────────────────────────────────────────────────────
 function resolveUrl(input) {
   input = (input || '').trim();
   if (!input) return HOME_URL;
-  if (/^https?:\/\//i.test(input)) return input;
+  if (/^https?:\/\
   if (/^localhost|^127\.|^\d+\.\d+\.\d+\.\d+/.test(input)) return 'http://' + input;
   if (/^[a-zA-Z0-9-]+\.[a-zA-Z]{2,}/.test(input) && !input.includes(' ')) return 'https://' + input;
   return SEARCH_ENGINE + encodeURIComponent(input);
 }
 
-// ── Active webview ─────────────────────────────────────────────────────────
 function getActiveWebview() {
   const tab = tabs.find(t => t.id === activeTabId);
   return tab ? document.getElementById(tab.webviewId) : null;
 }
 
-// ── Create tab ─────────────────────────────────────────────────────────────
 function createTab(url) {
   const id = ++tabCounter;
   const webviewId = 'wv-' + id;
@@ -47,7 +42,7 @@ function createTab(url) {
 
   const wv = document.createElement('webview');
   wv.id = webviewId;
-  wv.setAttribute('partition', 'persist:vyro'); // persistent session — stays logged in
+  wv.setAttribute('partition', 'persist:vyro'); 
   wv.setAttribute('allowpopups', 'true');
   wv.setAttribute('useragent', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36');
   if (resolvedUrl) wv.setAttribute('src', resolvedUrl);
@@ -56,7 +51,6 @@ function createTab(url) {
   const tab = { id, url: resolvedUrl || '', title: 'New Tab', favicon: null, webviewId };
   tabs.push(tab);
 
-  // ── Webview events ────────────────────────────────────────────────────────
   wv.addEventListener('did-start-loading', () => {
     loadingBar.classList.add('loading');
     if (activeTabId === id) btnRefresh.innerHTML = STOP_ICON;
@@ -94,7 +88,7 @@ function createTab(url) {
       addressBar.value = e.url;
       updateNavButtons();
     }
-    // hide new-tab page once navigation happens
+    
     if (activeTabId === id) newTabPage.classList.add('hidden');
   });
 
@@ -104,7 +98,6 @@ function createTab(url) {
     if (activeTabId === id) addressBar.value = e.url;
   });
 
-  // open target=_blank links in a new tab
   wv.addEventListener('new-window', (e) => {
     e.preventDefault && e.preventDefault();
     if (e.url && e.url !== 'about:blank') createTab(e.url);
@@ -114,19 +107,17 @@ function createTab(url) {
     if (activeTabId === id && e.url) addressBar.value = e.url;
   });
 
-  // Intercept keystrokes BEFORE the webpage sees them
   wv.addEventListener('dom-ready', () => {
     wv.addEventListener('before-input-event', (event, input) => {
       if (input.type !== 'keyDown') return;
       const isMac = navigator.platform.startsWith('Mac');
       const mod   = isMac ? input.meta : input.control;
-      if (!mod && !input.alt) return; // fast-path: no modifier
+      if (!mod && !input.alt) return; 
 
       const key   = input.key.toLowerCase();
       const shift = input.shift;
       const alt   = input.alt;
 
-      // Mapping: [mod, shift, alt, key] → action
       const match = (m, s, a, k) => mod === m && shift === s && alt === a && key === k;
 
       let action = null, payload = null;
@@ -165,7 +156,7 @@ function createTab(url) {
           else if (mod && n === 9)     action = 'last-tab';
         }
       } else {
-        // Windows/Linux
+        
         if (match(true,false,false,'t'))       action = 'new-tab';
         else if (match(true,false,false,'w'))  action = 'close-tab';
         else if (match(true,true, false,'t'))  action = 'restore-tab';
@@ -207,7 +198,6 @@ function createTab(url) {
   return id;
 }
 
-// ── Switch tab ─────────────────────────────────────────────────────────────
 function switchTab(id) {
   activeTabId = id;
   const tab = tabs.find(t => t.id === id);
@@ -231,7 +221,6 @@ function switchTab(id) {
   updateNavButtons();
 }
 
-// ── Close tab ──────────────────────────────────────────────────────────────
 function closeTab(id, e) {
   if (e) { e.stopPropagation(); e.preventDefault(); }
   const idx = tabs.findIndex(t => t.id === id);
@@ -246,7 +235,6 @@ function closeTab(id, e) {
   renderTabs();
 }
 
-// ── Render tabs ────────────────────────────────────────────────────────────
 function renderTabs() {
   tabsList.innerHTML = '';
   tabs.forEach(tab => {
@@ -264,14 +252,12 @@ function renderTabs() {
   });
 }
 
-// ── Nav buttons ────────────────────────────────────────────────────────────
 function updateNavButtons() {
   const wv = getActiveWebview();
   btnBack.disabled    = !wv || !wv.canGoBack();
   btnForward.disabled = !wv || !wv.canGoForward();
 }
 
-// ── Navigate ───────────────────────────────────────────────────────────────
 function navigateTo(input) {
   const url = resolveUrl(input);
   const wv = getActiveWebview();
@@ -286,7 +272,6 @@ function navigateTo(input) {
   addressBar.blur();
 }
 
-// ── Button listeners ───────────────────────────────────────────────────────
 btnNewTab.onclick  = () => createTab('');
 btnHome.onclick    = () => navigateTo(HOME_URL);
 btnGo.onclick      = () => navigateTo(addressBar.value);
@@ -312,12 +297,10 @@ addressBar.addEventListener('keydown', (e) => {
 });
 addressBar.addEventListener('focus', () => addressBar.select());
 
-// New tab page search bar
 ntSearchInput.addEventListener('keydown', (e) => {
   if (e.key === 'Enter' && ntSearchInput.value.trim()) navigateTo(ntSearchInput.value);
 });
 
-// Sidebar bookmarks + new-tab shortcuts
 document.querySelectorAll('.bookmark-item, .shortcut').forEach(btn => {
   btn.addEventListener('click', (e) => {
     e.preventDefault();
@@ -326,10 +309,8 @@ document.querySelectorAll('.bookmark-item, .shortcut').forEach(btn => {
   });
 });
 
-// ── Init ───────────────────────────────────────────────────────────────────
 createTab(HOME_URL);
 
-// ── Expose globals for shortcuts system ──────────────────────────────────
 window.HOME_URL = HOME_URL;
 window.tabs = tabs;
 window.createTab = createTab;
@@ -341,7 +322,6 @@ Object.defineProperty(window, 'activeTabId', { get: () => activeTabId });
 
 window.closeTabById = (id) => closeTab(id);
 
-// Restore closed tab (keep a history of 10)
 const _closedTabs = [];
 const _origCloseTab = closeTab;
 window.restoreClosedTab = () => {
@@ -349,7 +329,6 @@ window.restoreClosedTab = () => {
   if (last) createTab(last.url);
 };
 
-// Intercept closeTab to record closed tab URLs
 const _closeTabOriginal = closeTab;
 (function patchCloseTab() {
   const orig = window.closeTabById;
@@ -363,14 +342,12 @@ const _closeTabOriginal = closeTab;
   };
 })();
 
-// Switch to next/prev tab
 window.switchToNextTab = (dir) => {
   const idx = tabs.findIndex(t => t.id === activeTabId);
   const next = tabs[(idx + dir + tabs.length) % tabs.length];
   if (next) switchTab(next.id);
 };
 
-// Zoom support
 let _zoomLevel = 1.0;
 window.adjustZoom = (delta, reset) => {
   const wv = getActiveWebview();
@@ -380,7 +357,6 @@ window.adjustZoom = (delta, reset) => {
   wv.setZoomFactor(_zoomLevel);
 };
 
-// Find bar
 window.openFindBar = () => {
   const wv = getActiveWebview();
   if (wv) {
@@ -389,7 +365,6 @@ window.openFindBar = () => {
   }
 };
 
-// Bookmark current tab
 window.bookmarkCurrentTab = () => {
   const wv = getActiveWebview();
   const url = wv ? wv.getURL() : '';
@@ -404,12 +379,10 @@ window.bookmarkCurrentTab = () => {
   }
 };
 
-// Settings page opener
 window.openSettingsPage = (section) => {
   if (window.ShortcutsPage) window.ShortcutsPage.show();
 };
 
-// ── Init shortcut system ─────────────────────────────────────────────────
 (function initShortcuts() {
   const sm = new ShortcutManager();
   sm.loadDefaults(DEFAULT_SHORTCUTS);
@@ -420,7 +393,6 @@ window.openSettingsPage = (section) => {
   window.ShortcutsPage  = new ShortcutsPageClass(sm);
   window.shortcutManager = sm;
 
-  // Add tooltip to buttons showing their shortcut
   const btnShortcutMap = {
     'btn-back':    'back',
     'btn-forward': 'forward',
@@ -436,7 +408,6 @@ window.openSettingsPage = (section) => {
   });
 })();
 
-// ── Find bar (proper inline, not prompt) ─────────────────────────────────
 (function() {
   let _currentFindTerm = '';
   window._findBarOpen = false;
@@ -476,7 +447,6 @@ window.openSettingsPage = (section) => {
         if (e.key === 'Escape') { e.preventDefault(); window.closeFindBar(); }
       });
 
-      // Listen for find results to show count
       document.querySelectorAll('webview').forEach(wv => {
         wv.addEventListener('found-in-page', (e) => {
           const count = document.getElementById('find-count');

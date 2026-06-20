@@ -4,12 +4,11 @@ import fs from 'fs';
 
 let tray: Tray | null = null;
 
-/** Resolve the best tray icon for the current platform and DPI. */
 function getTrayIcon(): NativeImage {
   const base = path.join(__dirname, '../../assets');
 
   if (process.platform === 'win32') {
-    // Windows: use .ico — Windows scales it automatically for all DPIs
+    
     try {
       const ico = path.join(base, 'icon.ico');
       if (fs.existsSync(ico)) {
@@ -17,12 +16,12 @@ function getTrayIcon(): NativeImage {
         if (!img.isEmpty()) return img;
       }
     } catch {
-      // fall through to PNG fallbacks
+      
     }
   }
 
   if (process.platform === 'linux') {
-    // Try multiple icon sizes — prefer larger sizes for HiDPI displays
+    
     for (const size of [256, 48, 32, 16]) {
       try {
         const p = path.join(base, 'icons', `${size}x${size}.png`);
@@ -31,15 +30,13 @@ function getTrayIcon(): NativeImage {
           if (!img.isEmpty()) return img.resize({ width: 22, height: 22 });
         }
       } catch {
-        // try next size
+        
       }
     }
-    // Final Linux fallback: empty image with colored tint is not possible via
-    // nativeImage API, so return a 16x16 blank image to prevent crash
+    
     return nativeImage.createEmpty();
   }
 
-  // macOS / Windows fallback: use the 32px PNG
   try {
     const png32 = path.join(base, 'icons', '32x32.png');
     if (fs.existsSync(png32)) {
@@ -47,17 +44,16 @@ function getTrayIcon(): NativeImage {
       if (!img32.isEmpty()) return img32.resize({ width: 22, height: 22 });
     }
   } catch {
-    // fall through
+    
   }
 
-  // Ultimate fallback: resize icon.png
   try {
     const iconPng = path.join(base, 'icon.png');
     if (fs.existsSync(iconPng)) {
       return nativeImage.createFromPath(iconPng).resize({ width: 22, height: 22 });
     }
   } catch {
-    // fall through
+    
   }
 
   return nativeImage.createEmpty();
@@ -77,7 +73,7 @@ export function createTray(getWindow: () => BrowserWindow | null): void {
   try {
     tray = new Tray(icon);
   } catch (err) {
-    // Tray creation failed (e.g. no system tray on this Linux session) — ignore
+    
     console.warn('Failed to create system tray:', err);
     return;
   }

@@ -17,7 +17,6 @@ function fetchText(url: string): Promise<string> {
   });
 }
 
-// Minimal built-in filter list for fallback
 const MINIMAL_FILTERS = `
 ! Vyro minimal blocklist
 ||ads.google.com^
@@ -33,7 +32,6 @@ export async function initBlocker(): Promise<ElectronBlocker> {
 
   const cachePath = path.join(app.getPath('userData'), 'adblocker.cache');
 
-  // Try loading from cache
   try {
     if (fs.existsSync(cachePath)) {
       const serialized = fs.readFileSync(cachePath);
@@ -41,10 +39,9 @@ export async function initBlocker(): Promise<ElectronBlocker> {
       return blocker;
     }
   } catch {
-    // cache corrupt, rebuild
+    
   }
 
-  // Try fetching pre-built from CDN
   try {
     const fetchFn = async (url: string): Promise<{ text: () => Promise<string> }> => ({
       text: () => fetchText(url),
@@ -53,7 +50,7 @@ export async function initBlocker(): Promise<ElectronBlocker> {
     fs.writeFileSync(cachePath, Buffer.from(blocker.serialize()));
     return blocker;
   } catch {
-    // Fallback to minimal built-in list
+    
   }
 
   blocker = ElectronBlocker.parse(MINIMAL_FILTERS);

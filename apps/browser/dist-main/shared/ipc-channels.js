@@ -1,14 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.PUSH_ALLOWLIST = exports.INVOKE_ALLOWLIST = exports.IPC = void 0;
-// ─────────────────────────────────────────────────────────────────────────────
-// ipc-channels — canonical IPC channel name constants shared between main and
-// renderer.  Organised into domain sections below.  INVOKE_ALLOWLIST and
-// PUSH_ALLOWLIST at the bottom of this file are used by the preload script to
-// enforce the contextIsolation security boundary.
-// ─────────────────────────────────────────────────────────────────────────────
 exports.IPC = {
-    // Tabs
     TABS_CREATE: 'tabs:create',
     TABS_CLOSE: 'tabs:close',
     TABS_ACTIVATE: 'tabs:activate',
@@ -21,7 +14,6 @@ exports.IPC = {
     TABS_SPLIT_TOGGLE: 'tabs:split-toggle',
     TABS_GET_ALL: 'tabs:get-all',
     TABS_SAVE_SESSION: 'tabs:save-session',
-    // Navigation
     NAV_LOAD_URL: 'nav:load-url',
     NAV_GO_BACK: 'nav:go-back',
     NAV_GO_FORWARD: 'nav:go-forward',
@@ -29,20 +21,20 @@ exports.IPC = {
     NAV_STOP: 'nav:stop',
     NAV_ZOOM: 'nav:zoom',
     NAV_DEVTOOLS: 'nav:devtools',
-    // Webview push events
+    PAGE_PRINT: 'page:print',
+    PAGE_SAVE: 'page:save',
+    PAGE_DOWNLOAD_URL: 'page:download-url',
     WEBVIEW_DID_NAVIGATE: 'webview:did-navigate',
     WEBVIEW_TITLE_UPDATED: 'webview:title-updated',
     WEBVIEW_FAVICON_UPDATED: 'webview:favicon-updated',
     WEBVIEW_LOADING_CHANGED: 'webview:loading-changed',
     WEBVIEW_CRASHED: 'webview:crashed',
     WEBVIEW_NEW_WINDOW: 'webview:new-window',
-    // History
     HISTORY_SEARCH: 'history:search',
     HISTORY_ADD: 'history:add',
     HISTORY_DELETE: 'history:delete',
     HISTORY_CLEAR_RANGE: 'history:clear-range',
     HISTORY_CLEAR_ALL: 'history:clear-all',
-    // Bookmarks
     BOOKMARKS_GET_TREE: 'bookmarks:get-tree',
     BOOKMARKS_ADD: 'bookmarks:add',
     BOOKMARKS_UPDATE: 'bookmarks:update',
@@ -52,7 +44,6 @@ exports.IPC = {
     BOOKMARKS_REORDER: 'bookmarks:reorder',
     BOOKMARKS_IMPORT: 'bookmarks:import',
     BOOKMARKS_EXPORT: 'bookmarks:export',
-    // Downloads
     DOWNLOADS_GET_ALL: 'downloads:get-all',
     DOWNLOADS_PAUSE: 'downloads:pause',
     DOWNLOADS_RESUME: 'downloads:resume',
@@ -63,7 +54,6 @@ exports.IPC = {
     DOWNLOADS_CLEAR_COMPLETED: 'downloads:clear-completed',
     DOWNLOADS_PROGRESS: 'downloads:progress',
     DOWNLOADS_COMPLETE: 'downloads:complete',
-    // AI
     AI_MODELS_LIST: 'ai:models-list',
     AI_CONVERSATION_CREATE: 'ai:conversation-create',
     AI_CONVERSATION_GET_ALL: 'ai:conversation-get-all',
@@ -74,47 +64,36 @@ exports.IPC = {
     AI_ABORT: 'ai:abort',
     AI_CHUNK: 'ai:chunk',
     AI_ERROR: 'ai:error',
-    // Adblock
     ADBLOCK_GET_STATS: 'adblock:get-stats',
     ADBLOCK_SITE_TOGGLE: 'adblock:site-toggle',
     ADBLOCK_GET_SITE_RULES: 'adblock:get-site-rules',
     ADBLOCK_RELOAD_LISTS: 'adblock:reload-lists',
-    // Reader
     READER_EXTRACT: 'reader:extract',
     READER_TTS_START: 'reader:tts-start',
     READER_TTS_STOP: 'reader:tts-stop',
-    // Injections
     INJECTIONS_GET_ALL: 'injections:get-all',
     INJECTIONS_GET_FOR_ORIGIN: 'injections:get-for-origin',
     INJECTIONS_SAVE: 'injections:save',
     INJECTIONS_DELETE: 'injections:delete',
-    // Profiles
     PROFILES_GET_ALL: 'profiles:get-all',
     PROFILES_CREATE: 'profiles:create',
     PROFILES_DELETE: 'profiles:delete',
     PROFILES_SWITCH: 'profiles:switch',
     PROFILES_UPDATE: 'profiles:update',
-    // Settings
     SETTINGS_GET: 'settings:get',
     SETTINGS_SET: 'settings:set',
-    // Find
     FIND_START: 'find:start',
     FIND_STOP: 'find:stop',
     FIND_RESULT: 'find:result',
-    // Permissions
     PERMISSION_REQUEST: 'permission:request',
     PERMISSION_RESPOND: 'permission:respond',
-    // Shortcuts
     SHORTCUT_ACTION: 'shortcut:action',
-    // App lifecycle pushes from main → renderer
     APP_NEW_TAB: 'app:new-tab',
-    // Window controls (Windows/Linux custom titlebar)
     WINDOW_MINIMIZE: 'window:minimize',
     WINDOW_MAXIMIZE: 'window:maximize',
     WINDOW_CLOSE: 'window:close',
     WINDOW_MAXIMIZED: 'window:maximized',
     WINDOW_RESTORED: 'window:restored',
-    // Onboarding / Ollama management
     ONBOARDING_CHECK_OLLAMA: 'onboarding:check-ollama',
     ONBOARDING_PULL_MODEL: 'onboarding:pull-model',
     ONBOARDING_PULL_PROGRESS: 'onboarding:pull-progress',
@@ -122,25 +101,19 @@ exports.IPC = {
     ONBOARDING_PULL_ERROR: 'onboarding:pull-error',
     ONBOARDING_LIST_MODELS: 'onboarding:list-models',
     ONBOARDING_CANCEL_PULL: 'onboarding:cancel-pull',
-    // Keywords
-    // Auto-update
     UPDATE_AVAILABLE: 'update:available',
     UPDATE_READY: 'update:ready',
     UPDATE_INSTALL: 'update:install',
-    // App management
     APP_CLEAR_CACHE: 'app:clear-cache',
     APP_CLEAR_GPU_CACHE: 'app:clear-gpu-cache',
     APP_RESET: 'app:reset',
     APP_GET_CACHE_SIZE: 'app:get-cache-size',
     APP_GET_VERSION: 'app:get-version',
-    // Keywords
-    // Auth (Supabase)
     AUTH_SIGN_IN: 'auth:sign-in',
     AUTH_SIGN_UP: 'auth:sign-up',
     AUTH_SIGN_OUT: 'auth:sign-out',
     AUTH_GET_SESSION: 'auth:get-session',
     AUTH_STATE_CHANGED: 'auth:state-changed',
-    // Keywords
     KEYWORDS_RESOLVE: 'keywords:resolve',
     KEYWORDS_SUGGEST: 'keywords:suggest',
     KEYWORDS_GET_ALL: 'keywords:get-all',
@@ -153,13 +126,13 @@ exports.IPC = {
     KEYWORDS_GET_USAGE: 'keywords:get-usage',
     KEYWORDS_RESET: 'keywords:reset',
 };
-// Channels the renderer is allowed to invoke (allowlist for preload)
 exports.INVOKE_ALLOWLIST = [
     exports.IPC.TABS_CREATE, exports.IPC.TABS_CLOSE, exports.IPC.TABS_ACTIVATE, exports.IPC.TABS_REORDER,
     exports.IPC.TABS_PIN, exports.IPC.TABS_GROUP_CREATE, exports.IPC.TABS_GROUP_UPDATE, exports.IPC.TABS_GROUP_DELETE,
     exports.IPC.TABS_RESTORE_SESSION, exports.IPC.TABS_SPLIT_TOGGLE, exports.IPC.TABS_GET_ALL, exports.IPC.TABS_SAVE_SESSION,
     exports.IPC.NAV_LOAD_URL, exports.IPC.NAV_GO_BACK, exports.IPC.NAV_GO_FORWARD, exports.IPC.NAV_RELOAD,
     exports.IPC.NAV_STOP, exports.IPC.NAV_ZOOM, exports.IPC.NAV_DEVTOOLS,
+    exports.IPC.PAGE_PRINT, exports.IPC.PAGE_SAVE, exports.IPC.PAGE_DOWNLOAD_URL,
     exports.IPC.HISTORY_SEARCH, exports.IPC.HISTORY_ADD, exports.IPC.HISTORY_DELETE,
     exports.IPC.HISTORY_CLEAR_RANGE, exports.IPC.HISTORY_CLEAR_ALL,
     exports.IPC.BOOKMARKS_GET_TREE, exports.IPC.BOOKMARKS_ADD, exports.IPC.BOOKMARKS_UPDATE,
@@ -195,7 +168,6 @@ exports.INVOKE_ALLOWLIST = [
     exports.IPC.APP_GET_CACHE_SIZE, exports.IPC.APP_GET_VERSION,
     exports.IPC.AUTH_SIGN_IN, exports.IPC.AUTH_SIGN_UP, exports.IPC.AUTH_SIGN_OUT, exports.IPC.AUTH_GET_SESSION,
 ];
-// Channels main pushes to renderer (allowlist for preload `on`)
 exports.PUSH_ALLOWLIST = [
     exports.IPC.WEBVIEW_DID_NAVIGATE, exports.IPC.WEBVIEW_TITLE_UPDATED,
     exports.IPC.WEBVIEW_FAVICON_UPDATED, exports.IPC.WEBVIEW_LOADING_CHANGED,

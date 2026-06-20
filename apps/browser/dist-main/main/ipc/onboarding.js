@@ -4,19 +4,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.registerOnboardingIpc = registerOnboardingIpc;
-// ─────────────────────────────────────────────────────────────────────────────
-// ipc/onboarding.ts — IPC handlers for the first-launch onboarding wizard.
-//
-// Exposes three invoke channels:
-//   ONBOARDING_CHECK_OLLAMA  — ping Ollama health endpoint, return { running }
-//   ONBOARDING_LIST_MODELS   — return [{ name, size }] from Ollama tags API
-//   ONBOARDING_PULL_MODEL    — stream pull progress events to renderer
-//   ONBOARDING_CANCEL_PULL   — abort an in-flight pull
-//
-// Pull progress is pushed as ONBOARDING_PULL_PROGRESS  { model, status, percent }
-//                              ONBOARDING_PULL_COMPLETE { model }
-//                              ONBOARDING_PULL_ERROR    { model, message }
-// ─────────────────────────────────────────────────────────────────────────────
 const electron_1 = require("electron");
 const http_1 = __importDefault(require("http"));
 const https_1 = __importDefault(require("https"));
@@ -25,7 +12,6 @@ const validators_1 = require("./validators");
 function getOllamaBase() {
     return process.env.OLLAMA_BASE_URL ?? 'http://localhost:11434';
 }
-// Utility: perform a simple GET and return the parsed JSON body.
 function fetchJson(url) {
     return new Promise((resolve, reject) => {
         const client = url.startsWith('https://') ? https_1.default : http_1.default;
@@ -45,9 +31,7 @@ function fetchJson(url) {
         req.on('timeout', () => { req.destroy(); reject(new Error('Request timed out')); });
     });
 }
-// Active pull abort controllers keyed by model name.
 const activePulls = new Map();
-// Stream Ollama pull — calls onLine for each NDJSON line until done/error.
 function streamPull(base, model, signal, onLine) {
     return new Promise((resolve, reject) => {
         const url = new URL(`${base}/api/pull`);
@@ -97,14 +81,12 @@ function streamPull(base, model, signal, onLine) {
     });
 }
 function registerOnboardingIpc(wm) {
-    // ── Open external URL in system browser (e.g. Ollama download page) ───────
     electron_1.ipcMain.handle('shell:open-external', (_event, { url }) => {
         if (typeof url === 'string' && (url.startsWith('https://') || url.startsWith('http://'))) {
             electron_1.shell.openExternal(url).catch(console.error);
         }
         return { ok: true };
     });
-    // ── Check if Ollama is reachable ──────────────────────────────────────────
     electron_1.ipcMain.handle(ipc_channels_1.IPC.ONBOARDING_CHECK_OLLAMA, async () => {
         const base = getOllamaBase();
         try {
@@ -115,7 +97,6 @@ function registerOnboardingIpc(wm) {
             return { running: false, url: base };
         }
     });
-    // ── List installed models ─────────────────────────────────────────────────
     electron_1.ipcMain.handle(ipc_channels_1.IPC.ONBOARDING_LIST_MODELS, async () => {
         const base = getOllamaBase();
         try {
@@ -130,7 +111,6 @@ function registerOnboardingIpc(wm) {
             return [];
         }
     });
-    // ── Pull a model ──────────────────────────────────────────────────────────
     electron_1.ipcMain.handle(ipc_channels_1.IPC.ONBOARDING_PULL_MODEL, async (_event, args) => {
         const parsed = validators_1.OnboardingPullModelSchema.safeParse(args);
         if (!parsed.success)
@@ -170,7 +150,6 @@ function registerOnboardingIpc(wm) {
                     }
                 }
                 catch {
-                    // Unparseable line — skip
                 }
             });
             if (!controller.signal.aborted) {
@@ -186,7 +165,6 @@ function registerOnboardingIpc(wm) {
             activePulls.delete(model);
         }
     });
-    // ── Cancel an active pull ─────────────────────────────────────────────────
     electron_1.ipcMain.handle(ipc_channels_1.IPC.ONBOARDING_CANCEL_PULL, (_event, args) => {
         const parsed = validators_1.OnboardingCancelPullSchema.safeParse(args);
         if (!parsed.success)

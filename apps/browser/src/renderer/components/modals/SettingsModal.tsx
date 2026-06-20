@@ -1,13 +1,11 @@
-// ─────────────────────────────────────────────────────────────────────────────
-// SettingsModal — tabbed settings with Keywords management
-// ─────────────────────────────────────────────────────────────────────────────
 import React, { useState, useEffect, useCallback } from 'react';
 import { Modal } from '../shared/Modal';
 import { useUiStore } from '../../store/ui.store';
+import { useSettingsStore } from '../../store/settings.store';
+import { Theme } from '@shared/types/settings';
 import { ipc, IPC } from '../../lib/ipc';
+import { DEFAULT_PROFILE_ID } from '@shared/constants';
 import { KeywordEntry, CustomKeyword } from '@shared/keyword-engine/types';
-
-// ── Types ────────────────────────────────────────────────────────────────────
 
 type Tab = 'general' | 'keywords';
 
@@ -15,8 +13,6 @@ interface KeywordsData {
   builtin: KeywordEntry[];
   custom: CustomKeyword[];
 }
-
-// ── Keyword Form ─────────────────────────────────────────────────────────────
 
 const EMPTY_FORM = {
   keyword: '', aliases: '', url: '', searchUrl: '', name: '', favicon: '', category: 'other', enabled: true,
@@ -110,8 +106,6 @@ const KeywordForm: React.FC<{
   );
 };
 
-// ── Keywords Tab ─────────────────────────────────────────────────────────────
-
 const KeywordsTab: React.FC = () => {
   const [data, setData] = useState<KeywordsData>({ builtin: [], custom: [] });
   const [loading, setLoading] = useState(true);
@@ -126,7 +120,7 @@ const KeywordsTab: React.FC = () => {
       const result = await ipc.invoke<KeywordsData>(IPC.KEYWORDS_GET_ALL, {});
       setData(result);
     } catch {
-      // silently fail
+      
     } finally {
       setLoading(false);
     }
@@ -214,7 +208,7 @@ const KeywordsTab: React.FC = () => {
 
   return (
     <div className="flex flex-col gap-4">
-      {/* Toolbar */}
+      {}
       <div className="flex items-center gap-2">
         <div className="flex-1 flex items-center gap-2 bg-white/5 border border-white/8 rounded-lg px-3 py-1.5">
           <svg className="w-3.5 h-3.5 text-white/30" viewBox="0 0 20 20" fill="currentColor">
@@ -233,12 +227,12 @@ const KeywordsTab: React.FC = () => {
         <button onClick={() => setEditingCustom('new')} className="px-3 py-1.5 text-xs bg-vyro-600 hover:bg-vyro-500 text-white rounded-lg transition-colors">+ Add</button>
       </div>
 
-      {/* Status flash */}
+      {}
       {statusMsg && (
         <div className="text-xs text-vyro-400 bg-vyro-500/10 border border-vyro-500/20 rounded-lg px-3 py-2">{statusMsg}</div>
       )}
 
-      {/* Add/Edit form */}
+      {}
       {editingCustom !== null && (
         <div className="border border-white/10 rounded-xl p-4 bg-white/3">
           <p className="text-xs font-semibold text-white/50 uppercase tracking-wider mb-3">
@@ -252,7 +246,7 @@ const KeywordsTab: React.FC = () => {
         </div>
       )}
 
-      {/* Section tabs */}
+      {}
       <div className="flex gap-1 border-b border-white/8 pb-0">
         {(['builtin', 'custom'] as const).map(s => (
           <button
@@ -268,7 +262,7 @@ const KeywordsTab: React.FC = () => {
         ))}
       </div>
 
-      {/* Keyword list */}
+      {}
       <div className="flex flex-col gap-0.5 max-h-72 overflow-y-auto pr-1">
         {loading ? (
           <p className="text-xs text-white/30 text-center py-8">Loading…</p>
@@ -367,18 +361,33 @@ const KeywordsTab: React.FC = () => {
   );
 };
 
-// ── General Tab ───────────────────────────────────────────────────────────────
-
 const GeneralTab: React.FC = () => {
   const [cacheSize, setCacheSize] = useState<string | null>(null);
   const [versionInfo, setVersionInfo] = useState<any>(null);
   const [busy, setBusy] = useState<string | null>(null);
   const [msg, setMsg] = useState<string | null>(null);
+  const [httpsOnly, setHttpsOnly] = useState(false);
+  const theme = useSettingsStore(s => s.settings.theme);
+  const updateSetting = useSettingsStore(s => s.updateSetting);
+
+  const selectTheme = (t: Theme) => {
+    updateSetting('theme', t);
+    ipc.invoke(IPC.SETTINGS_SET, { profileId: DEFAULT_PROFILE_ID, settings: { theme: t } });
+  };
 
   useEffect(() => {
     ipc.invoke(IPC.APP_GET_CACHE_SIZE).then((r: any) => setCacheSize(r?.mb ?? null));
     ipc.invoke(IPC.APP_GET_VERSION).then((r: any) => setVersionInfo(r));
+    ipc.invoke(IPC.SETTINGS_GET, { profileId: DEFAULT_PROFILE_ID }).then((s: any) => {
+      if (s && typeof s.httpsOnly === 'boolean') setHttpsOnly(s.httpsOnly);
+    });
   }, []);
+
+  const toggleHttpsOnly = () => {
+    const next = !httpsOnly;
+    setHttpsOnly(next);
+    ipc.invoke(IPC.SETTINGS_SET, { profileId: DEFAULT_PROFILE_ID, settings: { httpsOnly: next } });
+  };
 
   const run = async (channel: string, label: string, confirm?: string) => {
     if (confirm && !window.confirm(confirm)) return;
@@ -401,7 +410,7 @@ const GeneralTab: React.FC = () => {
 
   return (
     <div className="flex flex-col gap-5 text-sm">
-      {/* Version info */}
+      {}
       <div className="bg-white/3 border border-white/8 rounded-xl p-4 flex flex-col gap-1">
         <p className="text-xs text-white/40 font-medium uppercase tracking-wider mb-1">About</p>
         {versionInfo ? (
@@ -428,7 +437,47 @@ const GeneralTab: React.FC = () => {
         )}
       </div>
 
-      {/* Cache management */}
+      {}
+      <div className="bg-white/3 border border-white/8 rounded-xl p-4 flex flex-col gap-3">
+        <p className="text-xs text-white/40 font-medium uppercase tracking-wider">Appearance</p>
+        <div className="flex gap-2">
+          {(['dark', 'light', 'system'] as Theme[]).map(t => (
+            <button
+              key={t}
+              onClick={() => selectTheme(t)}
+              aria-pressed={theme === t}
+              className={`flex-1 py-2 px-3 rounded-lg text-xs font-medium capitalize transition-all ${
+                theme === t ? 'bg-vyro-500 text-white' : 'bg-white/6 hover:bg-white/10 text-white/80'
+              }`}
+            >
+              {t}
+            </button>
+          ))}
+        </div>
+        <p className="text-xs text-white/25">System follows your OS appearance automatically.</p>
+      </div>
+
+      {}
+      <div className="bg-white/3 border border-white/8 rounded-xl p-4 flex flex-col gap-3">
+        <p className="text-xs text-white/40 font-medium uppercase tracking-wider">Privacy &amp; Security</p>
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex flex-col">
+            <span className="text-xs text-white/80">HTTPS-Only Mode</span>
+            <span className="text-xs text-white/25">Upgrade page loads to HTTPS; insecure sites that can't upgrade will fail to load.</span>
+          </div>
+          <button
+            role="switch"
+            aria-checked={httpsOnly}
+            aria-label="HTTPS-Only Mode"
+            onClick={toggleHttpsOnly}
+            className={`relative shrink-0 w-10 h-6 rounded-full transition-colors ${httpsOnly ? 'bg-vyro-500' : 'bg-white/12'}`}
+          >
+            <span className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white transition-transform ${httpsOnly ? 'translate-x-4' : ''}`} />
+          </button>
+        </div>
+      </div>
+
+      {}
       <div className="bg-white/3 border border-white/8 rounded-xl p-4 flex flex-col gap-3">
         <div className="flex items-center justify-between">
           <p className="text-xs text-white/40 font-medium uppercase tracking-wider">Cache</p>
@@ -455,7 +504,7 @@ const GeneralTab: React.FC = () => {
         <p className="text-xs text-white/25">Clears cached pages and GPU shaders. Your browsing data is kept.</p>
       </div>
 
-      {/* Reset */}
+      {}
       <div className="bg-white/3 border border-white/8 rounded-xl p-4 flex flex-col gap-3">
         <p className="text-xs text-white/40 font-medium uppercase tracking-wider">Reset</p>
         <div className="flex gap-2">
@@ -482,8 +531,6 @@ const GeneralTab: React.FC = () => {
     </div>
   );
 };
-
-// ── SettingsModal ─────────────────────────────────────────────────────────────
 
 const TABS: { id: Tab; label: string }[] = [
   { id: 'general', label: 'General' },

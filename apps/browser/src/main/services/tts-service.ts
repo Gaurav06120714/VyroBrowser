@@ -14,7 +14,7 @@ function commandExists(cmd: string): boolean {
 
 export function isTTSSupported(): boolean {
   if (platform === 'darwin') return true;
-  if (platform === 'win32') return true; // PowerShell always available on Windows
+  if (platform === 'win32') return true; 
   if (platform === 'linux') return commandExists('espeak') || commandExists('festival');
   return false;
 }
@@ -32,7 +32,7 @@ export function startTTS(text: string, voice?: string): { ok: boolean; error?: s
   }
 
   if (platform === 'win32') {
-    // Use PowerShell Speech Synthesis
+    
     const escaped = safeText.replace(/'/g, "''");
     const ps = `Add-Type -AssemblyName System.Speech; $s = New-Object System.Speech.Synthesis.SpeechSynthesizer; ${voice ? `$s.SelectVoice('${voice}');` : ''} $s.Speak('${escaped}')`;
     ttsProcess = spawn('powershell.exe', ['-NoProfile', '-Command', ps]);

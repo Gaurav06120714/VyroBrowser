@@ -1,14 +1,3 @@
-// ─────────────────────────────────────────────────────────────────────────────
-// Onboarding.tsx — First-launch wizard shown before the main browser UI.
-//
-// Steps:
-//   0 — Welcome            Intro to Vyro, platform awareness
-//   1 — Ollama check       Detect if Ollama is running, show install guide
-//   2 — Model selection    Pull recommended models or confirm existing ones
-//   3 — Ready              All set, launch button
-//
-// All steps are self-contained sections of this file for clarity.
-// ─────────────────────────────────────────────────────────────────────────────
 import React, { useEffect } from 'react';
 import {
   useOnboarding,
@@ -17,64 +6,25 @@ import {
   PullStatus,
 } from '../hooks/useOnboarding';
 
-// ── Vyro Logo component ──────────────────────────────────────────────────────
-
 const VyroLogo: React.FC<{ size?: number; animated?: boolean }> = ({
   size = 80,
-  animated = false,
 }) => {
   const platform = typeof window !== 'undefined' && window.vyro ? window.vyro.platform : 'darwin';
   const isMac = platform === 'darwin';
 
   return (
     <div className="relative flex items-center justify-center" style={{ width: size, height: size }}>
-      {/* Outer glow rings */}
-      {animated && (
-        <>
-          <span
-            className="absolute rounded-full border border-violet-500/20"
-            style={{
-              width: size * 1.6,
-              height: size * 1.6,
-              animation: 'vyro-ping 2s cubic-bezier(0,0,0.2,1) infinite',
-            }}
-          />
-          <span
-            className="absolute rounded-full border border-cyan-400/15"
-            style={{
-              width: size * 1.35,
-              height: size * 1.35,
-              animation: 'vyro-ping 2s cubic-bezier(0,0,0.2,1) infinite 0.4s',
-            }}
-          />
-        </>
-      )}
-      {/* Glow backdrop */}
+      {}
       <div
-        className="absolute rounded-full"
-        style={{
-          width: size,
-          height: size,
-          background: 'radial-gradient(circle, rgba(99,102,241,0.35) 0%, rgba(6,182,212,0.15) 60%, transparent 80%)',
-          filter: 'blur(12px)',
-        }}
-      />
-      {/* Icon container — circular on macOS, rounded-square on Windows/Linux */}
-      <div
-        className="relative flex items-center justify-center overflow-hidden shadow-2xl"
+        className="relative flex items-center justify-center overflow-hidden"
         style={{
           width: size,
           height: size,
           borderRadius: isMac ? '50%' : `${size * 0.215}px`,
-          background: isMac
-            ? 'radial-gradient(circle at 40% 35%, #1a1a2e, #0a0a14)'
-            : 'radial-gradient(circle at 40% 35%, #1e2a5e, #080d1f)',
+          background: isMac ? '#111122' : '#0e1630',
           border: isMac
-            ? '2px solid rgba(209,213,219,0.25)'
-            : '1.5px solid rgba(59,130,246,0.35)',
-          boxShadow: isMac
-            ? '0 0 0 1px rgba(255,255,255,0.06), inset 0 1px 0 rgba(255,255,255,0.08)'
-            : '0 0 20px rgba(59,130,246,0.2), inset 0 1px 0 rgba(255,255,255,0.05)',
+            ? '2px solid rgba(209,213,219,0.15)'
+            : '1.5px solid rgba(99,102,241,0.3)',
         }}
       >
         <svg
@@ -100,11 +50,11 @@ const VyroLogo: React.FC<{ size?: number; animated?: boolean }> = ({
               <stop offset="100%" stopColor="#c084fc" />
             </linearGradient>
           </defs>
-          {/* V left stroke */}
+          {}
           <polygon points="15,18 28,18 50,62 37,62" fill="url(#lg-v)" opacity="0.95" />
-          {/* V right stroke */}
+          {}
           <polygon points="72,18 85,18 63,62 50,62" fill="url(#lg-v)" opacity="0.85" />
-          {/* Wave ribbons */}
+          {}
           <path d="M8 50 Q25 42 40 52 Q58 64 75 50 Q84 43 92 47"
             stroke="url(#lg-w1)" strokeWidth="5.5" strokeLinecap="round" opacity="0.9" />
           <path d="M8 58 Q25 50 40 60 Q58 72 75 58 Q84 51 92 55"
@@ -113,18 +63,9 @@ const VyroLogo: React.FC<{ size?: number; animated?: boolean }> = ({
             stroke="url(#lg-w1)" strokeWidth="2.5" strokeLinecap="round" opacity="0.45" />
         </svg>
       </div>
-      <style>{`
-        @keyframes vyro-ping {
-          0%   { transform: scale(0.85); opacity: 0.8; }
-          70%  { transform: scale(1);    opacity: 0; }
-          100% { transform: scale(1);    opacity: 0; }
-        }
-      `}</style>
     </div>
   );
 };
-
-// ── Small shared primitives ──────────────────────────────────────────────────
 
 const StepDots: React.FC<{ current: number; total: number }> = ({ current, total }) => (
   <div className="flex items-center justify-center gap-2">
@@ -179,8 +120,6 @@ const GhostButton: React.FC<React.ButtonHTMLAttributes<HTMLButtonElement>> = ({
   </button>
 );
 
-// ── Step 0: Welcome ──────────────────────────────────────────────────────────
-
 const StepWelcome: React.FC<{ onNext: () => void; onSkip: () => void }> = ({
   onNext,
   onSkip,
@@ -191,32 +130,50 @@ const StepWelcome: React.FC<{ onNext: () => void; onSkip: () => void }> = ({
 
   return (
     <div className="flex flex-col items-center text-center gap-6 max-w-md">
-      {/* Logo with animated glow */}
+      {}
       <VyroLogo size={96} animated />
 
       <div>
         <h1 className="text-3xl font-bold text-white mb-2">Welcome to Vyro</h1>
         <p className="text-white/60 text-sm leading-relaxed">
-          An AI-powered browser running entirely on your {platformLabel} machine.
-          No cloud, no subscriptions — your data stays yours.
+          A browser that runs AI models locally on your {platformLabel} machine.
+          No cloud, no subscription, no data leaving your device.
         </p>
       </div>
 
-      <div className="grid grid-cols-3 gap-3 w-full">
-        {[
-          { icon: '🧠', label: 'Local AI', desc: 'Ollama runs on device' },
-          { icon: '🚫', label: 'Ad-free', desc: 'Network-level blocking' },
-          { icon: '⌨️', label: 'Keyboard-first', desc: 'Cmd+K for everything' },
-        ].map(({ icon, label, desc }) => (
-          <div
-            key={label}
-            className="flex flex-col items-center gap-1 p-3 rounded-xl bg-white/5 border border-white/10"
-          >
-            <span className="text-2xl">{icon}</span>
-            <span className="text-xs font-semibold text-white">{label}</span>
-            <span className="text-[11px] text-white/40 text-center leading-tight">{desc}</span>
+      {}
+      <div className="w-full rounded-xl border border-white/10 bg-white/[0.03] overflow-hidden text-left">
+        {}
+        <div className="flex items-center gap-2 px-3 h-8 border-b border-white/[0.07] bg-white/[0.04]">
+          <span className="w-2 h-2 rounded-full bg-[#ff5f57]/60" />
+          <span className="w-2 h-2 rounded-full bg-[#febc2e]/60" />
+          <span className="w-2 h-2 rounded-full bg-[#28c840]/60" />
+          <div className="flex items-center gap-1 ml-2">
+            <div className="flex items-center gap-1 px-2 h-5 rounded-md bg-white/10 text-[10px] text-white/60">
+              <span className="w-2 h-2 rounded-sm bg-[#4285f4]" /> Google
+            </div>
+            <div className="flex items-center gap-1 px-2 h-5 rounded-md text-[10px] text-white/25">
+              <span className="w-2 h-2 rounded-sm bg-white/15" /> GitHub
+            </div>
           </div>
-        ))}
+          <div className="ml-auto flex-1 max-w-[140px] h-5 rounded bg-white/[0.06] flex items-center px-2">
+            <span className="text-[9px] text-white/30 font-mono truncate">google.com</span>
+          </div>
+        </div>
+        {}
+        <div className="flex" style={{ height: 96 }}>
+          <div className="flex-1 p-3 space-y-1.5">
+            <div className="h-1.5 w-3/4 rounded bg-white/[0.07]" />
+            <div className="h-1.5 w-1/2 rounded bg-white/[0.05]" />
+            <div className="h-1.5 w-2/3 rounded bg-white/[0.07]" />
+            <div className="h-1.5 w-2/5 rounded bg-white/[0.04]" />
+          </div>
+          <div className="w-32 border-l border-white/[0.07] bg-white/[0.02] p-2 flex flex-col gap-1.5">
+            <div className="text-[9px] uppercase tracking-widest text-white/25 font-semibold">AI · llama3.1</div>
+            <div className="rounded bg-white/[0.05] px-1.5 py-1 text-[9px] text-white/50 leading-tight">Summarise this page</div>
+            <div className="rounded bg-violet-600/20 border border-violet-500/20 px-1.5 py-1 text-[9px] text-white/70 leading-tight">Google lets you search the web…</div>
+          </div>
+        </div>
       </div>
 
       <div className="flex flex-col gap-3 w-full">
@@ -230,8 +187,6 @@ const StepWelcome: React.FC<{ onNext: () => void; onSkip: () => void }> = ({
     </div>
   );
 };
-
-// ── Step 1: Ollama check ──────────────────────────────────────────────────────
 
 const StepOllama: React.FC<{
   ollamaRunning: boolean | null;
@@ -283,7 +238,7 @@ const StepOllama: React.FC<{
         </p>
       </div>
 
-      {/* Status card */}
+      {}
       <div
         className={[
           'flex items-center gap-3 p-4 rounded-xl border',
@@ -356,8 +311,6 @@ const StepOllama: React.FC<{
     </div>
   );
 };
-
-// ── Step 2: Model selection / pull ────────────────────────────────────────────
 
 interface RecommendedModel {
   name: string;
@@ -589,8 +542,6 @@ const StepReady: React.FC<{
   );
 };
 
-// ── Root Onboarding component ─────────────────────────────────────────────────
-
 export const Onboarding: React.FC<{ onComplete: () => void }> = ({ onComplete }) => {
   const {
     currentStep,
@@ -608,7 +559,6 @@ export const Onboarding: React.FC<{ onComplete: () => void }> = ({ onComplete })
     skip,
   } = useOnboarding();
 
-  // Check Ollama and list models whenever we arrive on those steps.
   useEffect(() => {
     if (currentStep === 1) {
       checkOllama();
@@ -630,17 +580,12 @@ export const Onboarding: React.FC<{ onComplete: () => void }> = ({ onComplete })
 
   return (
     <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-[#0f0f10]">
-      {/* Ambient gradient background */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-[-20%] left-[10%] w-[600px] h-[600px] rounded-full bg-violet-900/20 blur-[120px]" />
-        <div className="absolute bottom-[-10%] right-[-5%] w-[400px] h-[400px] rounded-full bg-indigo-900/20 blur-[100px]" />
-      </div>
 
       <div className="relative z-10 flex flex-col items-center gap-8 px-6 w-full max-w-xl">
-        {/* Step dots */}
+        {}
         <StepDots current={currentStep} total={TOTAL_STEPS} />
 
-        {/* Step content */}
+        {}
         <div className="w-full flex justify-center" key={currentStep} style={{ animation: 'stepIn 300ms cubic-bezier(0.34,1.56,0.64,1)' }}>
           {currentStep === 0 && (
             <StepWelcome onNext={next} onSkip={handleSkip} />

@@ -2,10 +2,101 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ─── Design tokens ─────────────────────────────────────────────────────── */
+/* ============================================================================
+   Light theme — applied when <html data-theme="light">. Remaps the dark
+   surface/text/border utilities used across the app to light equivalents.
+   ============================================================================ */
+html[data-theme='light'] {
+  --vyro-ink: #1a1a1f;
+  --vyro-ink-dim: #4a4a55;
+  --vyro-ink-faint: #80808f;
+  --vyro-hairline: rgba(0, 0, 0, 0.08);
+  --vyro-hairline-strong: rgba(0, 0, 0, 0.14);
+}
+html[data-theme='light'] body { color: var(--vyro-ink); }
+@supports not (backdrop-filter: blur(1px)) {
+  html[data-theme='light'] body { background: #f5f5f7; }
+}
+html[data-theme='light'] ::-webkit-scrollbar-thumb { background: rgba(0, 0, 0, 0.18); }
+html[data-theme='light'] ::-webkit-scrollbar-thumb:hover { background: rgba(0, 0, 0, 0.3); }
+
+/* Translucent glass → light */
+html[data-theme='light'] .glass { background: rgba(255, 255, 255, 0.72); }
+html[data-theme='light'] .glass-floor { background: rgba(250, 250, 252, 0.78); }
+html[data-theme='light'] .glass-surface { background: rgba(248, 248, 250, 0.78); }
+@supports not (backdrop-filter: blur(1px)) {
+  html[data-theme='light'] .glass { background: #ffffff; }
+  html[data-theme='light'] .glass-floor { background: #f5f5f7; }
+  html[data-theme='light'] .glass-surface { background: #f2f2f5; }
+}
+html[data-theme='light'] .glass-lifted {
+  background: #ffffff;
+  border-color: var(--vyro-hairline-strong);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+}
+
+/* Hardcoded dark surfaces → light */
+html[data-theme='light'] .bg-\[\#0f0f10\],
+html[data-theme='light'] .bg-\[\#0e0e1a\] { background-color: #f5f5f7 !important; }
+html[data-theme='light'] .bg-\[\#111113\],
+html[data-theme='light'] .bg-\[\#1a1a1c\],
+html[data-theme='light'] .bg-\[\#111120\] { background-color: #ffffff !important; }
+html[data-theme='light'] .bg-\[\#1a1a2e\] { background-color: #ececf5 !important; }
+
+/* Plain white text → near-black */
+html[data-theme='light'] .text-white { color: #1a1a1f; }
+
+/* White-opacity text → black-opacity (boosted for legibility on light) */
+html[data-theme='light'] .text-white\/90 { color: rgba(0, 0, 0, 0.92); }
+html[data-theme='light'] .text-white\/85 { color: rgba(0, 0, 0, 0.88); }
+html[data-theme='light'] .text-white\/80 { color: rgba(0, 0, 0, 0.85); }
+html[data-theme='light'] .text-white\/70 { color: rgba(0, 0, 0, 0.78); }
+html[data-theme='light'] .text-white\/65 { color: rgba(0, 0, 0, 0.72); }
+html[data-theme='light'] .text-white\/60 { color: rgba(0, 0, 0, 0.68); }
+html[data-theme='light'] .text-white\/55 { color: rgba(0, 0, 0, 0.64); }
+html[data-theme='light'] .text-white\/50 { color: rgba(0, 0, 0, 0.6); }
+html[data-theme='light'] .text-white\/45 { color: rgba(0, 0, 0, 0.56); }
+html[data-theme='light'] .text-white\/40 { color: rgba(0, 0, 0, 0.54); }
+html[data-theme='light'] .text-white\/35 { color: rgba(0, 0, 0, 0.5); }
+html[data-theme='light'] .text-white\/30 { color: rgba(0, 0, 0, 0.48); }
+html[data-theme='light'] .text-white\/25 { color: rgba(0, 0, 0, 0.44); }
+html[data-theme='light'] .text-white\/20 { color: rgba(0, 0, 0, 0.4); }
+html[data-theme='light'] .text-white\/15 { color: rgba(0, 0, 0, 0.36); }
+html[data-theme='light'] .text-white\/10 { color: rgba(0, 0, 0, 0.32); }
+
+/* White-overlay surfaces → black-overlay */
+html[data-theme='light'] .bg-white\/3 { background-color: rgba(0, 0, 0, 0.03); }
+html[data-theme='light'] .bg-white\/4 { background-color: rgba(0, 0, 0, 0.04); }
+html[data-theme='light'] .bg-white\/5 { background-color: rgba(0, 0, 0, 0.05); }
+html[data-theme='light'] .bg-white\/6 { background-color: rgba(0, 0, 0, 0.06); }
+html[data-theme='light'] .bg-white\/8 { background-color: rgba(0, 0, 0, 0.07); }
+html[data-theme='light'] .bg-white\/10 { background-color: rgba(0, 0, 0, 0.09); }
+html[data-theme='light'] .bg-white\/12 { background-color: rgba(0, 0, 0, 0.1); }
+html[data-theme='light'] .bg-white\/15 { background-color: rgba(0, 0, 0, 0.12); }
+html[data-theme='light'] .bg-white\/20 { background-color: rgba(0, 0, 0, 0.14); }
+
+/* Component classes that use hardcoded white overlays (toolbar, tabs, dials) */
+html[data-theme='light'] .btn-toolbar { color: rgba(0, 0, 0, 0.55); }
+html[data-theme='light'] .btn-toolbar:hover { background: rgba(0, 0, 0, 0.06); color: rgba(0, 0, 0, 0.9); }
+html[data-theme='light'] .tab-pill[data-active='true'] {
+  background: rgba(0, 0, 0, 0.06);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.05), 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+html[data-theme='light'] .panel-row:hover { background: rgba(0, 0, 0, 0.04); }
+html[data-theme='light'] .dial-card { background: rgba(0, 0, 0, 0.03); border-color: var(--vyro-hairline); }
+html[data-theme='light'] .dial-card:hover { background: rgba(0, 0, 0, 0.06); border-color: var(--vyro-hairline-strong); }
+
+/* White borders → black borders */
+html[data-theme='light'] .border-white\/5 { border-color: rgba(0, 0, 0, 0.06); }
+html[data-theme='light'] .border-white\/8 { border-color: rgba(0, 0, 0, 0.09); }
+html[data-theme='light'] .border-white\/10 { border-color: rgba(0, 0, 0, 0.11); }
+html[data-theme='light'] .border-white\/15 { border-color: rgba(0, 0, 0, 0.14); }
+html[data-theme='light'] .border-white\/20 { border-color: rgba(0, 0, 0, 0.18); }
+
 :root {
-  --vyro-accent: #818cf8;
-  --vyro-accent-glow: rgba(129, 140, 248, 0.35);
+  /* Single source of truth for the accent — matches Tailwind `vyro-500`. */
+  --vyro-accent: #6366f1;
+  --vyro-accent-glow: rgba(99, 102, 241, 0.35);
   --vyro-ink: #e8e8f0;
   --vyro-ink-dim: #a8a8b8;
   --vyro-ink-faint: #6b6b80;
@@ -15,21 +106,18 @@
   --ease-in-out-cubic: cubic-bezier(0.65, 0, 0.35, 1);
   --spring: cubic-bezier(0.22, 1, 0.36, 1);
 }
-
-/* ─── Base ──────────────────────────────────────────────────────────────── */
 html, body {
   background: transparent;
   color: var(--vyro-ink);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  font-size: 16px;
+  line-height: 1.6;
   font-feature-settings: "cv11", "ss01";
   -webkit-font-smoothing: antialiased;
 }
-
-/* Subtle vibrancy fallback on non-mac platforms */
 @supports not (backdrop-filter: blur(1px)) {
   html, body { background: #0f0f10; }
 }
-
-/* ─── Scrollbar ─────────────────────────────────────────────────────────── */
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb {
@@ -38,12 +126,8 @@ html, body {
   transition: background 0.15s;
 }
 ::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.22); }
-
-/* ─── Drag regions ──────────────────────────────────────────────────────── */
 .drag { -webkit-app-region: drag; }
 .no-drag { -webkit-app-region: no-drag; }
-
-/* ─── Webview ───────────────────────────────────────────────────────────── */
 webview {
   display: flex;
   flex: 1;
@@ -52,51 +136,38 @@ webview {
   border: none;
   background: #ffffff;
 }
-
-/* ─── Glass system (3 tiers — Arc-quality) ──────────────────────────────── */
 .glass {
-  /* legacy alias for backward compat — maps to floor */
-  background: rgba(15, 15, 17, 0.55);
-  backdrop-filter: blur(28px) saturate(160%);
-  -webkit-backdrop-filter: blur(28px) saturate(160%);
+  background: rgba(20, 20, 26, 0.72);
+  backdrop-filter: blur(18px) saturate(160%);
+  -webkit-backdrop-filter: blur(18px) saturate(160%);
   border: 1px solid var(--vyro-hairline);
 }
-
-/* Floor — chrome bar, sticky elements close to content */
 .glass-floor {
-  background: rgba(15, 15, 17, 0.55);
-  backdrop-filter: blur(28px) saturate(160%);
-  -webkit-backdrop-filter: blur(28px) saturate(160%);
+  background: rgba(15, 15, 17, 0.72);
+  backdrop-filter: blur(18px) saturate(160%);
+  -webkit-backdrop-filter: blur(18px) saturate(160%);
   border-bottom: 1px solid var(--vyro-hairline);
-  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.03) inset;
 }
-
-/* Surface — sidebar, panels */
 .glass-surface {
-  background: rgba(18, 18, 22, 0.62);
-  backdrop-filter: blur(40px) saturate(180%);
-  -webkit-backdrop-filter: blur(40px) saturate(180%);
+  background: rgba(18, 18, 22, 0.72);
+  backdrop-filter: blur(18px) saturate(160%);
+  -webkit-backdrop-filter: blur(18px) saturate(160%);
   border-right: 1px solid var(--vyro-hairline);
 }
-
-/* Lifted — modals, command palette, popovers */
-.glass-lifted {
-  background: rgba(26, 26, 30, 0.78);
-  backdrop-filter: blur(56px) saturate(200%);
-  -webkit-backdrop-filter: blur(56px) saturate(200%);
-  border: 1px solid var(--vyro-hairline-strong);
-  box-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.06) inset,
-    0 24px 60px rgba(0, 0, 0, 0.5),
-    0 0 0 0.5px rgba(255, 255, 255, 0.03);
+/* Solid fallback where backdrop-filter is unavailable (some Linux compositors). */
+@supports not (backdrop-filter: blur(1px)) {
+  .glass { background: #14141a; }
+  .glass-floor { background: #0f0f11; }
+  .glass-surface { background: #121216; }
 }
-
-/* ─── Smooth premium transitions (default) ──────────────────────────────── */
+.glass-lifted {
+  background: #1a1a1e;
+  border: 1px solid var(--vyro-hairline-strong);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+}
 * {
   transition-timing-function: var(--ease-out-quart);
 }
-
-/* ─── Tab styling (Linear / Arc style) ──────────────────────────────────── */
 .tab-pill {
   position: relative;
   transition: background-color 180ms var(--ease-out-quart),
@@ -105,22 +176,19 @@ webview {
 }
 .tab-pill:hover { transform: translateY(-0.5px); }
 .tab-pill:active { transform: translateY(0); }
-
 .tab-pill[data-active="true"] {
   background: rgba(255, 255, 255, 0.08);
   box-shadow:
     0 0 0 1px rgba(255, 255, 255, 0.06),
     0 4px 12px rgba(0, 0, 0, 0.2);
 }
-
-/* Active tab underline indicator — animated */
 .tab-indicator {
   position: absolute;
   bottom: -1px;
   left: 12px;
   right: 12px;
   height: 2px;
-  background: linear-gradient(90deg, transparent, var(--vyro-accent), transparent);
+  background: var(--vyro-accent);
   border-radius: 2px;
   opacity: 0;
   transform: scaleX(0.4);
@@ -131,8 +199,6 @@ webview {
   opacity: 1;
   transform: scaleX(1);
 }
-
-/* ─── Buttons — magnetic hover ──────────────────────────────────────────── */
 .btn-toolbar {
   display: inline-flex;
   align-items: center;
@@ -158,8 +224,6 @@ webview {
   transform: none;
   background: transparent;
 }
-
-/* Primary accent button */
 .btn-accent {
   background: var(--vyro-accent);
   color: white;
@@ -180,21 +244,6 @@ webview {
   transform: translateY(-0.5px);
 }
 .btn-accent:active { transform: scale(0.98); }
-
-/* ─── Address bar polish ────────────────────────────────────────────────── */
-.address-bar {
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid var(--vyro-hairline);
-  transition: background 200ms, border-color 200ms, box-shadow 220ms;
-}
-.address-bar:hover { background: rgba(255, 255, 255, 0.06); }
-.address-bar:focus-within {
-  background: rgba(255, 255, 255, 0.07);
-  border-color: rgba(129, 140, 248, 0.4);
-  box-shadow: 0 0 0 3px rgba(129, 140, 248, 0.12);
-}
-
-/* ─── Card / panel ──────────────────────────────────────────────────────── */
 .panel-row {
   position: relative;
   transition: background-color 140ms var(--ease-out-quart),
@@ -204,8 +253,6 @@ webview {
   background: rgba(255, 255, 255, 0.04);
 }
 .panel-row:active { transform: scale(0.997); }
-
-/* ─── Animations ────────────────────────────────────────────────────────── */
 @keyframes fade-in {
   from { opacity: 0; transform: translateY(4px); }
   to { opacity: 1; transform: translateY(0); }
@@ -213,7 +260,6 @@ webview {
 .animate-fade-in {
   animation: fade-in 240ms var(--ease-out-quart) backwards;
 }
-
 @keyframes scale-in {
   from { opacity: 0; transform: scale(0.96); }
   to { opacity: 1; transform: scale(1); }
@@ -221,13 +267,11 @@ webview {
 .animate-scale-in {
   animation: scale-in 200ms var(--spring) backwards;
 }
-
 @keyframes pulse-glow {
   0%, 100% { box-shadow: 0 0 0 0 var(--vyro-accent-glow); }
   50% { box-shadow: 0 0 0 8px transparent; }
 }
 .pulse-glow { animation: pulse-glow 2.4s ease-out infinite; }
-
 @keyframes shimmer {
   0% { background-position: -200% 0; }
   100% { background-position: 200% 0; }
@@ -240,8 +284,6 @@ webview {
   -webkit-text-fill-color: transparent;
   animation: shimmer 2.5s linear infinite;
 }
-
-/* Loading skeleton */
 @keyframes skeleton {
   0% { background-position: -200% 0; }
   100% { background-position: 200% 0; }
@@ -256,8 +298,6 @@ webview {
   background-size: 200% 100%;
   animation: skeleton 1.4s linear infinite;
 }
-
-/* ─── Focus ring ────────────────────────────────────────────────────────── */
 :focus-visible {
   outline: 2px solid var(--vyro-accent);
   outline-offset: 2px;
@@ -267,8 +307,6 @@ button:focus-visible,
 a:focus-visible {
   outline-offset: 2px;
 }
-
-/* ─── Sidebar slide animation ───────────────────────────────────────────── */
 .sidebar-slide-enter {
   transform: translateX(-100%);
   opacity: 0;
@@ -278,27 +316,15 @@ a:focus-visible {
   opacity: 1;
   transition: transform 280ms var(--spring), opacity 200ms;
 }
-
-/* ─── Reduced motion ────────────────────────────────────────────────────── */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.01ms !important;
     transition-duration: 0.01ms !important;
   }
 }
-
-/* ─── New tab page polish ───────────────────────────────────────────────── */
 .newtab-blob {
-  position: absolute;
-  inset: 0;
-  background:
-    radial-gradient(circle at 30% 20%, rgba(129, 140, 248, 0.08) 0%, transparent 40%),
-    radial-gradient(circle at 70% 80%, rgba(168, 85, 247, 0.04) 0%, transparent 40%);
-  pointer-events: none;
-  z-index: 0;
+  display: none;
 }
-
-/* Speed-dial card hover */
 .dial-card {
   background: rgba(255, 255, 255, 0.04);
   border: 1px solid var(--vyro-hairline);
@@ -311,8 +337,6 @@ a:focus-visible {
   transform: translateY(-2px) scale(1.02);
 }
 .dial-card:active { transform: translateY(0) scale(0.99); }
-
-/* ─── Command palette result row ────────────────────────────────────────── */
 .cmd-row {
   position: relative;
   transition: background-color 100ms, transform 160ms var(--spring);

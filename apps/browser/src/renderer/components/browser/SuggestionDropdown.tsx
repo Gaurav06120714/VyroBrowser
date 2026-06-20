@@ -1,12 +1,6 @@
-// ─────────────────────────────────────────────────────────────────────────────
-// SuggestionDropdown v2 — Arc/Brave-style, grouped, animated
-// Shared between AddressBar, NewTab, CommandPalette
-// ─────────────────────────────────────────────────────────────────────────────
 import React from 'react';
 import ReactDOM from 'react-dom';
 import { KeywordSuggestion, IntentType, SuggestionGroup } from '@shared/keyword-engine/types';
-
-// ── Intent metadata ───────────────────────────────────────────────────────────
 
 export const INTENT_META: Record<NonNullable<IntentType>, { label: string; cls: string }> = {
   streaming: { label: '▶ Streaming', cls: 'text-red-400 bg-red-500/10 border border-red-500/15' },
@@ -17,16 +11,12 @@ export const INTENT_META: Record<NonNullable<IntentType>, { label: string; cls: 
   social:    { label: '💬 Social',   cls: 'text-pink-400 bg-pink-500/10 border border-pink-500/15' },
 };
 
-// ── Group headers ─────────────────────────────────────────────────────────────
-
 const GROUP_LABELS: Record<SuggestionGroup, string> = {
-  top:         '',                 // no header for top match
+  top:         '',                 
   intent:      'SMART SUGGESTIONS',
   suggestions: 'SUGGESTIONS',
   search:      'SEARCH',
 };
-
-// ── Type icon (SVG fallback when no favicon) ──────────────────────────────────
 
 const TypeIcon: React.FC<{ type: KeywordSuggestion['type'] }> = ({ type }) => {
   if (type === 'search') return (
@@ -51,8 +41,6 @@ const TypeIcon: React.FC<{ type: KeywordSuggestion['type'] }> = ({ type }) => {
   );
 };
 
-// ── Single row ────────────────────────────────────────────────────────────────
-
 interface RowProps {
   s: KeywordSuggestion;
   selected: boolean;
@@ -75,10 +63,10 @@ const Row: React.FC<RowProps> = ({ s, selected, compact, onSelect, onHover }) =>
       onMouseEnter={onHover}
       onMouseDown={e => { e.preventDefault(); onSelect(); }}
     >
-      {/* Selected accent */}
+      {}
       {selected && <div className="absolute left-0 top-1.5 bottom-1.5 w-[2px] rounded-full bg-vyro-500" />}
 
-      {/* Favicon / icon */}
+      {}
       <div className={[
         'shrink-0 flex items-center justify-center rounded-md overflow-hidden',
         compact ? 'w-5 h-5' : 'w-6 h-6',
@@ -94,7 +82,7 @@ const Row: React.FC<RowProps> = ({ s, selected, compact, onSelect, onHover }) =>
         ) : <TypeIcon type={s.type} />}
       </div>
 
-      {/* Text */}
+      {}
       <div className="flex-1 min-w-0">
         <div className={['truncate font-medium leading-tight', selected ? 'text-white' : 'text-white/85', compact ? 'text-[13px]' : 'text-sm'].join(' ')}>
           {s.label}
@@ -104,7 +92,7 @@ const Row: React.FC<RowProps> = ({ s, selected, compact, onSelect, onHover }) =>
         </div>
       </div>
 
-      {/* Right badges */}
+      {}
       <div className="flex items-center gap-1.5 shrink-0">
         {isHistory && (
           <span className="text-[10px] text-white/20 bg-white/5 border border-white/8 px-1.5 py-0.5 rounded-md">visited</span>
@@ -127,8 +115,6 @@ const Row: React.FC<RowProps> = ({ s, selected, compact, onSelect, onHover }) =>
     </div>
   );
 };
-
-// ── Exported dropdown ─────────────────────────────────────────────────────────
 
 export interface SuggestionDropdownProps {
   suggestions: KeywordSuggestion[];
@@ -154,7 +140,6 @@ export const SuggestionDropdown: React.FC<SuggestionDropdownProps> = ({
     zIndex: 9999,
   };
 
-  // Group items while preserving insertion order for rendering
   const orderedGroups: SuggestionGroup[] = ['top', 'intent', 'suggestions', 'search'];
   const byGroup = new Map<SuggestionGroup, Array<{ s: KeywordSuggestion; globalIdx: number }>>();
 
@@ -175,7 +160,7 @@ export const SuggestionDropdown: React.FC<SuggestionDropdownProps> = ({
       ].join(' ')}
       onMouseDown={e => e.preventDefault()}
     >
-      {/* Top accent line */}
+      {}
       <div className="h-px bg-gradient-to-r from-transparent via-vyro-500/25 to-transparent" />
 
       <div className="py-1">
@@ -205,7 +190,7 @@ export const SuggestionDropdown: React.FC<SuggestionDropdownProps> = ({
                 />
               ))}
 
-              {/* Divider between groups (except last) */}
+              {}
               {group !== 'search' && items.length > 0 && byGroup.size > 1 && (
                 <div className="mx-3 my-1 border-t border-white/[0.05]" />
               )}
@@ -214,7 +199,7 @@ export const SuggestionDropdown: React.FC<SuggestionDropdownProps> = ({
         })}
       </div>
 
-      {/* Keyboard hint footer */}
+      {}
       <div className="flex items-center justify-between px-3.5 py-2 border-t border-white/[0.05] bg-white/[0.015]">
         <div className="flex items-center gap-2">
           <span className="text-[10px] text-white/20">↑↓ navigate</span>

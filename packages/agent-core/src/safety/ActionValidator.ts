@@ -20,10 +20,6 @@ export interface ValidationResult {
   errors: string[];
 }
 
-/**
- * ActionValidator ensures that browser actions emitted by the AI
- * have all required fields before they are sent to the browser engine.
- */
 export class ActionValidator {
   validate(action: BrowserAction): ValidationResult {
     const errors: string[] = [];
@@ -44,15 +40,14 @@ export class ActionValidator {
       }
     }
 
-    // URL validation for navigate
     if (action.type === 'navigate' && action.url) {
       try {
         new URL(action.url);
       } catch {
-        // Try with https prefix
+        
         try {
           new URL(`https://${action.url}`);
-          // Fix the URL in-place
+          
           action.url = `https://${action.url}`;
         } catch {
           errors.push(`Invalid URL: ${action.url}`);
@@ -66,12 +61,10 @@ export class ActionValidator {
   sanitize(action: BrowserAction): BrowserAction {
     const sanitized = { ...action };
 
-    // Ensure URL has protocol
     if (sanitized.url && !sanitized.url.startsWith('http')) {
       sanitized.url = `https://${sanitized.url}`;
     }
 
-    // Truncate overly long values
     if (sanitized.value && sanitized.value.length > 10000) {
       sanitized.value = sanitized.value.slice(0, 10000);
     }

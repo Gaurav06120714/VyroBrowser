@@ -18,7 +18,7 @@ export async function performType(page: Page, options: TypeOptions): Promise<voi
   }
 
   if (delay > 0) {
-    // Human-like typing with delay
+    
     await page.click(selector);
     await page.type(selector, text, { delay });
   } else {

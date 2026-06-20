@@ -1,5 +1,3 @@
-// ─── Task lifecycle ───────────────────────────────────────────────────────────
-
 export type TaskStatus =
   | 'pending'
   | 'planning'
@@ -32,8 +30,6 @@ export type ActionType =
   | 'hover'
   | 'key_press'
   | 'drag_drop';
-
-// ─── Core domain models ───────────────────────────────────────────────────────
 
 export interface Task {
   id: string;
@@ -112,8 +108,6 @@ export interface TaskResult {
   successfulSteps: number;
 }
 
-// ─── Browser state & DOM ─────────────────────────────────────────────────────
-
 export interface BrowserState {
   url: string;
   title: string;
@@ -170,8 +164,6 @@ export interface LinkInfo {
   isExternal: boolean;
 }
 
-// ─── Sessions ─────────────────────────────────────────────────────────────────
-
 export interface BrowserSession {
   id: string;
   taskId: string;
@@ -181,8 +173,6 @@ export interface BrowserSession {
   createdAt: Date;
   lastActiveAt: Date;
 }
-
-// ─── WebSocket messages ───────────────────────────────────────────────────────
 
 export type WsMessageType =
   | 'task:started'
@@ -252,8 +242,6 @@ export interface WsTaskFailedPayload {
   step?: ExecutionStep;
 }
 
-// ─── Logs ─────────────────────────────────────────────────────────────────────
-
 export interface AgentLog {
   id: string;
   level: 'info' | 'warn' | 'error' | 'debug';
@@ -262,8 +250,6 @@ export interface AgentLog {
   data?: Record<string, unknown>;
   timestamp: Date;
 }
-
-// ─── API request/response shapes ─────────────────────────────────────────────
 
 export interface CreateTaskRequest {
   instruction: string;
@@ -297,8 +283,6 @@ export interface PaginationQuery {
   status?: TaskStatus;
 }
 
-// ─── Queue job payloads ───────────────────────────────────────────────────────
-
 export interface AgentJobPayload {
   taskId: string;
   userId: string;
@@ -306,8 +290,6 @@ export interface AgentJobPayload {
   startUrl?: string;
   options?: TaskOptions;
 }
-
-// ─── Safety ───────────────────────────────────────────────────────────────────
 
 export interface SafetyCheckResult {
   allowed: boolean;

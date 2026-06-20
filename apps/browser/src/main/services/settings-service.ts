@@ -40,7 +40,6 @@ export class SettingsService {
     setMany(Object.entries(partial));
   }
 
-  /** Write an arbitrary key/value (used for adblock site rules and similar). */
   setRaw(profileId: string, key: string, value: unknown): void {
     const serialized = JSON.stringify(value);
     this.db.prepare(`
@@ -51,7 +50,6 @@ export class SettingsService {
     syncSettingsSet(profileId, key, serialized);
   }
 
-  /** Return all keys that start with the given prefix, as key→parsed-value map. */
   getAllByPrefix(profileId: string, prefix: string): Record<string, unknown> {
     const rows = this.db
       .prepare('SELECT key, value FROM settings WHERE profile_id = ? AND key LIKE ?')

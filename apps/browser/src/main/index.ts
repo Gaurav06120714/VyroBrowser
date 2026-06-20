@@ -1,23 +1,3 @@
-// ─────────────────────────────────────────────────────────────────────────────
-// main/index.ts — Electron main process entry point.
-//
-// Startup sequence:
-//   1. Request single-instance lock (quit if another instance is running).
-//   2. app.whenReady() — init SQLite DB, ensure default profile exists.
-//   3. Create the main BrowserWindow via WindowManager.
-//   4. Register all IPC handlers (tabs, nav, history, bookmarks, AI, …).
-//   5. Set up ad-blocking request filter on the default session.
-//   6. Wire the download service to session will-download events.
-//   7. Set up the macOS Dock menu.
-//   8. Load renderer: Vite dev server in development, dist-renderer/ in prod.
-//
-// macOS lifecycle:
-//   • window-all-closed — keep the app alive in the Dock (standard mac behaviour).
-//     DB stays open so IPC handlers remain functional.
-//   • activate — user clicks the Dock icon or opens from Finder; if no window
-//     exists, create + load one so the app never appears "dead".
-//   • before-quit — close the DB cleanly right before the process exits.
-// ─────────────────────────────────────────────────────────────────────────────
 import { app, BrowserWindow, Menu, session, ipcMain } from 'electron';
 import path from 'path';
 import fs from 'fs';
@@ -31,37 +11,45 @@ import { registerShortcuts, unregisterShortcuts } from './shortcuts';
 import { createTray, destroyTray } from './tray';
 import { setupAutoUpdater } from './updater';
 import { runStartupMigration } from './ipc/app-management';
+import { installHttpsOnlyUpgrade } from './https-only';
 import { IPC } from '../shared/ipc-channels';
 
-// ── App identity — must be set BEFORE app.whenReady() ─────────────────────
 app.name = 'Vyro';
 
-// Windows: set App User Model ID so taskbar/start menu shows "Vyro" not "Electron"
+// Use a clean, real Chrome user-agent (drops the Electron/Vyro tokens and tracks
+// the actual bundled Chromium version) for site compatibility.
+{
+  const chromeVersion = process.versions.chrome;
+  const platformToken =
+    process.platform === 'win32'
+      ? 'Windows NT 10.0; Win64; x64'
+      : process.platform === 'darwin'
+        ? 'Macintosh; Intel Mac OS X 10_15_7'
+        : 'X11; Linux x86_64';
+  app.userAgentFallback = `Mozilla/5.0 (${platformToken}) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/${chromeVersion} Safari/537.36`;
+}
+
 if (process.platform === 'win32') {
   app.setAppUserModelId('com.vyro.browser');
 }
 
-// Portable build: isolate userData so portable and installed copies never collide
 if (process.platform === 'win32' && process.env.PORTABLE_EXECUTABLE_DIR) {
   const portableData = path.join(process.env.PORTABLE_EXECUTABLE_DIR, 'VyroData');
   app.setPath('userData', portableData);
   app.setPath('logs', path.join(portableData, 'logs'));
 }
 
-// ── Single instance lock ───────────────────────────────────────────────────
 const gotLock = app.requestSingleInstanceLock();
 if (!gotLock) { app.quit(); process.exit(0); }
 
 let windowManager: WindowManager;
 
-// Determine renderer URL once (used both on first launch and on re-activation)
 const isDev = process.env.NODE_ENV === 'development' || process.env.ELECTRON_IS_DEV === '1';
 const rendererUrl = isDev ? 'http://localhost:5173' : null;
 const rendererFile = isDev
   ? null
   : path.join(app.getAppPath(), 'dist-renderer/index.html');
 
-/** Create a browser window AND load the renderer into it. */
 function createWindow(): BrowserWindow {
   const win = windowManager.createMain();
 
@@ -75,38 +63,57 @@ function createWindow(): BrowserWindow {
   return win;
 }
 
-// ── App ready ─────────────────────────────────────────────────────────────
 app.whenReady().then(async () => {
-  // Clean up old app identity remnants (one-time migration)
+  
   runStartupMigration();
 
-  // Init SQLite DB + migrations
   const db = getDb();
 
-  // Ensure default profile row exists
   const profileService = new ProfileService(db);
   await profileService.ensureDefault();
 
-  // Create WindowManager and open the first window
   windowManager = new WindowManager();
   createWindow();
 
-  // Register all IPC handlers
   registerAllIpc(db, windowManager);
 
-  // Register global keyboard shortcuts
+  // Harden every embedded <webview> guest and route its popups into Vyro tabs.
+  app.on('web-contents-created', (_e, contents) => {
+    // Enforce a safe webPreferences baseline regardless of renderer attributes.
+    contents.on('will-attach-webview', (_evt, webPreferences) => {
+      webPreferences.nodeIntegration = false;
+      (webPreferences as { nodeIntegrationInSubFrames?: boolean }).nodeIntegrationInSubFrames = false;
+      webPreferences.contextIsolation = true;
+    });
+
+    if (contents.getType() !== 'webview') return;
+
+    // window.open / target=_blank from a page opens a new Vyro tab.
+    contents.setWindowOpenHandler(({ url }) => {
+      const main = windowManager.getMain();
+      if (main && !main.isDestroyed()) {
+        main.webContents.send(IPC.WEBVIEW_NEW_WINDOW, { url });
+      }
+      return { action: 'deny' };
+    });
+
+    // Block navigation to non-web protocols (file://, custom schemes, etc.).
+    contents.on('will-navigate', (event, url) => {
+      if (!/^(https?|about|data|blob):/i.test(url)) event.preventDefault();
+    });
+  });
+
   const mainWin = windowManager.getMain();
   if (mainWin) {
     registerShortcuts(mainWin);
   }
 
-  // Ad-blocking on the default session
   const defaultSession = session.defaultSession;
   setupAdblocking(defaultSession).catch(err => {
     console.error('Failed to initialize adblocker:', err);
   });
+  installHttpsOnlyUpgrade(defaultSession);
 
-  // Wire download service into session's will-download event
   defaultSession.on('will-download', (_event, item) => {
     const downloadService = getDownloadService();
     if (downloadService) {
@@ -115,16 +122,12 @@ app.whenReady().then(async () => {
     }
   });
 
-  // ── Auto-updater (production only) ──────────────────────────────────────
   if (mainWin) {
     setupAutoUpdater(mainWin);
   }
 
-  // ── System tray (Windows / Linux) ────────────────────────────────────────
   createTray(() => windowManager.getMain());
 
-  // ── macOS Dock menu ──────────────────────────────────────────────────────
-  // Right-clicking the Dock icon shows these options (Chrome/Brave style).
   if (process.platform === 'darwin') {
     const dockMenu = Menu.buildFromTemplate([
       {
@@ -134,7 +137,7 @@ app.whenReady().then(async () => {
       {
         label: 'New Tab',
         click: () => {
-          // Focus existing window and ask renderer to open a new tab
+          
           const win = windowManager.getMain() ?? createWindow();
           if (win.isMinimized()) win.restore();
           win.focus();
@@ -145,28 +148,20 @@ app.whenReady().then(async () => {
     app.dock.setMenu(dockMenu);
   }
 
-  // ── macOS: re-activate when user clicks Dock icon ─────────────────────
-  // This fires when the app is in the Dock but has no open windows.
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {
       createWindow();
     } else {
-      // Bring the existing window to the front
+      
       windowManager?.focusMain();
     }
   });
 });
 
-// ── Second instance ──────────────────────────────────────────────────────────
-// User launched a second copy of the app — focus the existing window instead.
 app.on('second-instance', () => {
   windowManager?.focusMain();
 });
 
-// ── window-all-closed ────────────────────────────────────────────────────────
-// On macOS: keep the app alive in the Dock (standard behaviour — like Chrome).
-// Do NOT close the DB here; the activate handler may need it to reopen a window.
-// On other platforms: quit normally.
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
     closeDb();
@@ -174,9 +169,6 @@ app.on('window-all-closed', () => {
   }
 });
 
-// ── before-quit ──────────────────────────────────────────────────────────────
-// This fires right before the process exits on all platforms.
-// Safe place to close the DB connection cleanly.
 app.on('before-quit', () => {
   unregisterShortcuts();
   destroyTray();

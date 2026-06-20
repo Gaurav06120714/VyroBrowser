@@ -1,6 +1,3 @@
-// ─────────────────────────────────────────────────────────────────────────────
-// AuthModal — Sign in / Sign up / Account panel for Supabase sync.
-// ─────────────────────────────────────────────────────────────────────────────
 import React, { useState } from 'react';
 import { Modal } from '../shared/Modal';
 import { useAuthStore } from '../../store/auth.store';
@@ -76,7 +73,7 @@ export const AuthModal: React.FC = () => {
     return (
       <Modal open title="Sync" onClose={closeModal} width="max-w-sm">
         <div className="flex flex-col gap-5">
-          {/* Signed-in card */}
+          {}
           <div className="flex items-center gap-3 bg-green-500/8 border border-green-500/20 rounded-xl p-4">
             <div className="w-9 h-9 rounded-full bg-violet-500/20 flex items-center justify-center shrink-0">
               <span className="text-sm font-semibold text-violet-300">{user.email[0].toUpperCase()}</span>
@@ -114,7 +111,7 @@ export const AuthModal: React.FC = () => {
   return (
     <Modal open title={view === 'signin' ? 'Sign in to sync' : 'Create account'} onClose={closeModal} width="max-w-sm">
       <div className="flex flex-col gap-5">
-        {/* Tab toggle */}
+        {}
         <div className="flex gap-1 bg-white/5 rounded-lg p-1">
           <button
             onClick={() => { setView('signin'); setError(null); setSuccess(null); }}

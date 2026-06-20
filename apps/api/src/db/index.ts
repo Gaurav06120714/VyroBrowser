@@ -5,19 +5,13 @@ import { resolve } from 'path';
 
 const dbPath = resolve(process.env['DATABASE_PATH'] ?? './vyro.db');
 
-// Open (or create) the SQLite database file
 const sqlite = new Database(dbPath);
 
-// Enable WAL mode for better concurrent read performance
 sqlite.pragma('journal_mode = WAL');
 sqlite.pragma('foreign_keys = ON');
 
 export const db = drizzle(sqlite, { schema });
 
-/**
- * Run the initial DDL to create tables if they don't exist.
- * This replaces running a migration tool on first start.
- */
 export function initDatabase(): void {
   sqlite.exec(`
     CREATE TABLE IF NOT EXISTS tasks (

@@ -35,7 +35,6 @@ export const FindBar: React.FC = () => {
     return () => document.removeEventListener('keydown', handler);
   }, [findBarOpen, setFindBarOpen]);
 
-  // Subscribe to find results pushed from main process
   useEffect(() => {
     const off = ipc.on(IPC.FIND_RESULT, (...args: unknown[]) => {
       const result = args[0] as FindResult;

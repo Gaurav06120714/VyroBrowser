@@ -23,7 +23,6 @@ function saveBounds(win) {
         fs_1.default.writeFileSync(STATE_FILE(), JSON.stringify(bounds), 'utf8');
     }
     catch {
-        // ignore
     }
 }
 function ensureVisible(bounds) {
@@ -52,7 +51,6 @@ function getPlatformWindowOptions() {
         return {
             titleBarStyle: 'hiddenInset',
             trafficLightPosition: { x: 16, y: 14 },
-            // Arc-style translucent chrome — macOS only
             vibrancy: 'under-window',
             visualEffectState: 'followWindow',
             backgroundColor: '#00000000',
@@ -61,13 +59,11 @@ function getPlatformWindowOptions() {
     }
     if (platform === 'win32') {
         return {
-            // Hidden title bar so we can render a custom one in the renderer
             titleBarStyle: 'hidden',
             backgroundColor: '#1a1a2e',
             transparent: false,
         };
     }
-    // Linux — use standard frame to avoid compositor issues
     return {
         frame: true,
         backgroundColor: '#1a1a2e',
@@ -106,9 +102,6 @@ class WindowManager {
         win.on('closed', () => {
             this.mainWindow = null;
         });
-        // ── Content Security Policy ──────────────────────────────────────────
-        // Applied to the renderer shell only (not to webview content).
-        // Dev: relaxed CSP for Vite HMR. Prod: strict CSP.
         const isDev = process.env.NODE_ENV === 'development' || process.env.ELECTRON_IS_DEV === '1';
         const devCsp = "default-src 'self' 'unsafe-inline' 'unsafe-eval' http://localhost:* blob: data:; " +
             "connect-src 'self' http://localhost:* ws://localhost:*; " +
@@ -131,7 +124,6 @@ class WindowManager {
             });
         });
         win.webContents.setWindowOpenHandler(({ url }) => {
-            // Block native new windows; let the renderer handle them via IPC
             win.webContents.send('webview:new-window', { url });
             return { action: 'deny' };
         });

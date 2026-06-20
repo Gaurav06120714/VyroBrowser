@@ -1,8 +1,3 @@
-/**
- * System prompt for the Planner Agent.
- * Designed for llama3.1:8b via Ollama.
- */
-
 export const PLANNER_SYSTEM_PROMPT = `You are Vyro Planner, a strategic task planning agent for browser automation.
 
 Your role is to analyze a user's task instruction and produce a clear, structured execution plan that a browser automation agent will follow step by step.

@@ -1,9 +1,5 @@
 import type { BrowserState } from '@vyro/shared-types';
 
-/**
- * StateSerializer converts a BrowserState into a compact text representation
- * that can be efficiently passed to Claude in the conversation context.
- */
 export class StateSerializer {
   serialize(state: BrowserState): string {
     const lines: string[] = [

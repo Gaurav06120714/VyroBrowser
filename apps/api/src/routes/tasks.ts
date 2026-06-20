@@ -30,7 +30,6 @@ export async function taskRoutes(
 ): Promise<void> {
   const taskService = new TaskService();
 
-  // POST /tasks — Create a new task
   app.post('/tasks', async (request, reply) => {
     const body = createTaskSchema.safeParse(request.body);
     if (!body.success) {
@@ -39,7 +38,6 @@ export async function taskRoutes(
 
     const task = await taskService.createTask(body.data);
 
-    // Enqueue the task for in-process execution
     await taskQueue.add({
       taskId: task.id,
       userId: 'local_user',
@@ -51,7 +49,6 @@ export async function taskRoutes(
     reply.code(201).send({ taskId: task.id, status: task.status });
   });
 
-  // GET /tasks — List tasks
   app.get('/tasks', async (request, reply) => {
     const query = paginationSchema.safeParse(request.query);
     if (!query.success) {
@@ -67,7 +64,6 @@ export async function taskRoutes(
     });
   });
 
-  // GET /tasks/:id — Get a specific task
   app.get<{ Params: { id: string } }>('/tasks/:id', async (request, reply) => {
     const task = await taskService.getTask(request.params.id);
     if (!task) {
@@ -76,7 +72,6 @@ export async function taskRoutes(
     reply.send(task);
   });
 
-  // GET /tasks/:id/screenshots — Get screenshots for a task
   app.get<{ Params: { id: string } }>('/tasks/:id/screenshots', async (request, reply) => {
     const task = await taskService.getTask(request.params.id);
     if (!task) {
@@ -86,9 +81,8 @@ export async function taskRoutes(
     reply.send({ screenshots });
   });
 
-  // POST /tasks/:id/cancel — Cancel a pending task
   app.post<{ Params: { id: string } }>('/tasks/:id/cancel', async (request, reply) => {
-    // Remove from queue if still pending (not yet picked up)
+    
     taskQueue.remove(request.params.id);
 
     const cancelled = await taskService.cancelTask(request.params.id);
@@ -101,7 +95,6 @@ export async function taskRoutes(
     reply.send({ success: true, status: 'cancelled' });
   });
 
-  // DELETE /tasks/:id — Delete a task record
   app.delete<{ Params: { id: string } }>('/tasks/:id', async (request, reply) => {
     const deleted = await taskService.deleteTask(request.params.id);
     if (!deleted) {

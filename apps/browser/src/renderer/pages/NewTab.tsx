@@ -1,11 +1,3 @@
-// ─────────────────────────────────────────────────────────────────────────────
-// NewTab — the new-tab page shown when a tab has no URL yet.
-//
-// Contains a centered search bar (with keyword suggestions) and a speed-dial
-// grid of frequently visited sites.  Navigation works by calling updateTab()
-// only — no IPC needed here because WebviewContainer will unmount this page
-// and mount WebviewPane as soon as tab.url changes to a real URL.
-// ─────────────────────────────────────────────────────────────────────────────
 import React, { useState, useRef, useCallback } from 'react';
 import { useTabsStore } from '../store/tabs.store';
 import { ipc, IPC } from '../lib/ipc';
@@ -41,9 +33,6 @@ export const NewTab: React.FC = () => {
 
   const { suggestions, getSuggestions, resolve, trackUse, clearSuggestions } = useKeywords();
 
-  // Navigate by updating the tab URL in the store.
-  // When tab.url changes from NEW_TAB_URL to a real URL,
-  // WebviewContainer unmounts NewTab and mounts WebviewPane with the new URL.
   const navigate = useCallback((targetUrl: string, keyword?: string) => {
     if (!activeTabId || !targetUrl) return;
     useTabsStore.getState().updateTab(activeTabId, {
@@ -92,13 +81,13 @@ export const NewTab: React.FC = () => {
 
   return (
     <div className="flex-1 flex flex-col items-center justify-center gap-8 bg-[#0f0f10] overflow-auto p-8 select-none">
-      {/* Logo + greeting */}
+      {}
       <div className="flex flex-col items-center gap-3">
         <VyroLogo size={56} />
         <p className="text-white/40 text-sm">{getGreeting()}</p>
       </div>
 
-      {/* Search bar */}
+      {}
       <div ref={wrapperRef} className="w-full max-w-xl">
         <div className="flex items-center gap-3 px-4 py-3.5 rounded-2xl bg-white/6 border border-white/8 shadow-xl focus-within:border-vyro-500/40 focus-within:bg-white/8 focus-within:shadow-vyro-500/10 transition-all duration-200">
           <svg className="w-4 h-4 text-white/30 shrink-0" viewBox="0 0 20 20" fill="currentColor">
@@ -140,7 +129,7 @@ export const NewTab: React.FC = () => {
         )}
       </div>
 
-      {/* Speed dial */}
+      {}
       <div className="w-full max-w-xl">
         <p className="text-white/20 text-[10px] font-semibold uppercase tracking-widest mb-3 text-center">Quick Access</p>
         <div className="grid grid-cols-6 gap-3">

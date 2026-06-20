@@ -11,12 +11,11 @@ export interface ClickOptions {
 export async function performClick(page: Page, options: ClickOptions): Promise<void> {
   const { selector, force = false, timeout = 10000, button = 'left', clickCount = 1 } = options;
 
-  // Try the direct approach first
   try {
     await page.click(selector, { force, timeout, button, clickCount });
     return;
   } catch (_firstError) {
-    // Fallback: scroll element into view and try again
+    
     try {
       await page.evaluate((sel) => {
         const el = document.querySelector(sel);

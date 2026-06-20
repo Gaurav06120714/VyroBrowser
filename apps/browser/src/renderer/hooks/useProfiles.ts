@@ -8,7 +8,7 @@ export function useProfiles() {
 
   useEffect(() => {
     ipc.invoke<Profile[]>(IPC.PROFILES_GET_ALL).then(setProfiles).catch(console.error);
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []); 
 
   const createProfile = useCallback(async (name: string, avatar?: string): Promise<Profile> => {
     const profile = await ipc.invoke<Profile>(IPC.PROFILES_CREATE, { name, avatar });

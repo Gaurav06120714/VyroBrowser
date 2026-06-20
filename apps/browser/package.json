@@ -1,6 +1,6 @@
 {
   "name": "vyro-browser",
-  "version": "2.1.0",
+  "version": "2.2.0",
   "description": "Vyro — AI-powered desktop browser",
   "author": "Vyro Browser <hello@vyrobrowser.app>",
   "main": "dist-main/main/index.js",

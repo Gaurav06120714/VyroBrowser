@@ -31,10 +31,10 @@ Latest release: **v2.2.0**
 
 | Platform | Installer | Notes |
 |---|---|---|
-| **macOS** (Apple Silicon M1/M2/M3/M4) | [Vyro-macOS-AppleSilicon-v2.2.0.dmg](https://github.com/Gaurav06120714/VyroBrowser/releases/download/v2.2.0/Vyro-macOS-AppleSilicon-v2.2.0.dmg) | Drag to Applications |
-| **macOS** (Intel) | [Vyro-macOS-Intel-v2.2.0.dmg](https://github.com/Gaurav06120714/VyroBrowser/releases/download/v2.2.0/Vyro-macOS-Intel-v2.2.0.dmg) | Drag to Applications |
-| **Windows** x64 | [Vyro-Setup-Windows-x64-v2.2.0.exe](https://github.com/Gaurav06120714/VyroBrowser/releases/download/v2.2.0/Vyro-Setup-Windows-x64-v2.2.0.exe) | Run installer |
-| **Linux** x64 | [Vyro-Linux-v2.2.0-x86_64.AppImage](https://github.com/Gaurav06120714/VyroBrowser/releases/download/v2.2.0/Vyro-Linux-v2.2.0-x86_64.AppImage) | `chmod +x` then run |
+| **macOS** (Apple Silicon M1/M2/M3/M4) | [Vyro-macOS-arm64-2.2.0.dmg](https://github.com/Gaurav06120714/VyroBrowser/releases/download/v2.2.0/Vyro-macOS-arm64-2.2.0.dmg) | Drag to Applications |
+| **macOS** (Intel) | [Vyro-macOS-x64-2.2.0.dmg](https://github.com/Gaurav06120714/VyroBrowser/releases/download/v2.2.0/Vyro-macOS-x64-2.2.0.dmg) | Drag to Applications |
+| **Windows** x64 | [Vyro-Setup-Windows-x64-2.2.0.exe](https://github.com/Gaurav06120714/VyroBrowser/releases/download/v2.2.0/Vyro-Setup-Windows-x64-2.2.0.exe) | Run installer |
+| **Linux** x64 | [Vyro-Linux-2.2.0-x86_64.AppImage](https://github.com/Gaurav06120714/VyroBrowser/releases/download/v2.2.0/Vyro-Linux-2.2.0-x86_64.AppImage) | `chmod +x` then run |
 
 > **Unsigned builds** are not yet code-signed, so the OS shows a one-time warning:
 > - **macOS** → Right-click the app → **Open**, then confirm (or System Settings → Privacy & Security → "Open Anyway").

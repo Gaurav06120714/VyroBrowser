@@ -31,6 +31,8 @@ export function registerTabsIpc(db: Database.Database, wm: WindowManager, crashR
       profileId: args?.profileId ?? DEFAULT_PROFILE_ID,
       scrollY: 0,
       createdAt: Date.now(),
+      lastActiveAt: Date.now(),
+      asleep: false,
     };
     return tab;
   });

@@ -27,6 +27,8 @@ function registerTabsIpc(db, wm, crashRecovery) {
             profileId: args?.profileId ?? constants_1.DEFAULT_PROFILE_ID,
             scrollY: 0,
             createdAt: Date.now(),
+            lastActiveAt: Date.now(),
+            asleep: false,
         };
         return tab;
     });

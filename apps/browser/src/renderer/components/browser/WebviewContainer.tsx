@@ -48,6 +48,9 @@ export const WebviewContainer: React.FC = () => {
       )}
       {tabs.map(tab => {
         const visible = tab.id === activeTabId || tab.id === secondaryId;
+        // Asleep background tabs are unmounted to free their renderer process;
+        // they reload from tab.url when activated (which clears `asleep`).
+        if (tab.asleep && !visible) return null;
         return (
           <div key={tab.id} className="flex flex-col" style={paneStyle(tab.id)}>
             <ErrorBoundary label={`Tab: ${tab.title}`}>

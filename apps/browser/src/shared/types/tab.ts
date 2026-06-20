@@ -12,6 +12,8 @@ export interface Tab {
   profileId: string;
   scrollY: number;
   createdAt: number;
+  lastActiveAt: number;
+  asleep: boolean;
 }
 
 export interface TabGroup {

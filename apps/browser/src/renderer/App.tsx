@@ -211,6 +211,15 @@ const App: React.FC = () => {
 
   useEffect(() => {
     let timer: ReturnType<typeof setTimeout> | null = null;
+    let lastSig = '';
+    const signature = () => {
+      const { tabs, activeTabId } = useTabsStore.getState();
+      // Only persist when the durable shape changes — not on transient
+      // isLoading/favicon churn — to avoid constant disk writes while browsing.
+      return tabs
+        .map(t => `${t.id}|${t.url}|${t.title}|${t.isPinned ? 1 : 0}|${t.groupId ?? ''}`)
+        .join('~') + `#${activeTabId ?? ''}`;
+    };
     const saveSession = () => {
       const { tabs, activeTabId } = useTabsStore.getState();
       if (tabs.length === 0) return;
@@ -229,6 +238,9 @@ const App: React.FC = () => {
       }).catch(() => {});
     };
     const unsubscribe = useTabsStore.subscribe(() => {
+      const sig = signature();
+      if (sig === lastSig) return;
+      lastSig = sig;
       if (timer) clearTimeout(timer);
       timer = setTimeout(saveSession, 1500);
     });
@@ -236,7 +248,23 @@ const App: React.FC = () => {
       unsubscribe();
       if (timer) clearTimeout(timer);
     };
-  }, []); 
+  }, []);
+
+  useEffect(() => {
+    // Memory saver: put non-active, non-pinned tabs to sleep after 30 minutes
+    // of inactivity so their renderer processes can be reclaimed.
+    const SLEEP_AFTER_MS = 30 * 60 * 1000;
+    const sweep = () => {
+      const { tabs, activeTabId, sleepTab } = useTabsStore.getState();
+      const now = Date.now();
+      for (const t of tabs) {
+        if (t.id === activeTabId || t.isPinned || t.asleep) continue;
+        if (now - t.lastActiveAt > SLEEP_AFTER_MS) sleepTab(t.id);
+      }
+    };
+    const interval = setInterval(sweep, 60 * 1000);
+    return () => clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     const offAvailable = ipc.on(IPC.UPDATE_AVAILABLE, (...args: unknown[]) => {

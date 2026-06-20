@@ -14,6 +14,7 @@ interface TabsActions {
   createTab: (opts?: Partial<Tab>) => Tab;
   closeTab: (tabId: string) => void;
   activateTab: (tabId: string) => void;
+  sleepTab: (tabId: string) => void;
   updateTab: (tabId: string, fields: Partial<Tab>) => void;
   reorderTabs: (tabIds: string[]) => void;
   pinTab: (tabId: string) => void;
@@ -47,6 +48,8 @@ export const useTabsStore = create<TabsState & TabsActions>((set, get) => ({
       profileId: opts?.profileId ?? DEFAULT_PROFILE_ID,
       scrollY: 0,
       createdAt: Date.now(),
+      lastActiveAt: Date.now(),
+      asleep: false,
     };
     set(state => ({
       tabs: [...state.tabs, tab],
@@ -91,7 +94,19 @@ export const useTabsStore = create<TabsState & TabsActions>((set, get) => ({
   },
 
   activateTab: (tabId) => {
-    set({ activeTabId: tabId });
+    set(state => ({
+      activeTabId: tabId,
+      // Activating a tab wakes it and stamps its activity time.
+      tabs: state.tabs.map(t =>
+        t.id === tabId ? { ...t, asleep: false, lastActiveAt: Date.now() } : t,
+      ),
+    }));
+  },
+
+  sleepTab: (tabId) => {
+    set(state => ({
+      tabs: state.tabs.map(t => (t.id === tabId ? { ...t, asleep: true } : t)),
+    }));
   },
 
   updateTab: (tabId, fields) => {

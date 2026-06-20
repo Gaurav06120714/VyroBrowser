@@ -72,37 +72,30 @@ export const ContextMenu: React.FC<Props> = ({ x, y, type, context, onClose }) =
     return () => document.removeEventListener('mousedown', handler);
   }, [onClose]);
 
-  const nav = (action: string) => {
-    if (activeTab) ipc.invoke(IPC.NAV_GO_BACK, { tabId: activeTab.id });
-    onClose();
-  };
-
   const pageItems: MenuEntry[] = [
     { label: 'Back', shortcut: '⌘[', action: () => { if (activeTab) ipc.invoke(IPC.NAV_GO_BACK, { tabId: activeTab.id }); onClose(); } },
     { label: 'Forward', shortcut: '⌘]', action: () => { if (activeTab) ipc.invoke(IPC.NAV_GO_FORWARD, { tabId: activeTab.id }); onClose(); } },
     { label: 'Reload', shortcut: '⌘R', action: () => { if (activeTab) ipc.invoke(IPC.NAV_RELOAD, { tabId: activeTab.id }); onClose(); } },
     'separator',
-    { label: 'Save Page As...', shortcut: '⌘S', action: () => onClose() },
-    { label: 'Print...', shortcut: '⌘P', action: () => onClose() },
+    { label: 'Save Page As...', shortcut: '⌘S', action: () => { if (activeTab) ipc.invoke(IPC.PAGE_SAVE, { tabId: activeTab.id }); onClose(); } },
+    { label: 'Print...', shortcut: '⌘P', action: () => { if (activeTab) ipc.invoke(IPC.PAGE_PRINT, { tabId: activeTab.id }); onClose(); } },
     'separator',
-    { label: 'View Source', shortcut: '⌥⌘U', action: () => onClose() },
+    { label: 'View Source', shortcut: '⌥⌘U', action: () => { if (activeTab) createTab({ url: `view-source:${activeTab.url}` }); onClose(); } },
     { label: 'Inspect', shortcut: '⌥⌘I', action: () => { if (activeTab) ipc.invoke(IPC.NAV_DEVTOOLS, { tabId: activeTab.id }); onClose(); } },
   ];
 
   const linkItems: MenuEntry[] = [
     { label: 'Open in New Tab', action: () => { if (context.linkUrl) createTab({ url: context.linkUrl }); onClose(); } },
-    { label: 'Open in New Window', action: () => onClose() },
     'separator',
     { label: 'Copy Link Address', action: () => { if (context.linkUrl) navigator.clipboard.writeText(context.linkUrl); onClose(); } },
-    'separator',
-    { label: 'Save Link As...', action: () => onClose() },
+    { label: 'Save Link As...', action: () => { if (context.linkUrl && activeTab) ipc.invoke(IPC.PAGE_DOWNLOAD_URL, { tabId: activeTab.id, url: context.linkUrl }); onClose(); } },
   ];
 
   const imageItems: MenuEntry[] = [
     { label: 'Open Image in New Tab', action: () => { if (context.srcUrl) createTab({ url: context.srcUrl }); onClose(); } },
     'separator',
-    { label: 'Save Image As...', action: () => onClose() },
-    { label: 'Copy Image', action: () => onClose() },
+    { label: 'Save Image As...', action: () => { if (context.srcUrl && activeTab) ipc.invoke(IPC.PAGE_DOWNLOAD_URL, { tabId: activeTab.id, url: context.srcUrl }); onClose(); } },
+    { label: 'Copy Image Address', action: () => { if (context.srcUrl) navigator.clipboard.writeText(context.srcUrl); onClose(); } },
   ];
 
   const selText = context.selectionText ?? '';
@@ -122,8 +115,6 @@ export const ContextMenu: React.FC<Props> = ({ x, y, type, context, onClose }) =
     : type === 'image' ? imageItems
     : type === 'selection' ? selectionItems
     : pageItems;
-
-  void nav;
 
   return createPortal(
     <div

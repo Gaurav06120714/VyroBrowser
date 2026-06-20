@@ -2,6 +2,8 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useTabsStore } from '../../store/tabs.store';
 import { useUiStore } from '../../store/ui.store';
 import { useAIStore } from '../../store/ai.store';
+import { useSettingsStore } from '../../store/settings.store';
+import { SEARCH_ENGINES } from '@shared/types/settings';
 import { ipc, IPC } from '../../lib/ipc';
 import { useKeywords } from '../../hooks/useKeywords';
 import { KeywordSuggestion } from '@shared/keyword-engine/types';
@@ -27,6 +29,7 @@ export const AddressBar: React.FC = () => {
   const activeTab = useTabsStore(s => s.activeTab());
   const setSidebarPanel = useUiStore(s => s.setSidebarPanel);
   const setPendingPrompt = useAIStore(s => s.setPendingPrompt);
+  const searchEngine = useSettingsStore(s => s.settings.searchEngine);
   const url = activeTab?.url ?? '';
   const isLoading = activeTab?.isLoading ?? false;
   const tabId = activeTab?.id;
@@ -135,9 +138,14 @@ export const AddressBar: React.FC = () => {
       }
 
       const match = await resolve(current);
-      navigate(match.url, match.entry?.keyword ?? undefined);
+      // Honor the user's default search engine for plain search queries.
+      let targetUrl = match.url;
+      if (match.type === 'none' && match.query) {
+        targetUrl = SEARCH_ENGINES[searchEngine].searchUrl + encodeURIComponent(match.query);
+      }
+      navigate(targetUrl, match.entry?.keyword ?? undefined);
     }
-  }, [suggestions, selectedIdx, input, url, resolve, navigate, clearSuggestions, setSidebarPanel, setPendingPrompt]);
+  }, [suggestions, selectedIdx, input, url, resolve, navigate, clearSuggestions, setSidebarPanel, setPendingPrompt, searchEngine]);
 
   const secure = isSecure(url);
   const displayValue = focused ? input : displayUrl(url);

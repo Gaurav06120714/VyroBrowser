@@ -21,7 +21,24 @@ export interface AppSettings {
   hardwareAcceleration: boolean;
   autoUpdate: boolean;
   httpsOnly: boolean;
+  accentColor: string;
 }
+
+export const SEARCH_ENGINES: Record<SearchEngine, { label: string; searchUrl: string }> = {
+  google: { label: 'Google', searchUrl: 'https://www.google.com/search?q=' },
+  bing: { label: 'Bing', searchUrl: 'https://www.bing.com/search?q=' },
+  duckduckgo: { label: 'DuckDuckGo', searchUrl: 'https://duckduckgo.com/?q=' },
+  brave: { label: 'Brave', searchUrl: 'https://search.brave.com/search?q=' },
+};
+
+export const ACCENT_PRESETS: { name: string; value: string }[] = [
+  { name: 'Indigo', value: '#6366f1' },
+  { name: 'Violet', value: '#8b5cf6' },
+  { name: 'Blue', value: '#3b82f6' },
+  { name: 'Emerald', value: '#10b981' },
+  { name: 'Rose', value: '#f43f5e' },
+  { name: 'Amber', value: '#f59e0b' },
+];
 
 export const DEFAULT_SETTINGS: AppSettings = {
   theme: 'light',
@@ -43,4 +60,5 @@ export const DEFAULT_SETTINGS: AppSettings = {
   hardwareAcceleration: true,
   autoUpdate: false,
   httpsOnly: false,
+  accentColor: '#6366f1',
 };

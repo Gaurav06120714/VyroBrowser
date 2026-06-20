@@ -31,6 +31,21 @@ export function useSettings() {
     }
   }, [settings.theme]);
 
+  // Apply the accent color to the CSS custom properties live.
+  useEffect(() => {
+    const accent = settings.accentColor || '#6366f1';
+    const root = document.documentElement;
+    root.style.setProperty('--vyro-accent', accent);
+    // Derive a translucent glow from the accent hex.
+    const hex = accent.replace('#', '');
+    if (hex.length === 6) {
+      const r = parseInt(hex.slice(0, 2), 16);
+      const g = parseInt(hex.slice(2, 4), 16);
+      const b = parseInt(hex.slice(4, 6), 16);
+      root.style.setProperty('--vyro-accent-glow', `rgba(${r}, ${g}, ${b}, 0.35)`);
+    }
+  }, [settings.accentColor]);
+
   const saveSetting = useCallback(async <K extends keyof AppSettings>(key: K, value: AppSettings[K]) => {
     updateSetting(key, value);
     await ipc.invoke(IPC.SETTINGS_SET, {

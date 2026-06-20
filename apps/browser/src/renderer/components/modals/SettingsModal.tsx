@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Modal } from '../shared/Modal';
 import { useUiStore } from '../../store/ui.store';
 import { useSettingsStore } from '../../store/settings.store';
-import { Theme } from '@shared/types/settings';
+import { Theme, SearchEngine, AppSettings, DEFAULT_SETTINGS, SEARCH_ENGINES, ACCENT_PRESETS } from '@shared/types/settings';
 import { ipc, IPC } from '../../lib/ipc';
 import { DEFAULT_PROFILE_ID } from '@shared/constants';
 import { KeywordEntry, CustomKeyword } from '@shared/keyword-engine/types';
@@ -367,14 +367,48 @@ const KeywordsTab: React.FC = () => {
   );
 };
 
+// Small visual preview of a theme inside its selection card.
+const ThemePreview: React.FC<{ variant: Theme }> = ({ variant }) => {
+  const dark = { bg: '#17171b', bar: '#23232a', line: '#3a3a44', text: '#9ca3af' };
+  const light = { bg: '#f5f5f7', bar: '#ffffff', line: '#d8d8de', text: '#6b7280' };
+  if (variant === 'system') {
+    return (
+      <div className="h-16 rounded-lg overflow-hidden flex border border-black/10">
+        <div className="flex-1 flex flex-col" style={{ background: light.bg }}>
+          <div className="h-3 m-1 rounded" style={{ background: light.bar }} />
+          <div className="h-1.5 mx-1 rounded" style={{ background: light.line }} />
+        </div>
+        <div className="flex-1 flex flex-col" style={{ background: dark.bg }}>
+          <div className="h-3 m-1 rounded" style={{ background: dark.bar }} />
+          <div className="h-1.5 mx-1 rounded" style={{ background: dark.line }} />
+        </div>
+      </div>
+    );
+  }
+  const c = variant === 'dark' ? dark : light;
+  return (
+    <div className="h-16 rounded-lg overflow-hidden p-1.5 flex flex-col gap-1 border border-black/10" style={{ background: c.bg }}>
+      <div className="h-3 rounded" style={{ background: c.bar }} />
+      <div className="h-1.5 w-3/4 rounded" style={{ background: c.line }} />
+      <div className="h-1.5 w-1/2 rounded" style={{ background: c.line }} />
+    </div>
+  );
+};
+
 const AppearanceTab: React.FC = () => {
   const theme = useSettingsStore(s => s.settings.theme);
+  const accentColor = useSettingsStore(s => s.settings.accentColor);
   const updateSetting = useSettingsStore(s => s.updateSetting);
 
   const selectTheme = (t: Theme) => {
     // Apply instantly (store drives the document data-theme via useSettings) and persist.
     updateSetting('theme', t);
     ipc.invoke(IPC.SETTINGS_SET, { profileId: DEFAULT_PROFILE_ID, settings: { theme: t } });
+  };
+
+  const selectAccent = (c: string) => {
+    updateSetting('accentColor', c);
+    ipc.invoke(IPC.SETTINGS_SET, { profileId: DEFAULT_PROFILE_ID, settings: { accentColor: c } });
   };
 
   const OPTIONS: { id: Theme; label: string }[] = [
@@ -387,21 +421,52 @@ const AppearanceTab: React.FC = () => {
     <div className="flex flex-col gap-5 text-sm">
       <div className="bg-white/3 border border-white/8 rounded-xl p-4 flex flex-col gap-3">
         <p className="text-xs text-white/40 font-medium uppercase tracking-wider">Theme</p>
-        <div className="flex gap-2">
+        <div className="grid grid-cols-3 gap-3">
           {OPTIONS.map(o => (
             <button
               key={o.id}
               onClick={() => selectTheme(o.id)}
               aria-pressed={theme === o.id}
-              className={`flex-1 py-2 px-3 rounded-lg text-xs font-medium transition-all ${
-                theme === o.id ? 'bg-vyro-500 text-white' : 'bg-white/6 hover:bg-white/10 text-white/80'
+              className={`flex flex-col gap-2 p-2 rounded-xl border transition-all text-left ${
+                theme === o.id
+                  ? 'border-vyro-500 bg-vyro-500/10 ring-1 ring-vyro-500/40'
+                  : 'border-white/8 hover:border-white/20 bg-white/3'
               }`}
             >
-              {o.label}
+              <ThemePreview variant={o.id} />
+              <span className={`text-xs font-medium ${theme === o.id ? 'text-white' : 'text-white/60'}`}>{o.label}</span>
             </button>
           ))}
         </div>
         <p className="text-xs text-white/25">System Default follows your OS appearance automatically.</p>
+      </div>
+
+      <div className="bg-white/3 border border-white/8 rounded-xl p-4 flex flex-col gap-3">
+        <p className="text-xs text-white/40 font-medium uppercase tracking-wider">Accent Color</p>
+        <div className="flex items-center gap-3">
+          {ACCENT_PRESETS.map(p => (
+            <button
+              key={p.value}
+              onClick={() => selectAccent(p.value)}
+              aria-label={p.name}
+              aria-pressed={accentColor === p.value}
+              title={p.name}
+              className={`w-7 h-7 rounded-full transition-transform hover:scale-110 ${
+                accentColor === p.value ? 'ring-2 ring-offset-2 ring-offset-transparent ring-white/70 scale-110' : ''
+              }`}
+              style={{ background: p.value }}
+            />
+          ))}
+          <label className="ml-1 w-7 h-7 rounded-full border border-white/15 flex items-center justify-center cursor-pointer relative overflow-hidden" title="Custom color">
+            <span className="text-white/50 text-sm">+</span>
+            <input
+              type="color"
+              value={accentColor}
+              onChange={e => selectAccent(e.target.value)}
+              className="absolute inset-0 opacity-0 cursor-pointer"
+            />
+          </label>
+        </div>
       </div>
     </div>
   );
@@ -513,11 +578,58 @@ const GeneralTab: React.FC = () => {
   const [versionInfo, setVersionInfo] = useState<any>(null);
   const [busy, setBusy] = useState<string | null>(null);
   const [msg, setMsg] = useState<string | null>(null);
+  const searchEngine = useSettingsStore(s => s.settings.searchEngine);
+  const setSettings = useSettingsStore(s => s.setSettings);
+  const updateSetting = useSettingsStore(s => s.updateSetting);
 
   useEffect(() => {
     ipc.invoke(IPC.APP_GET_CACHE_SIZE).then((r: any) => setCacheSize(r?.mb ?? null));
     ipc.invoke(IPC.APP_GET_VERSION).then((r: any) => setVersionInfo(r));
   }, []);
+
+  const selectEngine = (e: SearchEngine) => {
+    updateSetting('searchEngine', e);
+    ipc.invoke(IPC.SETTINGS_SET, { profileId: DEFAULT_PROFILE_ID, settings: { searchEngine: e } });
+  };
+
+  const flash = (m: string) => { setMsg(m); setTimeout(() => setMsg(null), 2500); };
+
+  const resetDefaults = async () => {
+    if (!window.confirm('Reset all settings to their defaults? Your bookmarks, history, and AI chats are kept.')) return;
+    setSettings(DEFAULT_SETTINGS);
+    await ipc.invoke(IPC.SETTINGS_SET, { profileId: DEFAULT_PROFILE_ID, settings: DEFAULT_SETTINGS });
+    flash('Settings reset to defaults.');
+  };
+
+  const exportSettings = async () => {
+    const s = await ipc.invoke<AppSettings>(IPC.SETTINGS_GET, { profileId: DEFAULT_PROFILE_ID });
+    const blob = new Blob([JSON.stringify(s, null, 2)], { type: 'application/json' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'vyro-settings.json';
+    a.click();
+    flash('Settings exported.');
+  };
+
+  const importSettings = () => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.json';
+    input.onchange = async () => {
+      const file = input.files?.[0];
+      if (!file) return;
+      try {
+        const parsed = JSON.parse(await file.text());
+        const merged = { ...DEFAULT_SETTINGS, ...parsed } as AppSettings;
+        setSettings(merged);
+        await ipc.invoke(IPC.SETTINGS_SET, { profileId: DEFAULT_PROFILE_ID, settings: merged });
+        flash('Settings imported.');
+      } catch {
+        flash('Error: invalid settings file.');
+      }
+    };
+    input.click();
+  };
 
   const run = async (channel: string, label: string, confirm?: string) => {
     if (confirm && !window.confirm(confirm)) return;
@@ -565,6 +677,36 @@ const GeneralTab: React.FC = () => {
         ) : (
           <p className="text-white/20 text-xs">Loading…</p>
         )}
+      </div>
+
+      {}
+      <div className="bg-white/3 border border-white/8 rounded-xl p-4 flex flex-col gap-3">
+        <p className="text-xs text-white/40 font-medium uppercase tracking-wider">Default Search Engine</p>
+        <div className="grid grid-cols-4 gap-2">
+          {(Object.keys(SEARCH_ENGINES) as SearchEngine[]).map(e => (
+            <button
+              key={e}
+              onClick={() => selectEngine(e)}
+              aria-pressed={searchEngine === e}
+              className={`py-2 px-3 rounded-lg text-xs font-medium transition-all ${
+                searchEngine === e ? 'bg-vyro-500 text-white' : 'bg-white/6 hover:bg-white/10 text-white/80'
+              }`}
+            >
+              {SEARCH_ENGINES[e].label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {}
+      <div className="bg-white/3 border border-white/8 rounded-xl p-4 flex flex-col gap-3">
+        <p className="text-xs text-white/40 font-medium uppercase tracking-wider">Settings</p>
+        <div className="flex gap-2">
+          <button className={btnCls('bg-white/6 hover:bg-white/10 text-white/80')} onClick={importSettings}>Import…</button>
+          <button className={btnCls('bg-white/6 hover:bg-white/10 text-white/80')} onClick={exportSettings}>Export</button>
+          <button className={btnCls('bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/20')} onClick={resetDefaults}>Reset to Defaults</button>
+        </div>
+        <p className="text-xs text-white/25">Back up or restore your preferences as a JSON file.</p>
       </div>
 
       {}

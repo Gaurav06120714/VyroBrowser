@@ -72,6 +72,7 @@ export const WebviewPane: React.FC<WebviewPaneProps> = ({ tab, active }) => {
   const updateTab = useTabsStore(s => s.updateTab);
   const registeredRef = useRef(false);
   const [localLoading, setLocalLoading] = useState(false);
+  const [loadError, setLoadError] = useState<{ code: number; description: string; url: string } | null>(null);
 
   const handleDomReady = useCallback(() => {
     const wv = webviewRef.current;
@@ -125,7 +126,17 @@ export const WebviewPane: React.FC<WebviewPaneProps> = ({ tab, active }) => {
 
     const onStartLoading = () => {
       setLocalLoading(true);
+      setLoadError(null);
       updateTab(tab.id, { isLoading: true });
+    };
+
+    const onDidFailLoad = (e: Event) => {
+      const ev = e as unknown as { errorCode: number; errorDescription: string; validatedURL: string; isMainFrame: boolean };
+      // Ignore subframe failures and user-aborted loads (-3 = ERR_ABORTED).
+      if (ev.isMainFrame === false || ev.errorCode === -3) return;
+      setLocalLoading(false);
+      setLoadError({ code: ev.errorCode, description: ev.errorDescription, url: ev.validatedURL || tab.url });
+      updateTab(tab.id, { isLoading: false });
     };
 
     const onStopLoading = () => {
@@ -165,6 +176,7 @@ export const WebviewPane: React.FC<WebviewPaneProps> = ({ tab, active }) => {
     wv.addEventListener('dom-ready', handleDomReady);
     wv.addEventListener('did-finish-load', handleDidFinishLoad);
     wv.addEventListener('did-start-loading', onStartLoading);
+    wv.addEventListener('did-fail-load', onDidFailLoad);
     wv.addEventListener('did-stop-loading', onStopLoading);
     wv.addEventListener('page-title-updated', onTitleUpdated);
     wv.addEventListener('page-favicon-updated', onFaviconUpdated);
@@ -176,6 +188,7 @@ export const WebviewPane: React.FC<WebviewPaneProps> = ({ tab, active }) => {
       wv.removeEventListener('dom-ready', handleDomReady);
       wv.removeEventListener('did-finish-load', handleDidFinishLoad);
       wv.removeEventListener('did-start-loading', onStartLoading);
+      wv.removeEventListener('did-fail-load', onDidFailLoad);
       wv.removeEventListener('did-stop-loading', onStopLoading);
       wv.removeEventListener('page-title-updated', onTitleUpdated);
       wv.removeEventListener('page-favicon-updated', onFaviconUpdated);
@@ -215,6 +228,32 @@ export const WebviewPane: React.FC<WebviewPaneProps> = ({ tab, active }) => {
       ) : (
         <div className="relative flex flex-col flex-1 overflow-hidden">
           {localLoading && <WebviewSkeleton />}
+          {loadError && (
+            <div className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-4 bg-[#0f0f10] text-white/60 px-6 text-center">
+              <svg className="w-12 h-12 text-white/25" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M18.364 5.636a9 9 0 010 12.728M5.636 18.364a9 9 0 010-12.728M12 12h.01" />
+              </svg>
+              <div>
+                <p className="text-sm font-medium text-white/80">This page can't be reached</p>
+                <p className="text-xs text-white/40 mt-1 break-all max-w-md">{loadError.url}</p>
+                <p className="text-xs text-white/30 mt-2 font-mono">
+                  {loadError.description} ({loadError.code})
+                </p>
+              </div>
+              <button
+                onClick={() => {
+                  const wv = webviewRef.current;
+                  setLoadError(null);
+                  if (wv) {
+                    try { wv.loadURL(loadError.url); } catch { wv.reload(); }
+                  }
+                }}
+                className="px-4 py-1.5 text-sm bg-white/8 hover:bg-white/12 rounded-lg border border-white/10 transition-colors"
+              >
+                Try again
+              </button>
+            </div>
+          )}
           <div
             className="flex flex-col flex-1"
             style={{

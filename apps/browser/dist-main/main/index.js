@@ -15,7 +15,19 @@ const shortcuts_1 = require("./shortcuts");
 const tray_1 = require("./tray");
 const updater_1 = require("./updater");
 const app_management_1 = require("./ipc/app-management");
+const ipc_channels_1 = require("../shared/ipc-channels");
 electron_1.app.name = 'Vyro';
+// Use a clean, real Chrome user-agent (drops the Electron/Vyro tokens and tracks
+// the actual bundled Chromium version) for site compatibility.
+{
+    const chromeVersion = process.versions.chrome;
+    const platformToken = process.platform === 'win32'
+        ? 'Windows NT 10.0; Win64; x64'
+        : process.platform === 'darwin'
+            ? 'Macintosh; Intel Mac OS X 10_15_7'
+            : 'X11; Linux x86_64';
+    electron_1.app.userAgentFallback = `Mozilla/5.0 (${platformToken}) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/${chromeVersion} Safari/537.36`;
+}
 if (process.platform === 'win32') {
     electron_1.app.setAppUserModelId('com.vyro.browser');
 }
@@ -54,6 +66,30 @@ electron_1.app.whenReady().then(async () => {
     windowManager = new window_manager_1.WindowManager();
     createWindow();
     (0, ipc_1.registerAllIpc)(db, windowManager);
+    // Harden every embedded <webview> guest and route its popups into Vyro tabs.
+    electron_1.app.on('web-contents-created', (_e, contents) => {
+        // Enforce a safe webPreferences baseline regardless of renderer attributes.
+        contents.on('will-attach-webview', (_evt, webPreferences) => {
+            webPreferences.nodeIntegration = false;
+            webPreferences.nodeIntegrationInSubFrames = false;
+            webPreferences.contextIsolation = true;
+        });
+        if (contents.getType() !== 'webview')
+            return;
+        // window.open / target=_blank from a page opens a new Vyro tab.
+        contents.setWindowOpenHandler(({ url }) => {
+            const main = windowManager.getMain();
+            if (main && !main.isDestroyed()) {
+                main.webContents.send(ipc_channels_1.IPC.WEBVIEW_NEW_WINDOW, { url });
+            }
+            return { action: 'deny' };
+        });
+        // Block navigation to non-web protocols (file://, custom schemes, etc.).
+        contents.on('will-navigate', (event, url) => {
+            if (!/^(https?|about|data|blob):/i.test(url))
+                event.preventDefault();
+        });
+    });
     const mainWin = windowManager.getMain();
     if (mainWin) {
         (0, shortcuts_1.registerShortcuts)(mainWin);

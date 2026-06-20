@@ -31,15 +31,15 @@ interface WebviewPaneProps {
 function renderWebview(
   tab: Tab,
   ref: React.RefObject<HTMLElement>,
-  userAgent: string
 ): React.ReactElement {
   return React.createElement('webview', {
     ref,
     src: tab.url,
     partition: `${WEBVIEW_PARTITION_PREFIX}${tab.profileId}`,
     allowpopups: 'true',
-    useragent: userAgent,
-    webpreferences: 'contextIsolation=yes',
+    // UA comes from app.userAgentFallback (main); node integration disabled and
+    // context isolation enforced in main via will-attach-webview.
+    webpreferences: 'contextIsolation=yes,nodeIntegration=no',
     style: { flex: 1, width: '100%', height: '100%', border: 'none' },
   });
 }
@@ -48,9 +48,6 @@ function isNewTab(url: string): boolean {
   return !url || url === NEW_TAB_URL || url === 'about:blank';
 }
 
-const CHROME_UA =
-  'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) ' +
-  'AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36';
 
 const WebviewSkeleton: React.FC = () => (
   <div className="absolute inset-0 z-10 bg-[#0f0f10] flex flex-col gap-3 p-5 pointer-events-none animate-pulse">
@@ -73,7 +70,6 @@ const WebviewSkeleton: React.FC = () => (
 export const WebviewPane: React.FC<WebviewPaneProps> = ({ tab, active }) => {
   const webviewRef = useRef<WebviewElement | null>(null);
   const updateTab = useTabsStore(s => s.updateTab);
-  const createTab = useTabsStore(s => s.createTab);
   const registeredRef = useRef(false);
   const [localLoading, setLocalLoading] = useState(false);
 
@@ -162,11 +158,6 @@ export const WebviewPane: React.FC<WebviewPaneProps> = ({ tab, active }) => {
       });
     };
 
-    const onNewWindow = (e: Event) => {
-      const ev = e as unknown as { url: string };
-      createTab({ url: ev.url });
-    };
-
     const onCrashed = () => {
       updateTab(tab.id, { isLoading: false, title: 'Tab Crashed' });
     };
@@ -179,7 +170,6 @@ export const WebviewPane: React.FC<WebviewPaneProps> = ({ tab, active }) => {
     wv.addEventListener('page-favicon-updated', onFaviconUpdated);
     wv.addEventListener('did-navigate', onDidNavigate);
     wv.addEventListener('did-navigate-in-page', onDidNavigate);
-    wv.addEventListener('new-window', onNewWindow);
     wv.addEventListener('crashed', onCrashed);
 
     return () => {
@@ -191,10 +181,9 @@ export const WebviewPane: React.FC<WebviewPaneProps> = ({ tab, active }) => {
       wv.removeEventListener('page-favicon-updated', onFaviconUpdated);
       wv.removeEventListener('did-navigate', onDidNavigate);
       wv.removeEventListener('did-navigate-in-page', onDidNavigate);
-      wv.removeEventListener('new-window', onNewWindow);
       wv.removeEventListener('crashed', onCrashed);
     };
-  }, [tab.id, handleDomReady, handleDidFinishLoad, updateTab, createTab]);
+  }, [tab.id, handleDomReady, handleDidFinishLoad, updateTab]);
 
   const isCrashed = tab.title === 'Tab Crashed';
   const showNewTab = isNewTab(tab.url);
@@ -233,7 +222,7 @@ export const WebviewPane: React.FC<WebviewPaneProps> = ({ tab, active }) => {
               transition: 'opacity 200ms ease-out',
             }}
           >
-            {renderWebview(tab, webviewRef as React.RefObject<HTMLElement>, CHROME_UA)}
+            {renderWebview(tab, webviewRef as React.RefObject<HTMLElement>)}
           </div>
         </div>
       )}

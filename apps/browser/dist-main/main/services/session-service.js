@@ -3,6 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.SessionService = void 0;
 const electron_1 = require("electron");
 const constants_1 = require("../../shared/constants");
+const permissions_1 = require("../ipc/permissions");
 const sessionCache = new Map();
 class SessionService {
     getSession(profileId) {
@@ -15,17 +16,9 @@ class SessionService {
     }
     configureSession(profileId) {
         const s = this.getSession(profileId);
-        s.setUserAgent('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) ' +
-            'AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36');
-        s.setPermissionRequestHandler((_webContents, permission, callback) => {
-            const allowedByDefault = ['notifications', 'media', 'geolocation', 'clipboard-read'];
-            if (allowedByDefault.includes(permission)) {
-                callback(true);
-            }
-            else {
-                callback(false);
-            }
-        });
+        // UA is set globally via app.userAgentFallback; permission requests go
+        // through the in-app PermissionDialog rather than being auto-granted.
+        (0, permissions_1.attachPermissionHandler)(s);
         s.on('will-download', (_event, item) => {
             item.on('updated', (_e, state) => {
                 if (state === 'interrupted') {

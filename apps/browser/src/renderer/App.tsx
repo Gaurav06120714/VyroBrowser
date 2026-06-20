@@ -202,6 +202,14 @@ const App: React.FC = () => {
   }, [createTab]);
 
   useEffect(() => {
+    const off = ipc.on(IPC.WEBVIEW_NEW_WINDOW, (...args: unknown[]) => {
+      const payload = args[0] as { url?: string };
+      if (payload?.url) createTab({ url: payload.url });
+    });
+    return off;
+  }, [createTab]);
+
+  useEffect(() => {
     let timer: ReturnType<typeof setTimeout> | null = null;
     const saveSession = () => {
       const { tabs, activeTabId } = useTabsStore.getState();

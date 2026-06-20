@@ -144,6 +144,9 @@ export const AIPanel: React.FC = () => {
       {}
       <div
         ref={scrollRef}
+        role="log"
+        aria-live="polite"
+        aria-relevant="additions text"
         className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-thin"
       >
         {!activeConversationId && (

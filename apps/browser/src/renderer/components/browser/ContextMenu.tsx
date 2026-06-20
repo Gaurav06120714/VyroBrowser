@@ -36,8 +36,9 @@ const Separator: React.FC = () => (
 
 const Item: React.FC<{ item: MenuItem }> = ({ item }) => (
   <button
+    role="menuitem"
     onClick={item.action}
-    className={`w-full flex items-center justify-between px-3 py-1.5 text-xs rounded-lg transition-colors ${
+    className={`vyro-menuitem w-full flex items-center justify-between px-3 py-1.5 text-xs rounded-lg transition-colors ${
       item.danger ? 'text-red-400 hover:bg-red-500/10' : 'text-white/70 hover:bg-white/8 hover:text-white'
     }`}
   >
@@ -70,6 +71,27 @@ export const ContextMenu: React.FC<Props> = ({ x, y, type, context, onClose }) =
     };
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
+  }, [onClose]);
+
+  // Keyboard navigation: focus first item, Arrow/Home/End move, Esc closes.
+  useEffect(() => {
+    const root = menuRef.current;
+    if (!root) return;
+    const items = () => Array.from(root.querySelectorAll<HTMLButtonElement>('.vyro-menuitem'));
+    const first = items()[0];
+    first?.focus();
+
+    const onKey = (e: KeyboardEvent) => {
+      const list = items();
+      const idx = list.findIndex(el => el === document.activeElement);
+      if (e.key === 'Escape') { e.preventDefault(); onClose(); }
+      else if (e.key === 'ArrowDown') { e.preventDefault(); list[(idx + 1) % list.length]?.focus(); }
+      else if (e.key === 'ArrowUp') { e.preventDefault(); list[(idx - 1 + list.length) % list.length]?.focus(); }
+      else if (e.key === 'Home') { e.preventDefault(); list[0]?.focus(); }
+      else if (e.key === 'End') { e.preventDefault(); list[list.length - 1]?.focus(); }
+    };
+    root.addEventListener('keydown', onKey);
+    return () => root.removeEventListener('keydown', onKey);
   }, [onClose]);
 
   const pageItems: MenuEntry[] = [
@@ -119,6 +141,9 @@ export const ContextMenu: React.FC<Props> = ({ x, y, type, context, onClose }) =
   return createPortal(
     <div
       ref={menuRef}
+      role="menu"
+      aria-orientation="vertical"
+      tabIndex={-1}
       className="fixed z-[9999] bg-[#111113]/95 border border-white/10 rounded-xl shadow-2xl py-1.5 px-1 min-w-[200px] backdrop-blur-sm"
       style={{ left: clampedX, top: clampedY }}
       onContextMenu={e => e.preventDefault()}

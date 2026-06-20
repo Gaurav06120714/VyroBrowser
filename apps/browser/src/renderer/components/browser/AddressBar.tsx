@@ -188,7 +188,7 @@ export const AddressBar: React.FC = () => {
           spellCheck={false}
           autoComplete="off"
           placeholder="Search or navigate…"
-          className="flex-1 bg-transparent text-sm text-white placeholder:text-white/20 focus:outline-none min-w-0 text-center focus:text-left"
+          className="flex-1 bg-transparent text-sm text-white placeholder:text-white/45 focus:outline-none min-w-0 text-center focus:text-left"
         />
 
         {}

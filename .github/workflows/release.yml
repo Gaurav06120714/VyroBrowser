@@ -42,7 +42,9 @@ jobs:
         env:
           CSC_IDENTITY_AUTO_DISCOVERY: false
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: npm run package:mac
+        # --publish never: don't let electron-builder upload during the build
+        # (that times out on large files). The Publish job uploads via artifacts.
+        run: npm run package:mac -- --publish never
 
       - name: Rename artifacts to production names
         working-directory: ${{ env.APP_DIR }}/dist
@@ -87,7 +89,7 @@ jobs:
         env:
           CSC_IDENTITY_AUTO_DISCOVERY: false
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: npm run package:win
+        run: npm run package:win -- --publish never
 
       - name: Rename Windows artifacts
         working-directory: ${{ env.APP_DIR }}/dist
@@ -129,7 +131,7 @@ jobs:
         working-directory: ${{ env.APP_DIR }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: npm run package:linux
+        run: npm run package:linux -- --publish never
 
       - name: Rename Linux artifacts
         working-directory: ${{ env.APP_DIR }}/dist

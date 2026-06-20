@@ -7,7 +7,13 @@ import { ipc, IPC } from '../../lib/ipc';
 import { DEFAULT_PROFILE_ID } from '@shared/constants';
 import { KeywordEntry, CustomKeyword } from '@shared/keyword-engine/types';
 
-type Tab = 'general' | 'keywords';
+type Tab = 'general' | 'appearance' | 'privacy' | 'ai' | 'keywords';
+
+// Feature flag: the Keywords management UI is fully built and wired (see
+// KeywordsTab / KeywordForm below and the keyword IPC/services/DB). It is hidden
+// from the Settings navigation for now. Flip this to `true` to restore the tab —
+// no other code needs to change.
+const KEYWORDS_TAB_ENABLED = false;
 
 interface KeywordsData {
   builtin: KeywordEntry[];
@@ -361,23 +367,50 @@ const KeywordsTab: React.FC = () => {
   );
 };
 
-const GeneralTab: React.FC = () => {
-  const [cacheSize, setCacheSize] = useState<string | null>(null);
-  const [versionInfo, setVersionInfo] = useState<any>(null);
-  const [busy, setBusy] = useState<string | null>(null);
-  const [msg, setMsg] = useState<string | null>(null);
-  const [httpsOnly, setHttpsOnly] = useState(false);
+const AppearanceTab: React.FC = () => {
   const theme = useSettingsStore(s => s.settings.theme);
   const updateSetting = useSettingsStore(s => s.updateSetting);
 
   const selectTheme = (t: Theme) => {
+    // Apply instantly (store drives the document data-theme via useSettings) and persist.
     updateSetting('theme', t);
     ipc.invoke(IPC.SETTINGS_SET, { profileId: DEFAULT_PROFILE_ID, settings: { theme: t } });
   };
 
+  const OPTIONS: { id: Theme; label: string }[] = [
+    { id: 'light', label: 'Light Mode' },
+    { id: 'dark', label: 'Dark Mode' },
+    { id: 'system', label: 'System Default' },
+  ];
+
+  return (
+    <div className="flex flex-col gap-5 text-sm">
+      <div className="bg-white/3 border border-white/8 rounded-xl p-4 flex flex-col gap-3">
+        <p className="text-xs text-white/40 font-medium uppercase tracking-wider">Theme</p>
+        <div className="flex gap-2">
+          {OPTIONS.map(o => (
+            <button
+              key={o.id}
+              onClick={() => selectTheme(o.id)}
+              aria-pressed={theme === o.id}
+              className={`flex-1 py-2 px-3 rounded-lg text-xs font-medium transition-all ${
+                theme === o.id ? 'bg-vyro-500 text-white' : 'bg-white/6 hover:bg-white/10 text-white/80'
+              }`}
+            >
+              {o.label}
+            </button>
+          ))}
+        </div>
+        <p className="text-xs text-white/25">System Default follows your OS appearance automatically.</p>
+      </div>
+    </div>
+  );
+};
+
+const PrivacyTab: React.FC = () => {
+  const [httpsOnly, setHttpsOnly] = useState(false);
+
   useEffect(() => {
-    ipc.invoke(IPC.APP_GET_CACHE_SIZE).then((r: any) => setCacheSize(r?.mb ?? null));
-    ipc.invoke(IPC.APP_GET_VERSION).then((r: any) => setVersionInfo(r));
     ipc.invoke(IPC.SETTINGS_GET, { profileId: DEFAULT_PROFILE_ID }).then((s: any) => {
       if (s && typeof s.httpsOnly === 'boolean') setHttpsOnly(s.httpsOnly);
     });
@@ -388,6 +421,103 @@ const GeneralTab: React.FC = () => {
     setHttpsOnly(next);
     ipc.invoke(IPC.SETTINGS_SET, { profileId: DEFAULT_PROFILE_ID, settings: { httpsOnly: next } });
   };
+
+  return (
+    <div className="flex flex-col gap-5 text-sm">
+      <div className="bg-white/3 border border-white/8 rounded-xl p-4 flex flex-col gap-3">
+        <p className="text-xs text-white/40 font-medium uppercase tracking-wider">Privacy &amp; Security</p>
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex flex-col">
+            <span className="text-xs text-white/80">HTTPS-Only Mode</span>
+            <span className="text-xs text-white/25">Upgrade page loads to HTTPS; insecure sites that can't upgrade will fail to load.</span>
+          </div>
+          <button
+            role="switch"
+            aria-checked={httpsOnly}
+            aria-label="HTTPS-Only Mode"
+            onClick={toggleHttpsOnly}
+            className={`relative shrink-0 w-10 h-6 rounded-full transition-colors ${httpsOnly ? 'bg-vyro-500' : 'bg-white/12'}`}
+          >
+            <span className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white transition-transform ${httpsOnly ? 'translate-x-4' : ''}`} />
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const AITab: React.FC = () => {
+  const [ollamaUrl, setOllamaUrl] = useState('');
+  const [aiModel, setAiModel] = useState('');
+  const [aiSystemPrompt, setAiSystemPrompt] = useState('');
+
+  useEffect(() => {
+    ipc.invoke(IPC.SETTINGS_GET, { profileId: DEFAULT_PROFILE_ID }).then((s: any) => {
+      if (!s) return;
+      if (typeof s.ollamaUrl === 'string') setOllamaUrl(s.ollamaUrl);
+      if (typeof s.aiModel === 'string') setAiModel(s.aiModel);
+      if (typeof s.aiSystemPrompt === 'string') setAiSystemPrompt(s.aiSystemPrompt);
+    });
+  }, []);
+
+  const save = (partial: Record<string, unknown>) => {
+    ipc.invoke(IPC.SETTINGS_SET, { profileId: DEFAULT_PROFILE_ID, settings: partial });
+  };
+
+  const inputCls = 'w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-white placeholder:text-white/25 focus:outline-none focus:border-vyro-500/50';
+
+  return (
+    <div className="flex flex-col gap-5 text-sm">
+      <div className="bg-white/3 border border-white/8 rounded-xl p-4 flex flex-col gap-3">
+        <p className="text-xs text-white/40 font-medium uppercase tracking-wider">Ollama</p>
+        <div>
+          <label className="block text-xs text-white/40 mb-1">Ollama Server URL</label>
+          <input
+            className={inputCls}
+            value={ollamaUrl}
+            onChange={e => setOllamaUrl(e.target.value)}
+            onBlur={() => save({ ollamaUrl })}
+            placeholder="http://localhost:11434"
+          />
+        </div>
+        <div>
+          <label className="block text-xs text-white/40 mb-1">Default Model</label>
+          <input
+            className={inputCls}
+            value={aiModel}
+            onChange={e => setAiModel(e.target.value)}
+            onBlur={() => save({ aiModel })}
+            placeholder="e.g. llama3.2"
+          />
+        </div>
+      </div>
+      <div className="bg-white/3 border border-white/8 rounded-xl p-4 flex flex-col gap-3">
+        <p className="text-xs text-white/40 font-medium uppercase tracking-wider">Assistant</p>
+        <div>
+          <label className="block text-xs text-white/40 mb-1">System Prompt</label>
+          <textarea
+            className={`${inputCls} min-h-[88px] resize-y`}
+            value={aiSystemPrompt}
+            onChange={e => setAiSystemPrompt(e.target.value)}
+            onBlur={() => save({ aiSystemPrompt })}
+            placeholder="You are a helpful browser assistant. Be concise and clear."
+          />
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const GeneralTab: React.FC = () => {
+  const [cacheSize, setCacheSize] = useState<string | null>(null);
+  const [versionInfo, setVersionInfo] = useState<any>(null);
+  const [busy, setBusy] = useState<string | null>(null);
+  const [msg, setMsg] = useState<string | null>(null);
+
+  useEffect(() => {
+    ipc.invoke(IPC.APP_GET_CACHE_SIZE).then((r: any) => setCacheSize(r?.mb ?? null));
+    ipc.invoke(IPC.APP_GET_VERSION).then((r: any) => setVersionInfo(r));
+  }, []);
 
   const run = async (channel: string, label: string, confirm?: string) => {
     if (confirm && !window.confirm(confirm)) return;
@@ -435,46 +565,6 @@ const GeneralTab: React.FC = () => {
         ) : (
           <p className="text-white/20 text-xs">Loading…</p>
         )}
-      </div>
-
-      {}
-      <div className="bg-white/3 border border-white/8 rounded-xl p-4 flex flex-col gap-3">
-        <p className="text-xs text-white/40 font-medium uppercase tracking-wider">Appearance</p>
-        <div className="flex gap-2">
-          {(['dark', 'light', 'system'] as Theme[]).map(t => (
-            <button
-              key={t}
-              onClick={() => selectTheme(t)}
-              aria-pressed={theme === t}
-              className={`flex-1 py-2 px-3 rounded-lg text-xs font-medium capitalize transition-all ${
-                theme === t ? 'bg-vyro-500 text-white' : 'bg-white/6 hover:bg-white/10 text-white/80'
-              }`}
-            >
-              {t}
-            </button>
-          ))}
-        </div>
-        <p className="text-xs text-white/25">System follows your OS appearance automatically.</p>
-      </div>
-
-      {}
-      <div className="bg-white/3 border border-white/8 rounded-xl p-4 flex flex-col gap-3">
-        <p className="text-xs text-white/40 font-medium uppercase tracking-wider">Privacy &amp; Security</p>
-        <div className="flex items-center justify-between gap-4">
-          <div className="flex flex-col">
-            <span className="text-xs text-white/80">HTTPS-Only Mode</span>
-            <span className="text-xs text-white/25">Upgrade page loads to HTTPS; insecure sites that can't upgrade will fail to load.</span>
-          </div>
-          <button
-            role="switch"
-            aria-checked={httpsOnly}
-            aria-label="HTTPS-Only Mode"
-            onClick={toggleHttpsOnly}
-            className={`relative shrink-0 w-10 h-6 rounded-full transition-colors ${httpsOnly ? 'bg-vyro-500' : 'bg-white/12'}`}
-          >
-            <span className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white transition-transform ${httpsOnly ? 'translate-x-4' : ''}`} />
-          </button>
-        </div>
       </div>
 
       {}
@@ -534,12 +624,16 @@ const GeneralTab: React.FC = () => {
 
 const TABS: { id: Tab; label: string }[] = [
   { id: 'general', label: 'General' },
-  { id: 'keywords', label: 'Keywords' },
+  { id: 'appearance', label: 'Appearance' },
+  { id: 'privacy', label: 'Privacy' },
+  { id: 'ai', label: 'AI' },
+  // Keywords stays defined so it is trivial to re-enable; hidden via the flag.
+  ...(KEYWORDS_TAB_ENABLED ? [{ id: 'keywords' as Tab, label: 'Keywords' }] : []),
 ];
 
 export const SettingsModal: React.FC = () => {
   const closeModal = useUiStore(s => s.closeModal);
-  const [activeTab, setActiveTab] = useState<Tab>('keywords');
+  const [activeTab, setActiveTab] = useState<Tab>('general');
 
   return (
     <Modal open title="Settings" onClose={closeModal} width="max-w-2xl">
@@ -558,7 +652,10 @@ export const SettingsModal: React.FC = () => {
         ))}
       </div>
       {activeTab === 'general' && <GeneralTab />}
-      {activeTab === 'keywords' && <KeywordsTab />}
+      {activeTab === 'appearance' && <AppearanceTab />}
+      {activeTab === 'privacy' && <PrivacyTab />}
+      {activeTab === 'ai' && <AITab />}
+      {KEYWORDS_TAB_ENABLED && activeTab === 'keywords' && <KeywordsTab />}
     </Modal>
   );
 };

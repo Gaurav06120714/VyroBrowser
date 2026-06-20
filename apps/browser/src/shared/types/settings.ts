@@ -24,7 +24,7 @@ export interface AppSettings {
 }
 
 export const DEFAULT_SETTINGS: AppSettings = {
-  theme: 'dark',
+  theme: 'light',
   searchEngine: 'google',
   homePage: 'https://www.google.com',
   newTabPage: 'default',

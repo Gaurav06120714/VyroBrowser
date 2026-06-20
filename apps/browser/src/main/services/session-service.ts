@@ -1,6 +1,7 @@
 import { session, Session } from 'electron';
 import { WEBVIEW_PARTITION_PREFIX } from '../../shared/constants';
 import { attachPermissionHandler } from '../ipc/permissions';
+import { installHttpsOnlyUpgrade } from '../https-only';
 
 const sessionCache = new Map<string, Session>();
 
@@ -20,6 +21,7 @@ export class SessionService {
     // UA is set globally via app.userAgentFallback; permission requests go
     // through the in-app PermissionDialog rather than being auto-granted.
     attachPermissionHandler(s);
+    installHttpsOnlyUpgrade(s);
 
     s.on('will-download', (_event, item) => {
       

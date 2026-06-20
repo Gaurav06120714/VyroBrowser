@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Modal } from '../shared/Modal';
 import { useUiStore } from '../../store/ui.store';
 import { ipc, IPC } from '../../lib/ipc';
+import { DEFAULT_PROFILE_ID } from '@shared/constants';
 import { KeywordEntry, CustomKeyword } from '@shared/keyword-engine/types';
 
 type Tab = 'general' | 'keywords';
@@ -363,11 +364,21 @@ const GeneralTab: React.FC = () => {
   const [versionInfo, setVersionInfo] = useState<any>(null);
   const [busy, setBusy] = useState<string | null>(null);
   const [msg, setMsg] = useState<string | null>(null);
+  const [httpsOnly, setHttpsOnly] = useState(false);
 
   useEffect(() => {
     ipc.invoke(IPC.APP_GET_CACHE_SIZE).then((r: any) => setCacheSize(r?.mb ?? null));
     ipc.invoke(IPC.APP_GET_VERSION).then((r: any) => setVersionInfo(r));
+    ipc.invoke(IPC.SETTINGS_GET, { profileId: DEFAULT_PROFILE_ID }).then((s: any) => {
+      if (s && typeof s.httpsOnly === 'boolean') setHttpsOnly(s.httpsOnly);
+    });
   }, []);
+
+  const toggleHttpsOnly = () => {
+    const next = !httpsOnly;
+    setHttpsOnly(next);
+    ipc.invoke(IPC.SETTINGS_SET, { profileId: DEFAULT_PROFILE_ID, settings: { httpsOnly: next } });
+  };
 
   const run = async (channel: string, label: string, confirm?: string) => {
     if (confirm && !window.confirm(confirm)) return;
@@ -415,6 +426,26 @@ const GeneralTab: React.FC = () => {
         ) : (
           <p className="text-white/20 text-xs">Loading…</p>
         )}
+      </div>
+
+      {}
+      <div className="bg-white/3 border border-white/8 rounded-xl p-4 flex flex-col gap-3">
+        <p className="text-xs text-white/40 font-medium uppercase tracking-wider">Privacy &amp; Security</p>
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex flex-col">
+            <span className="text-xs text-white/80">HTTPS-Only Mode</span>
+            <span className="text-xs text-white/25">Upgrade page loads to HTTPS; insecure sites that can't upgrade will fail to load.</span>
+          </div>
+          <button
+            role="switch"
+            aria-checked={httpsOnly}
+            aria-label="HTTPS-Only Mode"
+            onClick={toggleHttpsOnly}
+            className={`relative shrink-0 w-10 h-6 rounded-full transition-colors ${httpsOnly ? 'bg-vyro-500' : 'bg-white/12'}`}
+          >
+            <span className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white transition-transform ${httpsOnly ? 'translate-x-4' : ''}`} />
+          </button>
+        </div>
       </div>
 
       {}

@@ -4,6 +4,7 @@ exports.SessionService = void 0;
 const electron_1 = require("electron");
 const constants_1 = require("../../shared/constants");
 const permissions_1 = require("../ipc/permissions");
+const https_only_1 = require("../https-only");
 const sessionCache = new Map();
 class SessionService {
     getSession(profileId) {
@@ -19,6 +20,7 @@ class SessionService {
         // UA is set globally via app.userAgentFallback; permission requests go
         // through the in-app PermissionDialog rather than being auto-granted.
         (0, permissions_1.attachPermissionHandler)(s);
+        (0, https_only_1.installHttpsOnlyUpgrade)(s);
         s.on('will-download', (_event, item) => {
             item.on('updated', (_e, state) => {
                 if (state === 'interrupted') {

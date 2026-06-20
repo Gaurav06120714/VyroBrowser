@@ -15,6 +15,7 @@ const shortcuts_1 = require("./shortcuts");
 const tray_1 = require("./tray");
 const updater_1 = require("./updater");
 const app_management_1 = require("./ipc/app-management");
+const https_only_1 = require("./https-only");
 const ipc_channels_1 = require("../shared/ipc-channels");
 electron_1.app.name = 'Vyro';
 // Use a clean, real Chrome user-agent (drops the Electron/Vyro tokens and tracks
@@ -98,6 +99,7 @@ electron_1.app.whenReady().then(async () => {
     (0, request_filter_1.setupAdblocking)(defaultSession).catch(err => {
         console.error('Failed to initialize adblocker:', err);
     });
+    (0, https_only_1.installHttpsOnlyUpgrade)(defaultSession);
     defaultSession.on('will-download', (_event, item) => {
         const downloadService = (0, downloads_1.getDownloadService)();
         if (downloadService) {

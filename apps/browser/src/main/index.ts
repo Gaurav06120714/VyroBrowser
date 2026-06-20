@@ -11,6 +11,7 @@ import { registerShortcuts, unregisterShortcuts } from './shortcuts';
 import { createTray, destroyTray } from './tray';
 import { setupAutoUpdater } from './updater';
 import { runStartupMigration } from './ipc/app-management';
+import { installHttpsOnlyUpgrade } from './https-only';
 import { IPC } from '../shared/ipc-channels';
 
 app.name = 'Vyro';
@@ -111,6 +112,7 @@ app.whenReady().then(async () => {
   setupAdblocking(defaultSession).catch(err => {
     console.error('Failed to initialize adblocker:', err);
   });
+  installHttpsOnlyUpgrade(defaultSession);
 
   defaultSession.on('will-download', (_event, item) => {
     const downloadService = getDownloadService();

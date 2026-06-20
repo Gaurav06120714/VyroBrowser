@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Modal } from '../shared/Modal';
 import { useUiStore } from '../../store/ui.store';
+import { useSettingsStore } from '../../store/settings.store';
+import { Theme } from '@shared/types/settings';
 import { ipc, IPC } from '../../lib/ipc';
 import { DEFAULT_PROFILE_ID } from '@shared/constants';
 import { KeywordEntry, CustomKeyword } from '@shared/keyword-engine/types';
@@ -365,6 +367,13 @@ const GeneralTab: React.FC = () => {
   const [busy, setBusy] = useState<string | null>(null);
   const [msg, setMsg] = useState<string | null>(null);
   const [httpsOnly, setHttpsOnly] = useState(false);
+  const theme = useSettingsStore(s => s.settings.theme);
+  const updateSetting = useSettingsStore(s => s.updateSetting);
+
+  const selectTheme = (t: Theme) => {
+    updateSetting('theme', t);
+    ipc.invoke(IPC.SETTINGS_SET, { profileId: DEFAULT_PROFILE_ID, settings: { theme: t } });
+  };
 
   useEffect(() => {
     ipc.invoke(IPC.APP_GET_CACHE_SIZE).then((r: any) => setCacheSize(r?.mb ?? null));
@@ -426,6 +435,26 @@ const GeneralTab: React.FC = () => {
         ) : (
           <p className="text-white/20 text-xs">Loading…</p>
         )}
+      </div>
+
+      {}
+      <div className="bg-white/3 border border-white/8 rounded-xl p-4 flex flex-col gap-3">
+        <p className="text-xs text-white/40 font-medium uppercase tracking-wider">Appearance</p>
+        <div className="flex gap-2">
+          {(['dark', 'light', 'system'] as Theme[]).map(t => (
+            <button
+              key={t}
+              onClick={() => selectTheme(t)}
+              aria-pressed={theme === t}
+              className={`flex-1 py-2 px-3 rounded-lg text-xs font-medium capitalize transition-all ${
+                theme === t ? 'bg-vyro-500 text-white' : 'bg-white/6 hover:bg-white/10 text-white/80'
+              }`}
+            >
+              {t}
+            </button>
+          ))}
+        </div>
+        <p className="text-xs text-white/25">System follows your OS appearance automatically.</p>
       </div>
 
       {}

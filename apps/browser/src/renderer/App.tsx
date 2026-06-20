@@ -38,6 +38,8 @@ const NavBar: React.FC = () => {
   const openModal = useUiStore(s => s.openModal);
   const toggleSidebar = useUiStore(s => s.toggleSidebar);
   const sidebarOpen = useUiStore(s => s.sidebarOpen);
+  const splitViewEnabled = useUiStore(s => s.splitViewEnabled);
+  const setSplitViewEnabled = useUiStore(s => s.setSplitViewEnabled);
   const activeTab = useTabsStore(s => s.activeTab());
   const syncUser = useAuthStore(s => s.user);
 
@@ -81,6 +83,19 @@ const NavBar: React.FC = () => {
         >
           <svg className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
             <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
+          </svg>
+        </button>
+
+        <button
+          onClick={() => setSplitViewEnabled(!splitViewEnabled)}
+          className="btn-toolbar"
+          style={splitViewEnabled ? { background: 'rgba(129,140,248,0.14)', color: 'var(--vyro-accent)' } : undefined}
+          aria-label="Toggle split view"
+          title="Split view"
+        >
+          <svg className="w-4 h-4" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5">
+            <rect x="3" y="4" width="14" height="12" rx="1.5" />
+            <path strokeLinecap="round" d="M10 4v12" />
           </svg>
         </button>
 

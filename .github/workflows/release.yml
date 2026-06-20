@@ -35,7 +35,14 @@ jobs:
       - name: Build & package (macOS)
         working-directory: ${{ env.APP_DIR }}
         env:
-          CSC_IDENTITY_AUTO_DISCOVERY: false
+          # Signs + notarizes automatically when these secrets are present;
+          # falls back to an unsigned build (auto-discovery off) when they are not.
+          CSC_LINK: ${{ secrets.MAC_CSC_LINK }}
+          CSC_KEY_PASSWORD: ${{ secrets.MAC_CSC_KEY_PASSWORD }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          CSC_IDENTITY_AUTO_DISCOVERY: ${{ secrets.MAC_CSC_LINK != '' }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: npm run package:mac
 
@@ -77,6 +84,9 @@ jobs:
       - name: Build & package (Windows)
         working-directory: ${{ env.APP_DIR }}
         env:
+          # Authenticode-signs automatically when these secrets are present.
+          CSC_LINK: ${{ secrets.WIN_CSC_LINK }}
+          CSC_KEY_PASSWORD: ${{ secrets.WIN_CSC_KEY_PASSWORD }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: npm run package:win
 

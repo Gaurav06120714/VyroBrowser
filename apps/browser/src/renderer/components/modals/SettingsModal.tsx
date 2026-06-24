@@ -515,6 +515,24 @@ const AITab: React.FC = () => {
   const [ollamaUrl, setOllamaUrl] = useState('');
   const [aiModel, setAiModel] = useState('');
   const [aiSystemPrompt, setAiSystemPrompt] = useState('');
+  const [models, setModels] = useState<string[]>([]);
+  const [status, setStatus] = useState<'idle' | 'checking' | 'online' | 'offline'>('idle');
+
+  const checkOllama = useCallback(async () => {
+    setStatus('checking');
+    try {
+      const list = await ipc.invoke<{ name: string }[]>(IPC.AI_MODELS_LIST);
+      const names = (list ?? []).map(m => m.name);
+      setModels(names);
+      setStatus(names.length >= 0 ? 'online' : 'offline');
+      // listModels resolves [] on connection error too; probe health to disambiguate.
+      const ok = await ipc.invoke<{ running?: boolean } | boolean>(IPC.ONBOARDING_CHECK_OLLAMA).catch(() => false);
+      const running = typeof ok === 'object' ? !!ok?.running : !!ok;
+      setStatus(running ? 'online' : 'offline');
+    } catch {
+      setStatus('offline');
+    }
+  }, []);
 
   useEffect(() => {
     ipc.invoke(IPC.SETTINGS_GET, { profileId: DEFAULT_PROFILE_ID }).then((s: any) => {
@@ -523,7 +541,8 @@ const AITab: React.FC = () => {
       if (typeof s.aiModel === 'string') setAiModel(s.aiModel);
       if (typeof s.aiSystemPrompt === 'string') setAiSystemPrompt(s.aiSystemPrompt);
     });
-  }, []);
+    checkOllama();
+  }, [checkOllama]);
 
   const save = (partial: Record<string, unknown>) => {
     ipc.invoke(IPC.SETTINGS_SET, { profileId: DEFAULT_PROFILE_ID, settings: partial });
@@ -531,29 +550,52 @@ const AITab: React.FC = () => {
 
   const inputCls = 'w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-white placeholder:text-white/25 focus:outline-none focus:border-vyro-500/50';
 
+  const dot = status === 'online' ? 'bg-green-400' : status === 'offline' ? 'bg-red-400' : 'bg-white/30';
+  const statusText = status === 'online' ? `Connected · ${models.length} model${models.length === 1 ? '' : 's'}`
+    : status === 'offline' ? 'Not reachable — is Ollama running?'
+    : status === 'checking' ? 'Checking…' : '';
+
   return (
     <div className="flex flex-col gap-5 text-sm">
       <div className="bg-white/3 border border-white/8 rounded-xl p-4 flex flex-col gap-3">
-        <p className="text-xs text-white/40 font-medium uppercase tracking-wider">Ollama</p>
+        <div className="flex items-center justify-between">
+          <p className="text-xs text-white/40 font-medium uppercase tracking-wider">Ollama</p>
+          <div className="flex items-center gap-2">
+            <span className={`w-2 h-2 rounded-full ${dot} ${status === 'checking' ? 'animate-pulse' : ''}`} />
+            <span className="text-xs text-white/50">{statusText}</span>
+            <button onClick={checkOllama} className="text-xs text-vyro-400 hover:text-vyro-300 transition-colors">Test</button>
+          </div>
+        </div>
         <div>
           <label className="block text-xs text-white/40 mb-1">Ollama Server URL</label>
           <input
             className={inputCls}
             value={ollamaUrl}
             onChange={e => setOllamaUrl(e.target.value)}
-            onBlur={() => save({ ollamaUrl })}
+            onBlur={() => { save({ ollamaUrl }); checkOllama(); }}
             placeholder="http://localhost:11434"
           />
         </div>
         <div>
           <label className="block text-xs text-white/40 mb-1">Default Model</label>
-          <input
-            className={inputCls}
-            value={aiModel}
-            onChange={e => setAiModel(e.target.value)}
-            onBlur={() => save({ aiModel })}
-            placeholder="e.g. llama3.2"
-          />
+          {models.length > 0 ? (
+            <select
+              className={inputCls}
+              value={models.includes(aiModel) ? aiModel : ''}
+              onChange={e => { setAiModel(e.target.value); save({ aiModel: e.target.value }); }}
+            >
+              <option value="" disabled>Select a model…</option>
+              {models.map(m => <option key={m} value={m}>{m}</option>)}
+            </select>
+          ) : (
+            <input
+              className={inputCls}
+              value={aiModel}
+              onChange={e => setAiModel(e.target.value)}
+              onBlur={() => save({ aiModel })}
+              placeholder="e.g. llama3.2  (run: ollama pull llama3.2)"
+            />
+          )}
         </div>
       </div>
       <div className="bg-white/3 border border-white/8 rounded-xl p-4 flex flex-col gap-3">

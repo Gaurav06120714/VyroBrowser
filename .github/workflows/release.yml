@@ -42,9 +42,14 @@ jobs:
         env:
           CSC_IDENTITY_AUTO_DISCOVERY: false
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        # --publish never: don't let electron-builder upload during the build
-        # (that times out on large files). The Publish job uploads via artifacts.
-        run: npm run package:mac -- --publish never
+        # Build each arch in a separate electron-builder pass so the native
+        # better-sqlite3 binary is rebuilt for the correct architecture (a single
+        # combined --mac pass shipped an x86_64 binary inside the arm64 DMG).
+        # --publish never: the Publish job uploads via artifacts (avoids timeouts).
+        run: |
+          npm run build
+          CSC_IDENTITY_AUTO_DISCOVERY=false npx electron-builder --mac --arm64 --publish never
+          CSC_IDENTITY_AUTO_DISCOVERY=false npx electron-builder --mac --x64 --publish never
 
       - name: Rename artifacts to production names
         working-directory: ${{ env.APP_DIR }}/dist

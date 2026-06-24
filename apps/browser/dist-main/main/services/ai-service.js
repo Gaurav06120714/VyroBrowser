@@ -111,42 +111,76 @@ class AIService {
                         'Content-Length': Buffer.byteLength(payload),
                     },
                 }, (res) => {
-                    res.on('data', (chunk) => {
-                        const lines = chunk.toString().split('\n').filter(Boolean);
-                        for (const line of lines) {
-                            try {
-                                const obj = JSON.parse(line);
-                                if (obj.message?.content) {
-                                    assistantContent += obj.message.content;
-                                    onChunk(obj.message.content, false);
-                                }
-                                if (obj.done) {
-                                    const aId = (0, uuid_1.v4)();
-                                    const aNow = Math.floor(Date.now() / 1000);
-                                    this.db.prepare('INSERT INTO ai_messages (id, conversation_id, role, content, created_at) VALUES (?, ?, ?, ?, ?)').run(aId, conversationId, 'assistant', assistantContent, aNow);
-                                    (0, sync_service_1.syncAIMessageAdd)({ id: aId, conversation_id: conversationId, role: 'assistant', content: assistantContent, created_at: aNow });
-                                    if (conv?.title === 'New Chat') {
-                                        const title = userContent.slice(0, 50);
-                                        this.db.prepare('UPDATE ai_conversations SET title = ?, updated_at = unixepoch() WHERE id = ?')
-                                            .run(title, conversationId);
-                                    }
-                                    this.abortControllers.delete(conversationId);
-                                    onChunk('', true);
-                                    resolve();
-                                }
+                    let buffer = '';
+                    let finished = false;
+                    const finalize = () => {
+                        if (finished)
+                            return;
+                        finished = true;
+                        const aId = (0, uuid_1.v4)();
+                        const aNow = Math.floor(Date.now() / 1000);
+                        this.db.prepare('INSERT INTO ai_messages (id, conversation_id, role, content, created_at) VALUES (?, ?, ?, ?, ?)').run(aId, conversationId, 'assistant', assistantContent, aNow);
+                        (0, sync_service_1.syncAIMessageAdd)({ id: aId, conversation_id: conversationId, role: 'assistant', content: assistantContent, created_at: aNow });
+                        if (conv?.title === 'New Chat') {
+                            const title = userContent.slice(0, 50);
+                            this.db.prepare('UPDATE ai_conversations SET title = ?, updated_at = unixepoch() WHERE id = ?')
+                                .run(title, conversationId);
+                        }
+                        this.abortControllers.delete(conversationId);
+                        onChunk('', true);
+                        resolve();
+                    };
+                    // Ollama returns NDJSON; HTTP chunks don't align to line boundaries,
+                    // so buffer and only parse complete lines (keep the trailing partial).
+                    const processLine = (line) => {
+                        const trimmed = line.trim();
+                        if (!trimmed)
+                            return;
+                        let obj;
+                        try {
+                            obj = JSON.parse(trimmed);
+                        }
+                        catch {
+                            return; // incomplete/invalid line — ignore
+                        }
+                        if (obj.error) {
+                            this.abortControllers.delete(conversationId);
+                            if (!finished) {
+                                finished = true;
+                                reject(new Error(obj.error));
                             }
-                            catch { }
+                            req.destroy();
+                            return;
+                        }
+                        if (obj.message?.content) {
+                            assistantContent += obj.message.content;
+                            onChunk(obj.message.content, false);
+                        }
+                        if (obj.done)
+                            finalize();
+                    };
+                    res.on('data', (chunk) => {
+                        buffer += chunk.toString();
+                        let idx;
+                        while ((idx = buffer.indexOf('\n')) !== -1) {
+                            const line = buffer.slice(0, idx);
+                            buffer = buffer.slice(idx + 1);
+                            processLine(line);
                         }
                     });
                     res.on('error', (err) => {
                         this.abortControllers.delete(conversationId);
-                        reject(err);
+                        if (!finished) {
+                            finished = true;
+                            reject(err);
+                        }
                     });
                     res.on('end', () => {
+                        if (buffer.trim())
+                            processLine(buffer);
                         this.abortControllers.delete(conversationId);
-                        if (assistantContent && !assistantContent.endsWith('\n')) {
-                            resolve();
-                        }
+                        if (!finished)
+                            finalize();
                     });
                 });
                 req.on('error', (err) => {

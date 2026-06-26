@@ -83,6 +83,18 @@ class AIService {
         }));
     }
     async sendMessage(conversationId, userContent, model, onChunk) {
+        // Resolve a usable model: if the requested one isn't installed (or none was
+        // given), fall back to the first installed model. Surface a clear error when
+        // Ollama is unreachable or has no models — the most common "not working" cases.
+        const installed = await this.listModels();
+        if (installed.length === 0) {
+            throw new Error('No Ollama models found. Make sure Ollama is running, then run: ollama pull llama3.2');
+        }
+        const names = installed.map(m => m.name);
+        if (!model || !names.includes(model)) {
+            // Allow a base-name match (e.g. "llama3.2" matches "llama3.2:latest").
+            model = names.find(n => n === model || n.split(':')[0] === (model || '').split(':')[0]) ?? names[0];
+        }
         const msgId = (0, uuid_1.v4)();
         const now = Math.floor(Date.now() / 1000);
         this.db.prepare('INSERT INTO ai_messages (id, conversation_id, role, content, created_at) VALUES (?, ?, ?, ?, ?)').run(msgId, conversationId, 'user', userContent, now);
